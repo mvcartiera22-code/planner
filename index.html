@@ -870,7 +870,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.17</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.20</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana 🇲🇽</span>
         </div>
@@ -893,12 +893,12 @@
             </button>
             <button class="nav-btn btn-backup" onclick="exportBackup()">☁️ Backup</button>
             <button class="nav-btn btn-restore" onclick="document.getElementById('backup-file-input').click()">📂 Restore</button>
-            <input type="file" id="backup-file-input" accept=".json,application/json" style="display:none;" onchange="importBackup(event)">
+            <input type="file" id="backup-file-input" accept=".txt,.json,text/plain,application/json" style="display:none;" onchange="importBackup(event)">
             <button class="nav-btn" onclick="navigatePage(-1)">&lt; Prev Page</button>
             <button class="nav-btn" onclick="navigatePage(1)">Next Page &gt;</button>
-            <span id="autosave-status">
-                <span class="dot"></span> Auto-Save Active
-            </span>
+            <span id="autosave-status" title="Everything saves automatically on this tablet"><span class="dot"></span> <span id="autosave-text">All changes saved</span><span id="last-backup-text" style="opacity:0.75; font-weight:600; margin-left:6px;"></span></span>
+
+
         </div>
     </div>
 
@@ -1265,7 +1265,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.08.17';
+        const PLANNER_VERSION = 'v2026.08.20';
         let currentViewId = 'weekly';
         let autoSaveTimeout = null;
         let currentMonthlyCurriculum = 'elementary';
@@ -1347,9 +1347,43 @@
 
         function triggerAutoSave() {
             clearTimeout(autoSaveTimeout);
+            setSaveStatus('saving');
             autoSaveTimeout = setTimeout(() => {
-                saveCurrentView();
+                try {
+                    saveCurrentView();
+                    setSaveStatus('saved');
+                } catch (e) {
+                    setSaveStatus('error');
+                }
             }, 600);
+        }
+
+        function setSaveStatus(state) {
+            const el = document.getElementById('autosave-text');
+            if (!el) return;
+            if (state === 'saving') {
+                el.innerText = 'Saving...';
+                el.style.color = '';
+            } else if (state === 'error') {
+                el.innerText = 'Could not save! Back up now';
+                el.style.color = '#fca5a5';
+            } else {
+                el.style.color = '';
+                const t = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                el.innerText = 'Saved ✓ ' + t;
+            }
+        }
+
+        function refreshLastBackupLabel() {
+            const el = document.getElementById('last-backup-text');
+            if (!el) return;
+            const last = localStorage.getItem('planner_last_backup');
+            if (!last) { el.innerText = '· No backup yet'; return; }
+            const [y, m, d] = last.split('-').map(Number);
+            const dt = new Date(y, m - 1, d);
+            const today = formatDateForInput(new Date());
+            const label = last === today ? 'today' : dt.toLocaleDateString([], { month: 'short', day: 'numeric' });
+            el.innerText = '· Backed up ' + label;
         }
 
         function setActiveTab(viewId) {
@@ -1912,6 +1946,7 @@
             attachDropListeners();
             setActiveTab('weekly');
             checkBackupReminder();
+            refreshLastBackupLabel();
 
             document.addEventListener('keyup', (e) => {
                 if (e.target.isContentEditable || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
@@ -1981,22 +2016,26 @@
         }
 
         async function exportBackup() {
-            markBackupDone();
             const backup = collectAllPlannerData();
             const json = JSON.stringify(backup, null, 2);
             const today = formatDateForInput(new Date());
-            const filename = `lesson-planner-backup-${today}.json`;
-            const blob = new Blob([json], { type: 'application/json' });
+            // Saved as .txt on purpose: Android browsers only let a web page hand
+            // plain-text, image, PDF (etc.) files to the share sheet. A .json file
+            // is refused and silently falls back to a download. Same content inside.
+            const filename = `lesson-planner-backup-${today}.txt`;
+            const blob = new Blob([json], { type: 'text/plain' });
+            const file = new File([blob], filename, { type: 'text/plain' });
 
-            // On Android tablets the share sheet lets Maria pick "Drive" to save
-            // the backup directly into her work Google Drive.
-            const file = new File([blob], filename, { type: 'application/json' });
+            // On the tablet the share sheet lets Maria pick "Drive" to save the
+            // backup straight into her work Google Drive (or "Files" for the tablet).
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 try {
-                    await navigator.share({ files: [file], title: 'Lesson Planner Backup' });
+                    await navigator.share({ files: [file], title: 'Lesson Planner Backup', text: 'Lesson planner backup ' + today });
+                    markBackupDone();
+                    showBackupToast('Backup shared ✓ (' + filename + ')');
                     return;
                 } catch (err) {
-                    if (err.name === 'AbortError') return; // user cancelled the share sheet
+                    if (err.name === 'AbortError') return; // user closed the share sheet
                     // otherwise fall through to a normal download
                 }
             }
@@ -2008,7 +2047,22 @@
             a.click();
             a.remove();
             setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-            alert('Backup downloaded: ' + filename + '\n\nUpload this file to your Google Drive to keep it safe.');
+            markBackupDone();
+            showBackupToast('Backup saved to Downloads: ' + filename + '. To copy it to Drive: open My Files → Downloads → hold the file → Share → Drive.', 9000);
+        }
+
+        function showBackupToast(message, ms = 4500) {
+            let t = document.getElementById('backup-toast');
+            if (!t) {
+                t = document.createElement('div');
+                t.id = 'backup-toast';
+                t.style.cssText = 'position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:#1e2433; color:white; border:1px solid rgba(217,164,65,0.45); padding:11px 16px; border-radius:12px; font-size:0.88em; font-weight:600; z-index:950; box-shadow:0 8px 24px rgba(0,0,0,0.45); max-width:92vw; line-height:1.4;';
+                document.body.appendChild(t);
+            }
+            t.innerText = message;
+            t.style.display = 'block';
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => { t.style.display = 'none'; }, ms);
         }
 
         function importBackup(event) {
@@ -2031,7 +2085,7 @@
                     }
                     location.reload();
                 } catch (e) {
-                    alert('Could not read that backup file. Please make sure you picked a planner backup (.json).');
+                    alert('Could not read that backup file. Please make sure you picked a planner backup file.');
                 } finally {
                     fileInput.value = '';
                 }
@@ -2369,6 +2423,7 @@
 
         function markBackupDone() {
             localStorage.setItem('planner_last_backup', formatDateForInput(new Date()));
+            refreshLastBackupLabel();
             document.getElementById('backup-banner').style.display = 'none';
         }
 
