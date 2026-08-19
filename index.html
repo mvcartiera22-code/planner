@@ -542,6 +542,10 @@
             cursor: default;
         }
         .month-day-cell.has-holiday { background: #fffdf6; }
+        .th-date { display: block; font-weight: 600; font-size: 0.8em; opacity: 0.85; margin-top: 3px; letter-spacing: 0.02em; }
+        th .holiday-badge { display: inline-block; margin: 5px 0 0; font-size: 0.74em; background: #fdf3dc; border-color: #eed49a; color: #8a5a10; }
+        td.holiday-col { background: #fffbf0 !important; }
+        td.holiday-col .cell-notes:empty::before { content: attr(data-placeholder); }
 
         /* ============ YEARLY VIEW ============ */
         .year-grid {
@@ -870,7 +874,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.20</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.21</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana 🇲🇽</span>
         </div>
@@ -961,10 +965,10 @@
                             <thead>
                                 <tr>
                                     <th style="width:135px;">Period & Time</th>
-                                    <th>Monday (Lunes)</th>
-                                    <th>Tuesday (Martes)</th>
-                                    <th>Wednesday (Miércoles)</th>
-                                    <th>Thursday (Jueves)</th>
+                                    <th id="wk-th-1">Monday (Lunes)<span class="th-date" id="wk-date-1"></span></th>
+                                    <th id="wk-th-2">Tuesday (Martes)<span class="th-date" id="wk-date-2"></span></th>
+                                    <th id="wk-th-3">Wednesday (Miércoles)<span class="th-date" id="wk-date-3"></span></th>
+                                    <th id="wk-th-4">Thursday (Jueves)<span class="th-date" id="wk-date-4"></span></th>
                                 </tr>
                             </thead>
                             <tbody id="weekly-tbody">
@@ -1265,7 +1269,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.08.20';
+        const PLANNER_VERSION = 'v2026.08.21';
         let currentViewId = 'weekly';
         let autoSaveTimeout = null;
         let currentMonthlyCurriculum = 'elementary';
@@ -1465,6 +1469,7 @@
                 tbody.appendChild(tr);
             });
             attachDropListeners();
+            if (typeof updateWeeklyHeaders === 'function') updateWeeklyHeaders();
         }
 
         const spanishThemes = {
@@ -1700,9 +1705,37 @@
                 const selectedDate = new Date(parts[0], parts[1] - 1, parts[2]);
                 updateYearlyActiveMonth(selectedDate);
                 loadWeeklyData();
+                updateWeeklyHeaders();
             }
         }
 
+
+        // Show each weekday's date under the column header and flag national /
+        // school holidays from the schoolHolidays calendar on the weekly view.
+        function updateWeeklyHeaders() {
+            const val = document.getElementById('weekDate').value;
+            if (!val) return;
+            const p = val.split('-');
+            const monday = getStartOfWeek(new Date(p[0], p[1] - 1, p[2]));
+            for (let i = 1; i <= 4; i++) {
+                const d = new Date(monday);
+                d.setDate(monday.getDate() + (i - 1));
+                const key = `${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`;
+                const holiday = schoolHolidays[key];
+                const dateEl = document.getElementById('wk-date-' + i);
+                if (dateEl) {
+                    const label = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                    dateEl.innerHTML = holiday
+                        ? `${label}<br><span class="holiday-badge">${holiday}</span>`
+                        : label;
+                }
+                // Tint that day's column so the holiday is obvious while planning
+                document.querySelectorAll('#weekly-tbody tr').forEach(tr => {
+                    const td = tr.querySelectorAll('td')[i];
+                    if (td) td.classList.toggle('holiday-col', !!holiday);
+                });
+            }
+        }
         function navigatePage(direction) {
             if (currentViewId === 'weekly') {
                 const input = document.getElementById('weekDate');
@@ -1947,6 +1980,7 @@
             setActiveTab('weekly');
             checkBackupReminder();
             refreshLastBackupLabel();
+            updateWeeklyHeaders();
 
             document.addEventListener('keyup', (e) => {
                 if (e.target.isContentEditable || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
