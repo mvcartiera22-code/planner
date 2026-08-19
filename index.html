@@ -1,0 +1,2381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Teacher Planner | Maria Cartiera</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,700&display=swap');
+
+        :root {
+            /* Chrome (dark shell around the planner) */
+            --app-bg: #0d0f16;
+            --nav-bg: rgba(19, 22, 36, 0.94);
+            --panel-bg: #151827;
+            --chrome-line: rgba(255, 255, 255, 0.07);
+            --chrome-text: #e7eaf2;
+            --chrome-muted: #8b93a7;
+
+            /* Brand: St. Paul's maroon & gold */
+            --brand-950: #3a0d0e;
+            --brand-900: #4c1011;
+            --brand-800: #641515;
+            --brand-700: #7f1d1d;
+            --brand-600: #9b2c2c;
+            --gold: #d9a441;
+            --gold-soft: #f3d9a4;
+
+            /* Paper (the planner page) */
+            --paper-bg: #fdfdfc;
+            --text-main: #1e2433;
+            --muted: #64748b;
+            --border-light: #e5e9f0;
+            --table-header: #8a1c1c;
+
+            /* Tabs */
+            --tab-year: #d97706;
+            --tab-month: #0369a1;
+            --tab-week: #047857;
+            --tab-goals: #6d28d9;
+            --grade-tab-bg: #b45309;
+            --sticker-tab-bg: #be123c;
+
+            /* Seasonal accents */
+            --season-summer: #f59e0b;
+            --season-fall: #ea580c;
+            --season-winter: #0ea5e9;
+            --season-spring: #10b981;
+
+            /* System */
+            --radius: 10px;
+            --ease: cubic-bezier(0.22, 1, 0.36, 1);
+            --shadow-1: 0 1px 2px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.06);
+            --shadow-2: 0 4px 12px rgba(15, 23, 42, 0.10), 0 14px 34px rgba(15, 23, 42, 0.14);
+        }
+
+        * { box-sizing: border-box; }
+
+        html { -webkit-text-size-adjust: 100%; }
+
+        body {
+            background-color: var(--app-bg);
+            background-image:
+                radial-gradient(1100px 480px at 18% -10%, rgba(127, 29, 29, 0.22), transparent 60%),
+                radial-gradient(900px 420px at 92% 0%, rgba(217, 164, 65, 0.07), transparent 55%);
+            background-attachment: fixed;
+            margin: 0;
+            font-family: 'Outfit', 'Nunito', sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            color: var(--chrome-text);
+        }
+
+        ::selection { background: rgba(217, 164, 65, 0.35); }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #c3cbd8; border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
+        ::-webkit-scrollbar-thumb:hover { background-color: #9aa5b8; }
+
+        /* ============ TOP NAVIGATION ============ */
+        .top-navbar {
+            background: var(--nav-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 12px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--chrome-line);
+            flex-wrap: wrap;
+            gap: 10px;
+            position: relative;
+            z-index: 20;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand::before {
+            content: '';
+            width: 4px;
+            height: 36px;
+            border-radius: 3px;
+            background: linear-gradient(180deg, var(--gold), var(--brand-600));
+            flex-shrink: 0;
+        }
+
+        .brand-text h1 {
+            margin: 0;
+            font-size: 1.2em;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.025em;
+        }
+        .brand-text p {
+            margin: 3px 0 0 0;
+            font-size: 0.7em;
+            color: var(--chrome-muted);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        #monthly-theme-badge {
+            background: linear-gradient(135deg, rgba(127, 29, 29, 0.55), rgba(76, 16, 17, 0.55));
+            border: 1px solid rgba(217, 164, 65, 0.35);
+            color: var(--gold-soft);
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 0.72em;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            margin-left: 8px;
+            white-space: nowrap;
+        }
+
+        .nav-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: #202839;
+            border: 1px solid var(--chrome-line);
+            color: var(--chrome-text);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.84em;
+            font-family: inherit;
+            transition: background 0.2s var(--ease), transform 0.15s var(--ease), box-shadow 0.2s var(--ease), border-color 0.2s var(--ease);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .nav-btn:hover { background: #2a3448; border-color: rgba(255,255,255,0.14); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.35); }
+        .nav-btn:active { transform: translateY(0) scale(0.97); box-shadow: none; }
+        .nav-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+        .btn-classroom {
+            background: #f7f8fb;
+            color: #1e293b;
+            border: 1px solid #f7f8fb;
+            font-weight: 700;
+        }
+        .btn-classroom:hover { background: #e9edf3; border-color: #e9edf3; }
+
+        .btn-backup { background: #0e6e66; border-color: rgba(255,255,255,0.1); }
+        .btn-backup:hover { background: #10857b; }
+        .btn-restore { background: #5b21b6; border-color: rgba(255,255,255,0.1); }
+        .btn-restore:hover { background: #6d28d9; }
+
+        #autosave-status {
+            font-size: 0.74em;
+            color: #34d399;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            padding: 6px 12px;
+            border-radius: 999px;
+        }
+        #autosave-status .dot {
+            width: 7px; height: 7px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulseDot 2.2s ease-in-out infinite;
+        }
+        @keyframes pulseDot {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45); }
+            50% { box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
+        }
+
+        /* ============ FORMAT BAR ============ */
+        .format-bar {
+            background: rgba(13, 15, 25, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 8px 22px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            font-size: 0.84em;
+            border-bottom: 1px solid var(--chrome-line);
+            overflow-x: auto;
+            z-index: 15;
+        }
+
+        .format-bar select, .format-bar button {
+            background: #1c2334;
+            color: var(--chrome-text);
+            border: 1px solid var(--chrome-line);
+            padding: 5px 11px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.95em;
+            transition: background 0.18s var(--ease), transform 0.15s var(--ease), border-color 0.18s var(--ease);
+        }
+        .format-bar button:hover { background: #273044; border-color: rgba(255,255,255,0.15); }
+        .format-bar button:active { transform: scale(0.95); }
+        .format-bar select:focus-visible, .format-bar button:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+
+        /* ============ MAIN PLANNER LAYOUT ============ */
+        .planner-workspace {
+            display: flex;
+            flex-grow: 1;
+            padding: 16px 22px 20px;
+            gap: 0;
+            overflow: hidden;
+        }
+
+        .tabs-left, .tabs-right {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-top: 22px;
+            z-index: 10;
+        }
+
+        .tabs-left { margin-right: -2px; }
+        .tabs-right { margin-left: -2px; }
+
+        .tab {
+            padding: 15px 8px;
+            color: white;
+            cursor: pointer;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            font-weight: 700;
+            font-size: 0.82em;
+            letter-spacing: 0.02em;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+            transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease), filter 0.25s var(--ease);
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            filter: saturate(0.82) brightness(0.92);
+        }
+
+        .tabs-left .tab { border-radius: 10px 0 0 10px; }
+        .tabs-right .tab { border-radius: 0 10px 10px 0; }
+
+        .tabs-left .tab:hover { transform: translateX(-5px); filter: saturate(1) brightness(1); }
+        .tabs-right .tab:hover { transform: translateX(5px); filter: saturate(1) brightness(1); }
+
+        .tabs-left .tab.active {
+            transform: translateX(-7px);
+            filter: saturate(1.05) brightness(1.06);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+
+        .tab-year { background: linear-gradient(160deg, #e28409, #c26a05); }
+        .tab-month { background: linear-gradient(160deg, #0479bd, #02598a); }
+        .tab-week { background: linear-gradient(160deg, #059166, #036c4c); }
+        .tab-goals { background: linear-gradient(160deg, #7c3aed, #5f21c4); }
+        .tab-stickers { background: linear-gradient(160deg, #e11d48, #b3123a); }
+        .tab-ai { background: linear-gradient(160deg, #dcaa48, #b3801f); color: #2e2308; border: 1px solid rgba(255, 245, 220, 0.5); }
+        .grade-tab { background: linear-gradient(160deg, #c05d0a, #9a4a07); font-size: 0.76em; padding: 10px 6px; }
+
+        /* Grade tab colors: same hues as the header-g* labels in the schedule */
+        .gtab-1 { background: linear-gradient(160deg, #e11d48, #b3123a); }
+        .gtab-2 { background: linear-gradient(160deg, #ea580c, #bc4409); }
+        .gtab-3 { background: linear-gradient(160deg, #d97706, #a85c04); }
+        .gtab-4 { background: linear-gradient(160deg, #16a34a, #11813a); }
+        .gtab-5 { background: linear-gradient(160deg, #0d9488, #0a7268); }
+        .gtab-6 { background: linear-gradient(160deg, #0284c7, #02689d); }
+        .gtab-7 { background: linear-gradient(160deg, #6d28d9, #5620ab); }
+        .gtab-8 { background: linear-gradient(160deg, #c026d3, #9a1ea9); }
+
+        .book-container {
+            flex-grow: 1;
+            background:
+                linear-gradient(150deg, rgba(255, 255, 255, 0.06), transparent 30%),
+                linear-gradient(150deg, #5c1315, #3f0d0e);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 16px;
+            padding: 13px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 0 26px rgba(0, 0, 0, 0.45), 0 16px 44px rgba(0, 0, 0, 0.5);
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page {
+            flex-grow: 1;
+            background-color: var(--paper-bg);
+            border-radius: 9px;
+            overflow-y: auto;
+            color: var(--text-main);
+            position: relative;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+            /* Grid Paper Effect */
+            background-image:
+                linear-gradient(rgba(139, 164, 196, 0.11) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(139, 164, 196, 0.11) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .page-content {
+            padding: 26px 28px;
+            min-height: 100%;
+            box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        /* ============ VIEWS ============ */
+        .view { display: none; width: 100%; height: 100%; flex-direction: column; }
+        .view.active { display: flex; animation: viewIn 0.4s var(--ease); }
+        @keyframes viewIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============ WEEKLY SPREAD ============ */
+        .spread-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            border-bottom: 2px solid var(--border-light);
+            padding-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .spread-title h2 {
+            font-family: 'Playfair Display', serif;
+            color: #1a2130;
+            margin: 0;
+            font-size: 1.8em;
+            display: inline-block;
+            margin-right: 12px;
+            letter-spacing: -0.01em;
+        }
+
+        .spread-subtitle {
+            background: rgba(127, 29, 29, 0.07);
+            color: var(--brand-700);
+            border: 1px solid rgba(127, 29, 29, 0.25);
+            padding: 4px 11px;
+            border-radius: 999px;
+            font-size: 0.78em;
+            font-weight: 700;
+            vertical-align: middle;
+        }
+
+        .spread-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .spread-controls input[type="date"] {
+            padding: 7px 11px;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: 600;
+            color: #334155;
+            background: white;
+            transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+        }
+        .spread-controls input[type="date"]:focus { outline: none; border-color: var(--tab-month); box-shadow: 0 0 0 3px rgba(3, 105, 161, 0.15); }
+
+        .btn-success { background: #047857; border-color: rgba(255,255,255,0.1); font-size: 0.85em; padding: 7px 13px; }
+        .btn-success:hover { background: #059669; }
+        .btn-light { background: #eef1f6; color: #334155; border: 1px solid #dde3ec; }
+        .btn-light:hover { background: #e2e8f0; border-color: #cbd5e0; box-shadow: var(--shadow-1); }
+
+        table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #d6dde8; border-radius: var(--radius); overflow: hidden; background: white; box-shadow: var(--shadow-1); }
+        th {
+            background: linear-gradient(180deg, #8f1e1e, #7a1717);
+            color: white;
+            padding: 11px 10px;
+            font-weight: 700;
+            text-align: center;
+            font-size: 0.88em;
+            letter-spacing: 0.02em;
+            border-right: 1px solid rgba(255, 255, 255, 0.14);
+        }
+        th:last-child { border-right: none; }
+
+        td { border-right: 1px solid #eaeef4; border-bottom: 1px solid #eaeef4; padding: 10px; vertical-align: top; transition: background 0.2s var(--ease); }
+        td:last-child { border-right: none; }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover td { background: #fbfcfe; }
+
+        td[contenteditable="true"] { outline: none; min-height: 85px; position: relative; cursor: text; }
+        td[contenteditable="true"]:focus { background: #f6f9fd !important; box-shadow: inset 0 0 0 2px var(--tab-month); border-radius: 4px; }
+
+        .time-col { width: 135px; background: #fafbfc; vertical-align: middle; }
+        .period-badge {
+            background: linear-gradient(180deg, #9b2c2c, #7f1d1d);
+            color: white;
+            font-size: 0.8em;
+            font-weight: 700;
+            padding: 4px 9px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-bottom: 4px;
+            box-shadow: var(--shadow-1);
+        }
+        .time-badge {
+            background: #fef4c3;
+            color: #854d0e;
+            font-size: 0.76em;
+            font-weight: 700;
+            padding: 3px 7px;
+            border-radius: 6px;
+            display: inline-block;
+            border: 1px solid #f2df84;
+        }
+        .lunch-badge { background: linear-gradient(180deg, #dd7d09, #c26a05); color: white; }
+
+        .cell-header {
+            display: block;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            text-align: center;
+            font-size: 0.88em;
+        }
+        .header-spanish { background: rgba(4, 120, 87, 0.08); color: #047857; border: 1px solid rgba(4, 120, 87, 0.55); }
+        .header-prep { background: rgba(71, 85, 105, 0.07); color: #475569; border: 1px solid rgba(71, 85, 105, 0.45); }
+        .header-lunch { background: rgba(180, 83, 9, 0.08); color: #b45309; border: 1px solid rgba(180, 83, 9, 0.5); }
+        .header-plc { background: rgba(109, 40, 217, 0.07); color: #6d28d9; border: 1px solid rgba(109, 40, 217, 0.45); }
+
+        /* Per-grade color coding (matches the SCROLL TO tabs on the right) */
+        .header-g1 { background: rgba(225, 29, 72, 0.07);  color: #be123c; border: 1px solid rgba(225, 29, 72, 0.5); }
+        .header-g2 { background: rgba(234, 88, 12, 0.07);  color: #c2410c; border: 1px solid rgba(234, 88, 12, 0.5); }
+        .header-g3 { background: rgba(217, 119, 6, 0.08);  color: #a16207; border: 1px solid rgba(217, 119, 6, 0.55); }
+        .header-g4 { background: rgba(22, 163, 74, 0.07);  color: #15803d; border: 1px solid rgba(22, 163, 74, 0.5); }
+        .header-g5 { background: rgba(13, 148, 136, 0.07); color: #0f766e; border: 1px solid rgba(13, 148, 136, 0.5); }
+        .header-g6 { background: rgba(2, 132, 199, 0.07);  color: #0369a1; border: 1px solid rgba(2, 132, 199, 0.5); }
+        .header-g7 { background: rgba(109, 40, 217, 0.07); color: #6d28d9; border: 1px solid rgba(109, 40, 217, 0.5); }
+        .header-g8 { background: rgba(192, 38, 211, 0.07); color: #a21caf; border: 1px solid rgba(192, 38, 211, 0.5); }
+
+        /* Notes area under each period label */
+        .cell-notes {
+            min-height: 58px;
+            outline: none;
+            font-size: 0.85em;
+            color: #334155;
+            line-height: 1.45;
+            padding: 3px 4px;
+            border-radius: 6px;
+            cursor: text;
+            transition: background 0.2s var(--ease), box-shadow 0.2s var(--ease);
+        }
+        .cell-notes:focus { background: #f6f9fd; box-shadow: inset 0 0 0 2px var(--tab-month); }
+        .cell-notes:empty::before {
+            content: attr(data-placeholder);
+            color: #aeb7c6;
+            font-style: italic;
+            pointer-events: none;
+        }
+
+        /* ============ MONTHLY VIEW ============ */
+        .monthly-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            border-bottom: 2px solid var(--border-light);
+            padding-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .monthly-header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .monthly-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #d6dde8;
+            border: 1px solid #d6dde8;
+            border-radius: var(--radius);
+            overflow: hidden;
+            flex-grow: 1;
+            box-shadow: var(--shadow-1);
+        }
+        .month-hdr-cell { background: linear-gradient(180deg, #8f1e1e, #7a1717); color: white; padding: 10px; text-align: center; font-weight: 700; font-size: 0.84em; letter-spacing: 0.03em; }
+        .month-day-cell { background: white; min-height: 90px; padding: 7px; vertical-align: top; display: flex; flex-direction: column; position: relative; transition: background 0.2s var(--ease); }
+        .month-day-cell[contenteditable="true"]:hover { background: #fbfcfe; }
+        .month-day-cell[contenteditable="true"]:focus { outline: none; background: #f6f9fd; box-shadow: inset 0 0 0 2px var(--tab-month); z-index: 2; }
+        .month-day-num { font-weight: 700; color: #94a0b4; margin-bottom: 4px; align-self: flex-end; font-size: 0.82em; }
+
+        .holiday-badge {
+            background: linear-gradient(135deg, #fdf3dc, #fbe9c3);
+            border: 1px solid #eed49a;
+            color: #8a5a10;
+            font-size: 0.68em;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 6px;
+            margin-bottom: 3px;
+            line-height: 1.3;
+            user-select: none;
+            cursor: default;
+        }
+        .month-day-cell.has-holiday { background: #fffdf6; }
+
+        /* ============ YEARLY VIEW ============ */
+        .year-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            padding: 10px 0;
+        }
+
+        .year-view-header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .year-view-titles h2 {
+            font-family: 'Playfair Display', serif;
+            color: #1a2130;
+            font-size: 2em;
+            margin: 0 0 4px 0;
+            letter-spacing: -0.01em;
+        }
+
+        .year-view-titles p {
+            color: var(--muted);
+            margin: 0;
+            font-size: 0.85em;
+        }
+
+        .curriculum-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f4f6fa;
+            padding: 4px;
+            padding-left: 12px;
+            border-radius: 999px;
+            border: 1px solid var(--border-light);
+        }
+
+        .curriculum-toggle span {
+            color: var(--muted);
+            font-size: 0.78em;
+            font-weight: 700;
+        }
+
+        .toggle-btn {
+            background: transparent;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 999px;
+            cursor: pointer;
+            font-weight: 700;
+            font-family: inherit;
+            font-size: 0.8em;
+            color: var(--muted);
+            transition: background 0.25s var(--ease), color 0.25s var(--ease), box-shadow 0.25s var(--ease), transform 0.15s var(--ease);
+        }
+        .toggle-btn:hover { color: #334155; }
+        .toggle-btn:active { transform: scale(0.95); }
+
+        .toggle-btn.active {
+            background: var(--brand-700);
+            color: white;
+            box-shadow: 0 2px 6px rgba(127, 29, 29, 0.35);
+        }
+
+        .target-grade-banner {
+            background: linear-gradient(135deg, #fef7e4, #fdf1d2);
+            border: 1px solid #f4dfa8;
+            border-radius: var(--radius);
+            padding: 10px 16px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+            color: #92400e;
+        }
+
+        .year-month-card {
+            background: white;
+            border: 1px solid var(--border-light);
+            border-top: 4px solid var(--border-light);
+            border-radius: 12px;
+            box-shadow: var(--shadow-1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
+            animation: cardIn 0.5s var(--ease) both;
+            animation-delay: calc(var(--i, 0) * 45ms);
+        }
+        .year-month-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-2); }
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Seasonal accent (top edge of each month card) */
+        .season-summer { border-top-color: var(--season-summer); }
+        .season-fall { border-top-color: var(--season-fall); }
+        .season-winter { border-top-color: var(--season-winter); }
+        .season-spring { border-top-color: var(--season-spring); }
+
+        .year-month-header {
+            background: white;
+            color: #334155;
+            padding: 13px 15px;
+            font-weight: 800;
+            font-size: 1.02em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f1f4f9;
+        }
+        .year-month-body {
+            padding: 12px 15px;
+            flex-grow: 1;
+            font-size: 0.82em;
+            color: #475569;
+            line-height: 1.55;
+            outline: none;
+            border-radius: 0 0 12px 12px;
+            transition: background 0.2s var(--ease);
+        }
+        .year-month-body:focus { background: #f6f9fd; box-shadow: inset 0 0 0 2px var(--tab-month); }
+        .year-month-body ul { margin: 0; padding-left: 18px; }
+        .year-month-body li { margin-bottom: 2px; }
+
+        /* ============ TODO VIEW ============ */
+        .todo-header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--border-light);
+            padding-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        #todo-list > div {
+            transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+            animation: cardIn 0.35s var(--ease) both;
+        }
+        #todo-list > div:hover { transform: translateX(3px); box-shadow: var(--shadow-1); }
+
+        /* ============ AI STUDIO ============ */
+        .ai-panel { background: white; border: 1px solid var(--border-light); border-radius: 14px; padding: 22px; margin-top: 15px; box-shadow: var(--shadow-1); }
+        .ai-tabs-container { display: flex; gap: 8px; border-bottom: 2px solid var(--border-light); padding-bottom: 10px; margin-bottom: 16px; }
+        .ai-tab-btn { padding: 8px 16px; border: none; background: #f1f4f9; color: #475569; font-weight: 700; font-family: inherit; border-radius: 8px; cursor: pointer; font-size: 0.85em; transition: background 0.25s var(--ease), color 0.25s var(--ease), transform 0.15s var(--ease), box-shadow 0.25s var(--ease); }
+        .ai-tab-btn:hover { background: #e6ebf3; }
+        .ai-tab-btn:active { transform: scale(0.96); }
+        .ai-tab-btn.active { background: var(--brand-700); color: white; box-shadow: 0 2px 8px rgba(127, 29, 29, 0.35); }
+        .ai-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .ai-input-group label { display: block; font-weight: 700; color: #334155; margin-bottom: 5px; font-size: 0.84em; }
+        .ai-input-group select, .ai-input-group input { width: 100%; padding: 9px 11px; border: 1px solid #cbd5e0; border-radius: 8px; margin-bottom: 12px; font-family: inherit; font-size: 0.88em; background: white; transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease); }
+        .ai-input-group select:focus, .ai-input-group input:focus { outline: none; border-color: var(--brand-600); box-shadow: 0 0 0 3px rgba(127, 29, 29, 0.12); }
+        .btn-generate { background: linear-gradient(135deg, #9b2c2c, #7f1d1d); color: white; border: none; padding: 11px; border-radius: 8px; font-weight: 700; font-family: inherit; cursor: pointer; width: 100%; font-size: 0.95em; transition: transform 0.15s var(--ease), box-shadow 0.2s var(--ease), filter 0.2s var(--ease); box-shadow: 0 3px 10px rgba(127, 29, 29, 0.3); }
+        .btn-generate:hover { transform: translateY(-1px); filter: brightness(1.08); box-shadow: 0 6px 16px rgba(127, 29, 29, 0.4); }
+        .btn-generate:active { transform: translateY(0) scale(0.98); }
+        .ai-output-box { background: #f8fafc; border: 1px dashed #b6c1d2; border-radius: 10px; padding: 16px; min-height: 140px; white-space: pre-wrap; font-size: 0.88em; line-height: 1.55; color: #334155; }
+
+        /* ============ STICKERS ============ */
+        .sticker-panel { display: flex; flex-direction: column; gap: 16px; }
+        .sticker-category h3 { margin: 0 0 8px 0; font-size: 0.92em; color: #1a2130; border-bottom: 1px solid var(--border-light); padding-bottom: 5px; letter-spacing: 0.01em; }
+        .sticker-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .sticker {
+            font-size: 1.6em;
+            cursor: grab;
+            user-select: none;
+            padding: 5px;
+            border-radius: 8px;
+            transition: transform 0.2s var(--ease), background 0.2s var(--ease), box-shadow 0.2s var(--ease);
+            display: inline-block;
+        }
+        .sticker:hover { transform: scale(1.25) rotate(-4deg); background: #f1f4f9; }
+        .sticker.selected { background: #dbeafe; box-shadow: 0 0 0 3px #3b82f6; transform: scale(1.25); }
+
+        .highlight-tool {
+            display: flex; gap: 9px; align-items: center; margin-bottom: 16px; background: #f8fafc; padding: 9px 13px; border-radius: 10px; border: 1px solid var(--border-light);
+        }
+        .color-btn {
+            width: 23px; height: 23px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 5px rgba(15, 23, 42, 0.2); cursor: pointer; transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+        }
+        .color-btn:hover { transform: scale(1.2); box-shadow: 0 3px 8px rgba(15, 23, 42, 0.3); }
+        .color-btn:active { transform: scale(1.05); }
+
+        .dropped-sticker {
+            display: inline-block;
+            font-size: 1.3em;
+            cursor: pointer;
+            margin: 2px;
+            user-select: none;
+            vertical-align: middle;
+            transition: transform 0.15s var(--ease);
+        }
+        .dropped-sticker:hover { transform: scale(1.2); }
+
+        .highlight-grade-target {
+            animation: highlightPulse 1.5s infinite alternate;
+        }
+        @keyframes highlightPulse {
+            from { box-shadow: inset 0 0 0 3px #3b82f6; }
+            to { box-shadow: inset 0 0 0 3px #1d4ed8, 0 0 10px rgba(59, 130, 246, 0.5); }
+        }
+
+        #sticker-hint { animation: hintIn 0.3s var(--ease); }
+        @keyframes hintIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        /* ============ IMPORT PLANS MODAL ============ */
+        .btn-brand { background: var(--brand-700); border-color: rgba(255,255,255,0.1); font-size: 0.85em; padding: 7px 13px; }
+        .btn-brand:hover { background: var(--brand-600); }
+
+        .modal-backdrop {
+            position: fixed; inset: 0;
+            background: rgba(10, 12, 20, 0.6);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            z-index: 900;
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        .import-modal {
+            background: white; color: var(--text-main);
+            border-radius: 14px; max-width: 560px; width: 100%;
+            padding: 22px; box-shadow: var(--shadow-2);
+            animation: cardIn 0.3s var(--ease);
+        }
+        .import-modal h3 { margin: 0 0 6px; font-family: 'Playfair Display', serif; font-size: 1.4em; color: #1a2130; }
+        .import-modal p { margin: 0 0 12px; color: var(--muted); font-size: 0.86em; line-height: 1.5; }
+        .import-modal textarea {
+            width: 100%; min-height: 140px;
+            border: 1px solid #cbd5e0; border-radius: 8px;
+            padding: 10px; font-family: inherit; font-size: 0.9em;
+            resize: vertical; color: #334155;
+        }
+        .import-modal textarea:focus { outline: none; border-color: var(--brand-600); box-shadow: 0 0 0 3px rgba(127, 29, 29, 0.12); }
+        .import-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+        .import-tab-btn {
+            padding: 7px 14px; border: none; background: #f1f4f9; color: #475569;
+            font-weight: 700; font-family: inherit; border-radius: 8px; cursor: pointer;
+            font-size: 0.84em;
+            transition: background 0.25s var(--ease), color 0.25s var(--ease), transform 0.15s var(--ease);
+        }
+        .import-tab-btn:hover { background: #e6ebf3; }
+        .import-tab-btn:active { transform: scale(0.96); }
+        .import-tab-btn.active { background: var(--brand-700); color: white; box-shadow: 0 2px 8px rgba(127, 29, 29, 0.35); }
+
+        .import-modal code {
+            background: #f4f6fa; border: 1px solid #e5e9f0; border-radius: 4px;
+            padding: 1px 6px; font-size: 0.92em; color: #7f1d1d;
+        }
+
+        .import-photo-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+        #ocr-status { font-size: 0.78em; color: var(--muted); flex: 1; min-width: 180px; line-height: 1.4; }
+
+        #import-preview {
+            background: #f8fafc; border: 1px solid var(--border-light); border-radius: 8px;
+            padding: 10px 12px; margin: 12px 0; font-size: 0.84em; color: #334155;
+            max-height: 150px; overflow-y: auto;
+        }
+        #import-preview .preview-item { padding: 3px 0; border-bottom: 1px solid #eef1f6; }
+        #import-preview .preview-item:last-child { border-bottom: none; }
+        #import-preview .preview-target { font-weight: 700; color: var(--brand-700); }
+        #import-preview .preview-warn { color: #b45309; font-weight: 700; }
+
+        .import-row { display: flex; gap: 10px; margin: 12px 0; flex-wrap: wrap; }
+        .import-row label { font-size: 0.8em; font-weight: 700; color: #334155; display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 130px; }
+        .import-row select { padding: 8px; border: 1px solid #cbd5e0; border-radius: 8px; font-family: inherit; font-size: 1em; background: white; color: #334155; }
+        .import-actions { display: flex; gap: 8px; justify-content: flex-end; }
+        #import-status { font-size: 0.82em; font-weight: 700; color: #047857; min-height: 1.2em; margin-top: 8px; }
+
+        /* ============ DAILY BACKUP REMINDER ============ */
+        .backup-banner {
+            position: fixed; right: 20px; bottom: 20px;
+            background: #1e2433;
+            border: 1px solid rgba(217, 164, 65, 0.45);
+            color: white; padding: 12px 16px; border-radius: 12px;
+            display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+            z-index: 800; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+            font-size: 0.88em; max-width: 92vw;
+            animation: cardIn 0.35s var(--ease);
+        }
+        .backup-banner .nav-btn { padding: 7px 12px; font-size: 0.9em; }
+
+        /* ============ TABLET & SMALL SCREENS ============ */
+        @media (max-width: 1024px) {
+            body { height: auto; min-height: 100vh; overflow: auto; }
+            .planner-workspace { padding: 10px; overflow: visible; }
+            .page { overflow-x: auto; }
+            .nav-btn { padding: 10px 14px; }   /* bigger touch targets */
+            .tab { padding: 16px 9px; }
+            .brand-text h1 { font-size: 1.05em; }
+        }
+        @media (max-width: 700px) {
+            .planner-workspace { flex-direction: column; }
+            .tabs-left, .tabs-right { flex-direction: row; flex-wrap: wrap; padding-top: 0; margin: 0 0 8px 0; }
+            .tab { writing-mode: horizontal-tb; border-radius: 10px !important; }
+            .tabs-left .tab:hover, .tabs-left .tab.active { transform: translateY(-3px); }
+            .tabs-right .tab:hover { transform: translateY(-3px); }
+            .ai-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Respect users who prefer less motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOP NAV -->
+    <div class="top-navbar">
+        <div class="brand">
+            <div class="brand-text">
+                <h1>Digital Teacher Planner</h1>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.17</span></p>
+            </div>
+            <span id="monthly-theme-badge">Herencia Hispana 🇲🇽</span>
+        </div>
+        <div class="nav-controls">
+            <button class="nav-btn btn-classroom" onclick="window.open('https://classroom.google.com', '_blank')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #10b981;"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+                Classroom
+            </button>
+            <button class="nav-btn btn-classroom" onclick="window.open('https://mail.google.com', '_blank')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #ea4335;"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
+                Gmail
+            </button>
+            <button class="nav-btn btn-classroom" onclick="window.open('https://drive.google.com', '_blank')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #4285f4;"><path d="M12 2 2 19h20L12 2z"></path></svg>
+                Drive
+            </button>
+            <button class="nav-btn btn-classroom" onclick="window.open('https://accounts.renweb.com', '_blank')" title="FACTS SIS (RenWeb) Gradebook">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #7f1d1d;"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18"></path><path d="M9 3v18"></path></svg>
+                Gradebook
+            </button>
+            <button class="nav-btn btn-backup" onclick="exportBackup()">☁️ Backup</button>
+            <button class="nav-btn btn-restore" onclick="document.getElementById('backup-file-input').click()">📂 Restore</button>
+            <input type="file" id="backup-file-input" accept=".json,application/json" style="display:none;" onchange="importBackup(event)">
+            <button class="nav-btn" onclick="navigatePage(-1)">&lt; Prev Page</button>
+            <button class="nav-btn" onclick="navigatePage(1)">Next Page &gt;</button>
+            <span id="autosave-status">
+                <span class="dot"></span> Auto-Save Active
+            </span>
+        </div>
+    </div>
+
+    <!-- FORMAT BAR -->
+    <div class="format-bar">
+        <span style="color: #d9a441; font-weight: bold;">Format:</span>
+        <select onchange="execCmd('fontName', this.value)">
+            <option value="Outfit">Outfit (Sans)</option>
+            <option value="Nunito">Nunito (Rounded)</option>
+            <option value="Playfair Display">Playfair (Serif)</option>
+        </select>
+        <select onchange="execCmd('fontSize', this.value)">
+            <option value="3">Normal</option>
+            <option value="4">Large</option>
+            <option value="5">Heading</option>
+        </select>
+        <button style="font-weight:bold;" onclick="execCmd('bold')">B</button>
+        <button style="font-style:italic;" onclick="execCmd('italic')">I</button>
+        <button style="text-decoration:underline;" onclick="execCmd('underline')">U</button>
+        <button style="color:#d9a441;" onclick="execCmd('insertUnorderedList')">≡ Bullet</button>
+        <button style="background: #fef08a; color: #854d0e; border-color: #fde047; font-weight: bold;" onclick="execCmd('hiliteColor', '#fef08a')">🖍️ Highlight</button>
+        <button onclick="undoAction()">↩️ Undo</button>
+        <span style="margin-left: auto; color: #8b93a7; font-size: 0.8em; white-space: nowrap;">Select text in any cell to apply formatting</span>
+    </div>
+
+    <!-- MAIN WORKSPACE -->
+    <div class="planner-workspace">
+
+        <!-- LEFT TABS -->
+        <div class="tabs-left">
+            <div class="tab tab-year" onclick="switchView('yearly')">🗓 Year</div>
+            <div class="tab tab-month" onclick="switchView('monthly')">📅 Month</div>
+            <div class="tab tab-week" onclick="switchView('weekly')">📋 Weekly</div>
+            <div class="tab tab-goals" onclick="switchView('todo')">🎯 Goals</div>
+            <div class="tab tab-stickers" onclick="switchView('stickers')">🏷️ Stickers</div>
+            <div class="tab tab-ai" onclick="switchView('ai-studio')">✨ AI Studio</div>
+        </div>
+
+        <!-- BOOK FRAME -->
+        <div class="book-container">
+            <div class="page">
+                <div class="page-content">
+
+                    <!-- WEEKLY VIEW -->
+                    <div id="view-weekly" class="view active">
+                        <div class="spread-header">
+                            <div class="spread-title">
+                                <h2>Lesson Planner</h2>
+                                <span class="spread-subtitle">Mon-Thu • 8 Periods</span>
+                            </div>
+                            <div class="spread-controls">
+                                <span style="font-weight:bold; color:#475569; font-size:0.88em;">Week Of:</span>
+                                <input type="date" id="weekDate" onchange="handleDateChange()">
+                                <button class="nav-btn btn-brand" onclick="openImportModal()">📥 Import Plans</button>
+                                <button class="nav-btn btn-success" onclick="renderBlankWeeklyGrid()">✏️ Reset Template</button>
+                            </div>
+                        </div>
+
+                        <table id="weekly-table" style="table-layout: fixed;">
+                            <thead>
+                                <tr>
+                                    <th style="width:135px;">Period & Time</th>
+                                    <th>Monday (Lunes)</th>
+                                    <th>Tuesday (Martes)</th>
+                                    <th>Wednesday (Miércoles)</th>
+                                    <th>Thursday (Jueves)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="weekly-tbody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- MONTHLY VIEW -->
+                    <div id="view-monthly" class="view">
+                        <div class="monthly-header">
+                            <div class="monthly-header-left">
+                                <h2 id="monthly-title" style="margin:0; font-family:'Playfair Display', serif; font-size: 2em; color: #1a2130;">Month Year</h2>
+                                <div class="curriculum-toggle">
+                                    <span>View Calendar For:</span>
+                                    <button class="toggle-btn active" onclick="setMonthlyCurriculum('elementary')" id="btn-month-elem">Grades 1-5</button>
+                                    <button class="toggle-btn" onclick="setMonthlyCurriculum('middle')" id="btn-month-mid">Grades 6-8</button>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                <button class="nav-btn btn-light" onclick="changeMonth(-1)">&lt; Previous</button>
+                                <button class="nav-btn btn-light" onclick="changeMonth(1)">Next &gt;</button>
+                            </div>
+                        </div>
+                        <div class="monthly-grid" id="monthly-grid-container">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- YEARLY VIEW -->
+                    <div id="view-yearly" class="view">
+                        <div class="year-view-header-container">
+                            <div class="year-view-titles">
+                                <h2>2026-2027 Year at a Glance</h2>
+                                <p>St. Paul's School · Curriculum Overview & Key Milestones</p>
+                            </div>
+                            <div class="curriculum-toggle">
+                                <span>View Curriculum For:</span>
+                                <button class="toggle-btn active" onclick="setCurriculumFilter('elementary')" id="btn-curr-elem">Grades 1-5</button>
+                                <button class="toggle-btn" onclick="setCurriculumFilter('middle')" id="btn-curr-mid">Grades 6-8</button>
+                            </div>
+                        </div>
+
+                        <div class="target-grade-banner">
+                            <div>🎓 Target Grade Level: <strong id="curriculum-target-text">Grades 1-5 (Elementary Spanish)</strong></div>
+                            <div>Active Month: <strong id="year-active-month">August 2026</strong></div>
+                        </div>
+
+                        <div class="year-grid" id="year-grid-container">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- TODO VIEW -->
+                    <div id="view-todo" class="view">
+                        <div class="todo-header-container">
+                            <div>
+                                <h2 style="font-family:'Playfair Display', serif; color:#1a2130; margin-top:0; margin-bottom: 4px;">Weekly Goals & Tasks</h2>
+                            </div>
+                            <div class="curriculum-toggle">
+                                <span>View Goals For:</span>
+                                <button class="toggle-btn active" onclick="setTodoCurriculum('elementary')" id="btn-todo-elem">Grades 1-5</button>
+                                <button class="toggle-btn" onclick="setTodoCurriculum('middle')" id="btn-todo-mid">Grades 6-8</button>
+                            </div>
+                        </div>
+                        <div id="todo-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+                        <button class="nav-btn" onclick="addTodoItem()" style="margin-top:20px; align-self:flex-start; background:var(--tab-goals); border:none;">+ Add New Goal</button>
+                    </div>
+
+                    <!-- STICKERS VIEW -->
+                    <div id="view-stickers" class="view">
+                        <h2 style="font-family:'Playfair Display', serif; color:#1a2130; border-bottom: 2px solid #e5e9f0; padding-bottom: 10px; margin-top:0;">Digital Stickers & Highlighters</h2>
+                        <p style="color:#64748b; margin-top:0; font-size: 0.88em;">Tap a sticker to pick it up, then tap any planner cell to place it (or drag &amp; drop with a mouse). Tap a placed sticker to remove it.</p>
+
+                        <div class="highlight-tool">
+                            <strong style="color:#334155; font-size:0.88em;">Quick Highlighters:</strong>
+                            <div class="color-btn" style="background: #fef08a;" onclick="execCmd('hiliteColor', '#fef08a')" title="Yellow"></div>
+                            <div class="color-btn" style="background: #bbf7d0;" onclick="execCmd('hiliteColor', '#bbf7d0')" title="Green"></div>
+                            <div class="color-btn" style="background: #fbcfe8;" onclick="execCmd('hiliteColor', '#fbcfe8')" title="Pink"></div>
+                            <div class="color-btn" style="background: #bfdbfe;" onclick="execCmd('hiliteColor', '#bfdbfe')" title="Blue"></div>
+                            <button class="nav-btn btn-light" style="padding: 4px 10px; font-size: 0.78em;" onclick="execCmd('hiliteColor', 'transparent')">Clear Highlight</button>
+                        </div>
+
+                        <div class="sticker-panel">
+                            <div class="sticker-category">
+                                <h3>School Events</h3>
+                                <div class="sticker-grid">
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">📚</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">✏️</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">🎒</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">🍎</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">🚌</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">🏫</span>
+                                </div>
+                            </div>
+                            <div class="sticker-category">
+                                <h3>Spanish Themes</h3>
+                                <div class="sticker-grid">
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">🇪🇸</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">🇲🇽</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">🌮</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">💃</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">🎸</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">🪅</span>
+                                </div>
+                            </div>
+                            <div class="sticker-category">
+                                <h3>Holidays & Seasons</h3>
+                                <div class="sticker-grid">
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">🎃</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">🦃</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">🎄</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">❄️</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">❤️</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">☘️</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">🐰</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">☀️</span>
+                                </div>
+                            </div>
+                             <div class="sticker-category">
+                                <h3>Feedback & Grades</h3>
+                                <div class="sticker-grid">
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">💯</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">⭐</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">🌟</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">✅</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">🏆</span>
+                                    <span class="sticker" draggable="true" ondragstart="drag(event)">🥇</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI STUDIO VIEW -->
+                    <div id="view-ai-studio" class="view">
+                        <h2 style="font-family:'Playfair Display', serif; color:#1a2130; margin-top:0; margin-bottom:4px;">✨ AI Teacher Assistant</h2>
+                        <p style="color:#64748b; margin-top:0; font-size:0.88em;">Generate lesson plans, activities, and pronunciation audio instantly.</p>
+
+                        <div class="ai-panel">
+                            <div class="ai-tabs-container">
+                                <button class="ai-tab-btn active" onclick="switchAITab('plan', this)">📝 Lesson Plans</button>
+                                <button class="ai-tab-btn" onclick="switchAITab('activity', this)">🎲 Games & Activities</button>
+                                <button class="ai-tab-btn" onclick="switchAITab('audio', this)">🔊 Pronunciation</button>
+                            </div>
+
+                            <!-- Lesson Plan Gen -->
+                            <div id="ai-sub-plan" class="ai-sub-view">
+                                <div class="ai-grid">
+                                    <div>
+                                        <div class="ai-input-group">
+                                            <label>Grade Level</label>
+                                            <select id="ai-plan-grade">
+                                                <option>1st Grade</option>
+                                                <option>2nd Grade</option>
+                                                <option>3rd Grade</option>
+                                                <option>4th Grade</option>
+                                                <option>5th Grade</option>
+                                                <option>6th Grade</option>
+                                                <option>7th Grade</option>
+                                                <option selected>8th Grade</option>
+                                            </select>
+                                        </div>
+                                        <div class="ai-input-group">
+                                            <label>Topic / Concept</label>
+                                            <input type="text" id="ai-plan-topic" placeholder="e.g., Present Tense Verbs, Greetings, Days of the Week">
+                                        </div>
+                                        <button class="btn-generate" onclick="generateAILessonPlan()">✨ Generate Lesson Plan</button>
+                                    </div>
+                                    <div id="plan-output" class="ai-output-box">Your generated lesson plan will appear here...</div>
+                                </div>
+                            </div>
+
+                            <!-- Activities Gen -->
+                            <div id="ai-sub-activity" class="ai-sub-view" style="display:none;">
+                                <div class="ai-grid">
+                                    <div>
+                                        <div class="ai-input-group">
+                                            <label>Activity Type</label>
+                                            <select id="ai-act-type">
+                                                <option>Warm-up Game</option>
+                                                <option>Speaking Exercise</option>
+                                                <option>Exit Ticket</option>
+                                            </select>
+                                        </div>
+                                        <div class="ai-input-group">
+                                            <label>Topic</label>
+                                            <input type="text" id="ai-act-topic" placeholder="e.g., Numbers 1-100, Food & Dining">
+                                        </div>
+                                        <button class="btn-generate" onclick="generateAIActivity()">✨ Generate Activity Idea</button>
+                                    </div>
+                                    <div id="act-output" class="ai-output-box">Your generated activity will appear here...</div>
+                                </div>
+                            </div>
+
+                            <!-- Audio Gen -->
+                            <div id="ai-sub-audio" class="ai-sub-view" style="display:none;">
+                                <div class="ai-grid">
+                                    <div>
+                                        <div class="ai-input-group">
+                                            <label>Spanish Text to Pronounce</label>
+                                            <input type="text" id="ai-audio-text" placeholder="¡Buenos días, clase! ¿Cómo están?">
+                                        </div>
+                                        <button class="btn-generate" onclick="playAIPronunciationAudio()">🔊 Play Pronunciation</button>
+                                    </div>
+                                    <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; background:#f8fafc; border: 1px dashed #cbd5e0; border-radius:10px; padding:20px; text-align:center;">
+                                        <p id="audio-status-msg" style="color:#475569; margin:0; font-size:0.9em;">Click button to play natural Spanish speech directly in your browser.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT TABS (Grade Shortcuts) -->
+        <div class="tabs-right">
+            <div style="color:#8b93a7; font-size:0.68em; text-align:center; font-weight:bold; margin-bottom:4px;">SCROLL TO</div>
+            <div class="tab grade-tab gtab-1" onclick="scrollToGrade('1st')">1st</div>
+            <div class="tab grade-tab gtab-2" onclick="scrollToGrade('2nd')">2nd</div>
+            <div class="tab grade-tab gtab-3" onclick="scrollToGrade('3rd')">3rd</div>
+            <div class="tab grade-tab gtab-4" onclick="scrollToGrade('4th')">4th</div>
+            <div class="tab grade-tab gtab-5" onclick="scrollToGrade('5th')">5th</div>
+            <div class="tab grade-tab gtab-6" onclick="scrollToGrade('6th')">6th</div>
+            <div class="tab grade-tab gtab-7" onclick="scrollToGrade('7th')">7th</div>
+            <div class="tab grade-tab gtab-8" onclick="scrollToGrade('8th')">8th</div>
+        </div>
+    </div>
+
+    <!-- IMPORT PLANS MODAL -->
+    <div id="import-modal-backdrop" class="modal-backdrop" style="display:none;" onclick="if (event.target === this) closeImportModal()">
+        <div class="import-modal">
+            <h3>📥 Import Plans</h3>
+            <div class="import-tabs">
+                <button id="imp-tab-single" class="import-tab-btn active" onclick="setImportMode('single')">Single Slot</button>
+                <button id="imp-tab-week" class="import-tab-btn" onclick="setImportMode('week')">Whole Week (auto-sort)</button>
+            </div>
+            <p id="import-help-single">Paste text below, pick where it belongs in the current week, and add it. The box stays open so you can import several plans in a row.</p>
+            <p id="import-help-week" style="display:none;">Start a line with a day and a period, and every line after it goes into that cell. Example:<br>
+                <code>Monday</code><br>
+                <code>Period 1: Greetings warm-up</code><br>
+                <code>Flashcard review</code><br>
+                <code>Period 3</code><br>
+                <code>Ser vs estar quiz</code>
+            </p>
+            <div class="import-photo-row">
+                <button class="nav-btn btn-light" onclick="document.getElementById('import-photo-input').click()">📷 Read Text from Photo</button>
+                <input type="file" id="import-photo-input" accept="image/*" style="display:none;" onchange="ocrPhotoToText(event)">
+                <span id="ocr-status">Best for printed or neat writing. For cursive, Google Lens reads better; paste its text here.</span>
+            </div>
+            <textarea id="import-text" placeholder="Paste the lesson plan text here..."></textarea>
+            <div class="import-row" id="import-single-controls">
+                <label>Day
+                    <select id="import-day">
+                        <option value="1">Monday (Lunes)</option>
+                        <option value="2">Tuesday (Martes)</option>
+                        <option value="3">Wednesday (Miércoles)</option>
+                        <option value="4">Thursday (Jueves)</option>
+                    </select>
+                </label>
+                <label>Period
+                    <select id="import-period">
+                        <option value="0">Period 1</option>
+                        <option value="1">Period 2</option>
+                        <option value="2">Period 3</option>
+                        <option value="3">Period 4</option>
+                        <option value="4">Period 5</option>
+                        <option value="5">Lunch</option>
+                        <option value="6">Period 6</option>
+                        <option value="7">Period 7</option>
+                        <option value="8">Period 8</option>
+                    </select>
+                </label>
+                <label>Mode
+                    <select id="import-mode">
+                        <option value="append">Add to existing notes</option>
+                        <option value="replace">Replace notes</option>
+                    </select>
+                </label>
+            </div>
+            <div id="import-preview" style="display:none;"></div>
+            <div class="import-actions">
+                <button class="nav-btn btn-light" onclick="closeImportModal()">Close</button>
+                <button id="imp-btn-preview" class="nav-btn btn-light" style="display:none;" onclick="previewParse()">🔍 Preview</button>
+                <button class="nav-btn btn-brand" onclick="importSubmit()">Add to Planner</button>
+            </div>
+            <div id="import-status"></div>
+        </div>
+    </div>
+
+    <!-- DAILY BACKUP REMINDER -->
+    <div id="backup-banner" class="backup-banner" style="display:none;">
+        <span>💾 Save today's backup to your tablet or Drive</span>
+        <button class="nav-btn btn-backup" onclick="exportBackup()">Backup Now</button>
+        <button class="nav-btn" onclick="snoozeBackupReminder()">Later</button>
+    </div>
+
+    <script>
+        const PLANNER_VERSION = 'v2026.08.17';
+        let currentViewId = 'weekly';
+        let autoSaveTimeout = null;
+        let currentMonthlyCurriculum = 'elementary';
+        let currentTodoCurriculum = 'elementary';
+
+        let history = [];
+        let isUndo = false;
+
+        function execCmd(command, value = null) {
+            saveHistory();
+            document.execCommand(command, false, value);
+            triggerAutoSave();
+        }
+
+        function saveHistory() {
+            if (currentViewId === 'weekly') {
+                const tbody = document.getElementById('weekly-tbody');
+                if (tbody) history.push({view: 'weekly', data: tbody.innerHTML, date: document.getElementById('weekDate').value});
+            } else if (currentViewId === 'monthly') {
+                const monthInfo = academicMonths[currentMonthIdx];
+                let monthData = {};
+                for (let day = 1; day <= monthInfo.days; day++) {
+                    const cellKey = `month_${currentMonthlyCurriculum}_${monthInfo.year}_${monthInfo.month}_${day}`;
+                    const cell = document.getElementById(cellKey);
+                    if(cell) {
+                        let dayContent = cell.querySelector('.day-content');
+                        if (dayContent) {
+                            monthData[cellKey] = dayContent.innerHTML;
+                        }
+                    }
+                }
+                history.push({view: 'monthly', data: monthData, idx: currentMonthIdx, curriculum: currentMonthlyCurriculum});
+            } else if (currentViewId === 'yearly') {
+                let yearData = {};
+                academicMonths.forEach(m => {
+                    const cellKey = `year_${currentCurriculum}_${m.year}_${m.month}`;
+                    const cell = document.getElementById(cellKey);
+                    if (cell) yearData[cellKey] = cell.innerHTML;
+                });
+                history.push({view: 'yearly', data: yearData, curriculum: currentCurriculum});
+            }
+            if(history.length > 20) history.shift();
+        }
+
+        function undoAction() {
+            if (history.length === 0) return;
+            isUndo = true;
+            const state = history.pop();
+
+            if (state.view === 'weekly' && currentViewId === 'weekly') {
+                if (document.getElementById('weekDate').value === state.date) {
+                   const tbody = document.getElementById('weekly-tbody');
+                   if (tbody) tbody.innerHTML = state.data;
+                   saveCurrentView();
+                }
+            } else if (state.view === 'monthly' && currentViewId === 'monthly') {
+                if (currentMonthIdx === state.idx && currentMonthlyCurriculum === state.curriculum) {
+                   for (const [key, value] of Object.entries(state.data)) {
+                        const cell = document.getElementById(key);
+                        if(cell) {
+                            let dayContent = cell.querySelector('.day-content');
+                            if (dayContent) dayContent.innerHTML = value;
+                        }
+                   }
+                   saveCurrentView();
+                }
+            } else if (state.view === 'yearly' && currentViewId === 'yearly') {
+                if (currentCurriculum === state.curriculum) {
+                    for (const [key, value] of Object.entries(state.data)) {
+                        const cell = document.getElementById(key);
+                        if (cell) cell.innerHTML = value;
+                    }
+                    saveCurrentView();
+                }
+            }
+            attachDropListeners();
+            isUndo = false;
+        }
+
+        function triggerAutoSave() {
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(() => {
+                saveCurrentView();
+            }, 600);
+        }
+
+        function setActiveTab(viewId) {
+            document.querySelectorAll('.tabs-left .tab').forEach(t => {
+                const onclickAttr = t.getAttribute('onclick') || '';
+                t.classList.toggle('active', onclickAttr.includes(`'${viewId}'`));
+            });
+        }
+
+        function switchView(viewId) {
+            saveCurrentView();
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            const targetView = document.getElementById('view-' + viewId);
+            if (targetView) targetView.classList.add('active');
+            setActiveTab(viewId);
+
+            if (viewId === 'todo') loadTodoData();
+            currentViewId = viewId;
+        }
+
+        function switchAITab(tabId, btn) {
+            document.querySelectorAll('.ai-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.ai-sub-view').forEach(v => v.style.display = 'none');
+
+            btn.classList.add('active');
+            document.getElementById('ai-sub-' + tabId).style.display = 'block';
+        }
+
+        const defaultWeeklySchedule = [
+            { period: "Period 1", time: "8:25 - 9:06 AM",
+              days: { Mon: "<span class='cell-header header-g7'>Spanish 7</span>", Tue: "<span class='cell-header header-prep'>Prep / Planning</span>", Wed: "<span class='cell-header header-g7'>Spanish 7</span>", Thu: "<span class='cell-header header-g7'>Spanish 7</span>" } },
+            { period: "Period 2", time: "9:08 - 9:49 AM",
+              days: { Mon: "<span class='cell-header header-g8'>Spanish 8</span>", Tue: "<span class='cell-header header-prep'>Prep / Planning</span>", Wed: "<span class='cell-header header-g8'>Spanish 8</span>", Thu: "<span class='cell-header header-plc'>Weekly PLC</span>" } },
+            { period: "Period 3", time: "9:51 - 10:32 AM",
+              days: { Mon: "<span class='cell-header header-g5'>Spanish 5</span>", Tue: "<span class='cell-header header-g2'>Spanish 2</span>", Wed: "<span class='cell-header header-g5'>Spanish 5</span>", Thu: "<span class='cell-header header-g8'>Spanish 8</span>" } },
+            { period: "Period 4", time: "10:36 - 11:17 AM",
+              days: { Mon: "<span class='cell-header header-prep'>Prep / Planning</span>", Tue: "<span class='cell-header header-g1'>Spanish 1</span>", Wed: "<span class='cell-header header-prep'>Prep / Planning</span>", Thu: "<span class='cell-header header-prep'>Prep / Planning</span>" } },
+            { period: "Period 5", time: "11:19 - 12:00 PM",
+              days: { Mon: "<span class='cell-header header-lunch'>Recess / Lunch Duty</span>", Tue: "<span class='cell-header header-lunch'>Recess / Lunch Duty</span>", Wed: "<span class='cell-header header-prep'>Prep / Planning</span>", Thu: "<span class='cell-header header-prep'>Prep / Planning</span>" } },
+            { period: "Lunch", time: "12:05 - 12:43 PM", isLunch: true,
+              days: { Mon: "<span class='cell-header header-lunch'>Recess / Lunch</span>", Tue: "<span class='cell-header header-lunch'>Recess / Lunch</span>", Wed: "<span class='cell-header header-lunch'>Recess / Lunch</span>", Thu: "<span class='cell-header header-lunch'>Recess / Lunch</span>" } },
+            { period: "Period 6", time: "12:45 - 1:26 PM",
+              days: { Mon: "<span class='cell-header header-g6'>Spanish 6</span>", Tue: "<span class='cell-header header-g6'>Spanish 6</span>", Wed: "<span class='cell-header header-g6'>Spanish 6</span>", Thu: "<span class='cell-header header-g6'>Spanish 6</span>" } },
+            { period: "Period 7", time: "1:28 - 2:09 PM",
+              days: { Mon: "<span class='cell-header header-prep'>Prep / Planning</span>", Tue: "<span class='cell-header header-g7'>Spanish 7</span>", Wed: "<span class='cell-header header-prep'>Prep / Planning</span>", Thu: "<span class='cell-header header-prep'>Prep / Planning</span>" } },
+            { period: "Period 8", time: "2:11 - 2:52 PM",
+              days: { Mon: "<span class='cell-header header-g4'>Spanish 4</span>", Tue: "<span class='cell-header header-g8'>Spanish 8</span>", Wed: "<span class='cell-header header-g3'>Spanish 3</span>", Thu: "<span class='cell-header header-prep'>Prep / Planning</span>" } },
+            { period: "Dismissal", time: "3:00 PM", isDismissal: true,
+              days: { Mon: "Dismissal", Tue: "Dismissal", Wed: "Dismissal", Thu: "Dismissal" } }
+        ];
+
+        function renderBlankWeeklyGrid() {
+            const tbody = document.getElementById('weekly-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            defaultWeeklySchedule.forEach((slot) => {
+                const tr = document.createElement('tr');
+                let periodClass = "period-badge";
+                let icon = "📖";
+                if (slot.isLunch) { periodClass += " lunch-badge"; icon = "🍽️"; }
+                if (slot.isDismissal) { periodClass += " header-prep"; icon = "🚌"; }
+
+                // Label stays fixed; the notes area beneath it is the editable part,
+                // so the period label can't be deleted by accident while typing.
+                const dayCell = (content) => slot.isDismissal
+                    ? `<td><div class="cell-content">${content}</div></td>`
+                    : `<td><div class="cell-content">${content}</div><div class="cell-notes" contenteditable="true" data-placeholder="✏️ Tap to add notes..."></div></td>`;
+
+                tr.innerHTML = `
+                    <td class="time-col">
+                        <div class="${periodClass}">${icon} ${slot.period}</div><br>
+                        <div class="time-badge">🕒 ${slot.time}</div>
+                    </td>
+                    ${dayCell(slot.days.Mon)}
+                    ${dayCell(slot.days.Tue)}
+                    ${dayCell(slot.days.Wed)}
+                    ${dayCell(slot.days.Thu)}
+                `;
+                tbody.appendChild(tr);
+            });
+            attachDropListeners();
+        }
+
+        const spanishThemes = {
+            7: "Verano ☀️",
+            8: "Herencia Hispana 🇲🇽",
+            9: "Día de los Muertos 💀",
+            10: "Acción de Gracias 🦃",
+            11: "Navidad y Fiesta 🎄",
+            0: "Reyes Magos 👑",
+            1: "Amor y Amistad ❤️",
+            2: "La Primavera 🌱",
+            3: "Pascua y Flores 🐰",
+            4: "Cinco de Mayo 🎉",
+            5: "Fin de Año 🎓",
+            6: "Verano 🏖️"
+        };
+
+        function updateMonthlyThemeBadge(monthIndex) {
+             const badge = document.getElementById('monthly-theme-badge');
+             if(badge && spanishThemes[monthIndex] !== undefined) {
+                 badge.innerText = spanishThemes[monthIndex];
+             }
+        }
+
+        const academicMonths = [
+            { name: 'August 2026', year: 2026, month: 7, days: 31, startDay: 6, season: 'summer', icon: '☀️' },
+            { name: 'September 2026', year: 2026, month: 8, days: 30, startDay: 2, season: 'fall', icon: '🍎' },
+            { name: 'October 2026', year: 2026, month: 9, days: 31, startDay: 4, season: 'fall', icon: '🍂' },
+            { name: 'November 2026', year: 2026, month: 10, days: 30, startDay: 0, season: 'fall', icon: '🦃' },
+            { name: 'December 2026', year: 2026, month: 11, days: 31, startDay: 2, season: 'winter', icon: '❄️' },
+            { name: 'January 2027', year: 2027, month: 0, days: 31, startDay: 5, season: 'winter', icon: '👑' },
+            { name: 'February 2027', year: 2027, month: 1, days: 28, startDay: 1, season: 'winter', icon: '💖' },
+            { name: 'March 2027', year: 2027, month: 2, days: 31, startDay: 1, season: 'spring', icon: '✝️' },
+            { name: 'April 2027', year: 2027, month: 3, days: 30, startDay: 4, season: 'spring', icon: '🌱' },
+            { name: 'May 2027', year: 2027, month: 4, days: 31, startDay: 6, season: 'spring', icon: '🚩' },
+            { name: 'June 2027', year: 2027, month: 5, days: 30, startDay: 2, season: 'summer', icon: '🎓' }
+        ];
+
+        const curriculumData = {
+            'elementary': {
+                'August 2026': '<ul><li>Welcome & Classroom Rules</li><li>Colors & Numbers (1-10)</li><li>TPR Gestures</li></ul>',
+                'September 2026': '<ul><li>Hispanic Heritage Month Songs</li><li>Greetings (Hola, Adiós)</li><li>Alphabet Rhymes</li></ul>',
+                'October 2026': '<ul><li>Family Members (La Familia)</li><li>Día de los Muertos Crafts</li><li>Autumn Vocabulary</li></ul>',
+                'November 2026': '<ul><li>Gratitude Expressions (Gracias)</li><li>Foods & Snacks</li><li>Tri 1 TPR Checks</li></ul>',
+                'December 2026': '<ul><li>Las Posadas & Villancicos</li><li>Christmas Carols</li><li>Winter Crafts</li></ul>',
+                'January 2027': '<ul><li>Día de los Reyes Magos</li><li>Weather & Seasons</li><li>Numbers 11-20</li></ul>',
+                'February 2027': '<ul><li>Catholic Schools Week Songs</li><li>Tarjetas de Amistad</li><li>Animals & Sounds</li></ul>',
+                'March 2027': '<ul><li>Colors & Clothing</li><li>Lent Chants & Prayers</li><li>Spring Vocabulary</li></ul>',
+                'April 2027': '<ul><li>Easter & Pascua Symbols</li><li>Parts of the Body</li><li>Storybook Reading</li></ul>',
+                'May 2027': '<ul><li>Cinco de Mayo Celebrations</li><li>Elementary Spanish Songs</li><li>Review Games</li></ul>',
+                'June 2027': '<ul><li>End of Year Celebration</li><li>Summer Songs</li><li>Final Review</li></ul>'
+            },
+            'middle': {
+                'August 2026': '<ul><li>Syllabus & Expectations</li><li>Review: Present Tense Regular Verbs</li><li>Classroom Objects Vocab</li></ul>',
+                'September 2026': '<ul><li>Hispanic Heritage Month Research</li><li>Stem-changing Verbs (e-ie, o-ue)</li><li>School Subjects & Schedules</li></ul>',
+                'October 2026': '<ul><li>Día de los Muertos Project</li><li>Ser vs. Estar</li><li>Describing People & Personality</li></ul>',
+                'November 2026': '<ul><li>Food & Restaurant Vocabulary</li><li>Direct Object Pronouns</li><li>Cultural Readings (Spain)</li></ul>',
+                'December 2026': '<ul><li>Holiday Traditions Comparison</li><li>Preterite Tense Introduction</li><li>Shopping Vocabulary</li></ul>',
+                'January 2027': '<ul><li>Preterite Regular Verbs Mastery</li><li>Daily Routine & Reflexive Verbs</li><li>Body Parts & Health</li></ul>',
+                'February 2027': '<ul><li>Preterite Irregular Verbs</li><li>Transportation & Travel</li><li>Speaking Assessments</li></ul>',
+                'March 2027': '<ul><li>Imperfect Tense Intro</li><li>Childhood Vocabulary</li><li>Cultural Readings (Mexico)</li></ul>',
+                'April 2027': '<ul><li>Preterite vs. Imperfect</li><li>Storytelling Project</li><li>Environment Vocabulary</li></ul>',
+                'May 2027': '<ul><li>Future Tense Intro</li><li>Professions & Careers</li><li>Final Exam Review</li></ul>',
+                'June 2027': '<ul><li>Final Exams</li><li>Cultural Movie Study</li><li>Year End Reflections</li></ul>'
+            }
+        };
+
+        // Holidays for the 2026-2027 school year, keyed by year_monthIndex_day.
+        // Shown as fixed badges on the monthly calendar (not editable, not saved).
+        const schoolHolidays = {
+            '2026_7_15': '⛪ Assumption of Mary',
+            '2026_8_7': '🇺🇸 Labor Day',
+            '2026_8_15': '🎉 Hispanic Heritage Month Begins',
+            '2026_9_12': '🇺🇸 Columbus Day',
+            '2026_9_15': '🎊 Hispanic Heritage Month Ends',
+            '2026_9_31': '🎃 Halloween',
+            '2026_10_1': '⛪ All Saints\' Day',
+            '2026_10_2': '💀 Día de los Muertos',
+            '2026_10_3': '🗳️ Election Day',
+            '2026_10_11': '🎖️ Veterans Day',
+            '2026_10_26': '🦃 Thanksgiving',
+            '2026_10_27': '🍂 Thanksgiving Break',
+            '2026_11_8': '⛪ Immaculate Conception',
+            '2026_11_12': '🌹 Our Lady of Guadalupe',
+            '2026_11_16': '🕯️ Las Posadas Begin',
+            '2026_11_24': '🌟 Christmas Eve',
+            '2026_11_25': '🎄 Christmas Day',
+            '2026_11_31': '🎆 New Year\'s Eve',
+            '2027_0_1': '🎉 New Year\'s Day',
+            '2027_0_6': '👑 Día de los Reyes',
+            '2027_0_18': '✊ MLK Jr. Day',
+            '2027_1_1': '🏫 Catholic Schools Week',
+            '2027_1_10': '⛪ Ash Wednesday',
+            '2027_1_14': '❤️ Valentine\'s Day',
+            '2027_1_15': '🇺🇸 Presidents\' Day',
+            '2027_2_17': '☘️ St. Patrick\'s Day',
+            '2027_2_21': '🌿 Palm Sunday',
+            '2027_2_26': '⛪ Good Friday',
+            '2027_2_28': '🐣 Easter Sunday',
+            '2027_3_22': '🌎 Earth Day',
+            '2027_4_5': '🎉 Cinco de Mayo',
+            '2027_4_9': '💐 Mother\'s Day',
+            '2027_4_31': '🇺🇸 Memorial Day',
+            '2027_5_14': '🇺🇸 Flag Day',
+            '2027_5_19': '🕊️ Juneteenth',
+            '2027_5_20': '👔 Father\'s Day'
+        };
+
+        let currentCurriculum = 'elementary';
+        let currentMonthIdx = 0;
+
+        function setCurriculumFilter(level) {
+            currentCurriculum = level;
+            document.getElementById('btn-curr-elem').classList.toggle('active', level === 'elementary');
+            document.getElementById('btn-curr-mid').classList.toggle('active', level === 'middle');
+            document.getElementById('curriculum-target-text').innerText = level === 'elementary' ? 'Grades 1-5 (Elementary Spanish)' : 'Grades 6-8 (Middle School Spanish)';
+            renderYearlyView();
+        }
+
+        function updateYearlyActiveMonth(dateObj) {
+            const el = document.getElementById('year-active-month');
+            if (el) {
+                const monthName = dateObj.toLocaleString('default', { month: 'long' });
+                const year = dateObj.getFullYear();
+                el.innerText = `${monthName} ${year}`;
+            }
+            updateMonthlyThemeBadge(dateObj.getMonth());
+        }
+
+        function renderMonthlyCalendar(idx) {
+            currentMonthIdx = idx;
+            const monthInfo = academicMonths[idx];
+            document.getElementById('monthly-title').innerText = monthInfo.name;
+            updateMonthlyThemeBadge(monthInfo.month);
+
+            const container = document.getElementById('monthly-grid-container');
+
+            let html = `
+                <div class="month-hdr-cell">Sun</div><div class="month-hdr-cell">Mon</div>
+                <div class="month-hdr-cell">Tue</div><div class="month-hdr-cell">Wed</div>
+                <div class="month-hdr-cell">Thu</div><div class="month-hdr-cell">Fri</div>
+                <div class="month-hdr-cell">Sat</div>
+            `;
+
+            for (let i = 0; i < monthInfo.startDay; i++) {
+                html += `<div class="month-day-cell" style="background:#f4f6fa;"></div>`;
+            }
+
+            for (let day = 1; day <= monthInfo.days; day++) {
+                const cellKey = `month_${currentMonthlyCurriculum}_${monthInfo.year}_${monthInfo.month}_${day}`;
+                let savedContent = localStorage.getItem(cellKey) || '';
+                const holiday = schoolHolidays[`${monthInfo.year}_${monthInfo.month}_${day}`];
+                const holidayHtml = holiday ? `<div class="holiday-badge" contenteditable="false">${holiday}</div>` : '';
+                html += `
+                    <div class="month-day-cell${holiday ? ' has-holiday' : ''}" contenteditable="true" id="${cellKey}">
+                        <div class="month-day-num">${day}</div>
+                        ${holidayHtml}
+                        <div style="flex-grow:1; outline:none;" class="day-content">${savedContent}</div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+            attachDropListeners();
+        }
+
+        function setMonthlyCurriculum(level) {
+            currentMonthlyCurriculum = level;
+            document.getElementById('btn-month-elem').classList.toggle('active', level === 'elementary');
+            document.getElementById('btn-month-mid').classList.toggle('active', level === 'middle');
+            renderMonthlyCalendar(currentMonthIdx);
+        }
+
+        function setTodoCurriculum(level) {
+            saveCurrentView(); // Save current before switching
+            currentTodoCurriculum = level;
+            document.getElementById('btn-todo-elem').classList.toggle('active', level === 'elementary');
+            document.getElementById('btn-todo-mid').classList.toggle('active', level === 'middle');
+            loadTodoData();
+        }
+
+        function changeMonth(dir) {
+            let nextIdx = currentMonthIdx + dir;
+            if (nextIdx >= 0 && nextIdx < academicMonths.length) {
+                renderMonthlyCalendar(nextIdx);
+            }
+        }
+
+        function saveCurrentView() {
+            if (currentViewId === 'weekly') {
+                const weekKey = 'week_' + document.getElementById('weekDate').value;
+                const tbody = document.getElementById('weekly-tbody');
+                if (tbody) localStorage.setItem(weekKey, tbody.innerHTML);
+            } else if (currentViewId === 'monthly') {
+                const monthInfo = academicMonths[currentMonthIdx];
+                for (let day = 1; day <= monthInfo.days; day++) {
+                    const cellKey = `month_${currentMonthlyCurriculum}_${monthInfo.year}_${monthInfo.month}_${day}`;
+                    const cell = document.getElementById(cellKey);
+                    if(cell) {
+                        let dayContent = cell.querySelector('.day-content');
+                        if (dayContent) {
+                            localStorage.setItem(cellKey, dayContent.innerHTML.trim());
+                        }
+                    }
+                }
+            } else if (currentViewId === 'todo') {
+                saveTodoData();
+            } else if (currentViewId === 'yearly') {
+                academicMonths.forEach(m => {
+                    const cellKey = `year_${currentCurriculum}_${m.year}_${m.month}`;
+                    const cell = document.getElementById(cellKey);
+                    if (cell) {
+                        localStorage.setItem(cellKey, cell.innerHTML.trim());
+                    }
+                });
+            }
+        }
+
+        function loadWeeklyData() {
+            const dateVal = document.getElementById('weekDate').value;
+            const savedData = localStorage.getItem('week_' + dateVal);
+            if (savedData) {
+                document.getElementById('weekly-tbody').innerHTML = savedData;
+            } else {
+                renderBlankWeeklyGrid();
+            }
+            attachInputAutoSaveListeners();
+        }
+
+        function handleDateChange() {
+            const val = document.getElementById('weekDate').value;
+            if (val) {
+                const parts = val.split('-');
+                const selectedDate = new Date(parts[0], parts[1] - 1, parts[2]);
+                updateYearlyActiveMonth(selectedDate);
+                loadWeeklyData();
+            }
+        }
+
+        function navigatePage(direction) {
+            if (currentViewId === 'weekly') {
+                const input = document.getElementById('weekDate');
+                if (input.value) {
+                    const current = new Date(input.value);
+                    current.setDate(current.getDate() + (direction * 7));
+                    input.value = formatDateForInput(current);
+                    handleDateChange();
+                }
+            } else if (currentViewId === 'monthly') {
+                changeMonth(direction);
+            } else if (currentViewId === 'yearly') {
+                setCurriculumFilter(currentCurriculum === 'elementary' ? 'middle' : 'elementary');
+            }
+        }
+
+        function attachInputAutoSaveListeners() {
+            document.querySelectorAll('[contenteditable="true"]').forEach(el => {
+                el.removeEventListener('input', triggerAutoSave);
+                el.addEventListener('input', triggerAutoSave);
+                el.removeEventListener('blur', saveCurrentView);
+                el.addEventListener('blur', saveCurrentView);
+
+                el.removeEventListener('keydown', handleKeyDown);
+                el.addEventListener('keydown', handleKeyDown);
+            });
+        }
+
+        function handleKeyDown(e) {
+            // Save history before modifying content on keydown (excluding navigation keys)
+            const isNavigationKey = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown', 'Shift', 'Control', 'Alt', 'Meta'].includes(e.key);
+            if (!isNavigationKey && !e.ctrlKey && !e.metaKey) {
+                // Throttle history saves to avoid saving on every single keystroke
+                if(!window.historyTimer) {
+                   saveHistory();
+                   window.historyTimer = setTimeout(() => { window.historyTimer = null; }, 1000);
+                }
+            }
+
+            // Handle Ctrl+Z for undo
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                e.preventDefault();
+                undoAction();
+            }
+        }
+
+        function getStartOfWeek(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        }
+
+        function formatDateForInput(date) {
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function drag(ev) {
+            ev.dataTransfer.setData("text/plain", ev.target.innerText);
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            const stickerIcon = ev.dataTransfer.getData("text/plain");
+            if (!stickerIcon) return;
+
+            let target = ev.target;
+            while (target && !target.getAttribute('contenteditable') && target.tagName !== 'TD' && target.tagName !== 'DIV') {
+                target = target.parentElement;
+            }
+
+            if (target) {
+                const stickerEl = document.createElement('span');
+                stickerEl.className = 'dropped-sticker';
+                stickerEl.innerText = stickerIcon;
+                stickerEl.onclick = function(e) {
+                    e.stopPropagation();
+                    stickerEl.remove();
+                    triggerAutoSave();
+                };
+                target.appendChild(stickerEl);
+                triggerAutoSave();
+            }
+        }
+
+        function attachDropListeners() {
+            const editableCells = document.querySelectorAll('[contenteditable="true"]');
+            editableCells.forEach(cell => {
+                cell.ondragover = allowDrop;
+                cell.ondrop = drop;
+            });
+            attachInputAutoSaveListeners();
+        }
+
+        function addTodoItem(text = '', isChecked = false) {
+            const list = document.getElementById('todo-list');
+            const itemDiv = document.createElement('div');
+            itemDiv.style.cssText = 'display:flex; align-items:center; gap:10px; background:white; padding:10px 14px; border-radius:10px; border:1px solid #e5e9f0;';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = isChecked;
+            checkbox.style.cssText = 'width:18px; height:18px; cursor:pointer; accent-color:#6d28d9;';
+            checkbox.onchange = triggerAutoSave;
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = text;
+            input.placeholder = 'Type goal or task here...';
+            input.style.cssText = 'flex-grow:1; border:none; outline:none; font-family:inherit; font-size:0.95em; color:#334155; background:transparent;';
+            if (isChecked) input.style.textDecoration = 'line-through';
+
+            checkbox.onchange = () => {
+                input.style.textDecoration = checkbox.checked ? 'line-through' : 'none';
+                triggerAutoSave();
+            };
+            input.oninput = triggerAutoSave;
+
+            const delBtn = document.createElement('button');
+            delBtn.innerHTML = '✕';
+            delBtn.style.cssText = 'background:none; border:none; color:#ef4444; cursor:pointer; font-weight:bold; font-size:1.1em;';
+            delBtn.onclick = () => {
+                itemDiv.remove();
+                triggerAutoSave();
+            };
+
+            itemDiv.appendChild(checkbox);
+            itemDiv.appendChild(input);
+            itemDiv.appendChild(delBtn);
+            list.appendChild(itemDiv);
+        }
+
+        function saveTodoData() {
+            const items = [];
+            document.querySelectorAll('#todo-list > div').forEach(div => {
+                const checkbox = div.querySelector('input[type="checkbox"]');
+                const input = div.querySelector('input[type="text"]');
+                if (input && checkbox) {
+                    items.push({ text: input.value, isChecked: checkbox.checked });
+                }
+            });
+            localStorage.setItem(`weekly_todos_${currentTodoCurriculum}`, JSON.stringify(items));
+        }
+
+        function loadTodoData() {
+            const list = document.getElementById('todo-list');
+            list.innerHTML = '';
+            const saved = JSON.parse(localStorage.getItem(`weekly_todos_${currentTodoCurriculum}`) || '[]');
+            if (saved.length > 0) {
+                saved.forEach(item => addTodoItem(item.text, item.isChecked));
+            } else {
+                if (currentTodoCurriculum === 'elementary') {
+                    addTodoItem("Grade 5th Grade TPR Activity Sheets", false);
+                    addTodoItem("Prepare 1st Grade Color Flashcards", false);
+                } else {
+                    addTodoItem("Prepare 8th Grade Present Tense Quiz", false);
+                    addTodoItem("Review 7th Grade Essays", false);
+                }
+            }
+        }
+
+        function generateAILessonPlan() {
+            const grade = document.getElementById('ai-plan-grade').value;
+            const topic = document.getElementById('ai-plan-topic').value || "Basic Conversational Spanish";
+            const out = document.getElementById('plan-output');
+            out.innerText = `📝 LESSON PLAN: ${topic} (${grade})\n\n1. Objective: Students will understand and produce key phrases for ${topic}.\n2. Warm-Up (5 min): TPR gestures & greeting chant.\n3. Guided Practice (15 min): Interactive vocabulary cards & group repetition.\n4. Independent Activity (15 min): Partner conversation exercise.\n5. Exit Ticket (5 min): Quick verbal check.`;
+        }
+
+        function generateAIActivity() {
+            const type = document.getElementById('ai-act-type').value;
+            const topic = document.getElementById('ai-act-topic').value || "Spanish Vocabulary";
+            const out = document.getElementById('act-output');
+            out.innerText = `🎲 ${type.toUpperCase()}: ${topic}\n\n• Concept: Fast-paced interactive game.\n• Rules: Divide class into two teams. Call out a term in English; the first student to say it in Spanish with proper accent wins a point!\n• Modification: Allow gestural clues for younger grades.`;
+        }
+
+        function playAIPronunciationAudio() {
+            const text = document.getElementById('ai-audio-text').value || "¡Hola! ¿Cómo estás hoy?";
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'es-ES';
+                window.speechSynthesis.speak(utterance);
+                document.getElementById('audio-status-msg').innerText = `🔊 Playing: "${text}"`;
+            } else {
+                document.getElementById('audio-status-msg').innerText = "Speech Synthesis not supported in this browser.";
+            }
+        }
+
+        function scrollToGrade(gradeNumStr) {
+            switchView('weekly');
+            document.querySelectorAll('.highlight-grade-target').forEach(el => el.classList.remove('highlight-grade-target'));
+
+            const rows = document.querySelectorAll('#weekly-tbody tr');
+            let found = false;
+
+            const targetRegex = new RegExp(`Spanish\\s*${parseInt(gradeNumStr)}`, 'i');
+
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                cells.forEach(cell => {
+                    // Check if the cell content contains the target string
+                    // We check the innerHTML to see if the string exists even if wrapped in other tags or text
+                    if (targetRegex.test(cell.innerText) || targetRegex.test(cell.innerHTML)) {
+                        // Find the inner div that actually contains the content to highlight it
+                        const contentDiv = cell.querySelector('.cell-content') || cell.querySelector('.cell-header') || cell;
+
+                        contentDiv.classList.add('highlight-grade-target');
+                        // Ensure the parent cell also gets the outline for visibility
+                        cell.classList.add('highlight-grade-target');
+
+                        if (!found) {
+                            cell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            found = true;
+                        }
+                    }
+                });
+            });
+
+            setTimeout(() => {
+                document.querySelectorAll('.highlight-grade-target').forEach(el => el.classList.remove('highlight-grade-target'));
+            }, 3500);
+        }
+
+        window.onload = () => {
+            const today = new Date();
+            const startOfWeek = getStartOfWeek(today);
+            const dateInput = document.getElementById('weekDate');
+            dateInput.value = formatDateForInput(startOfWeek);
+
+            updateYearlyActiveMonth(today);
+            renderBlankWeeklyGrid();
+            renderMonthlyCalendar(0);
+            renderYearlyView();
+            loadWeeklyData();
+            attachDropListeners();
+            setActiveTab('weekly');
+            checkBackupReminder();
+
+            document.addEventListener('keyup', (e) => {
+                if (e.target.isContentEditable || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    triggerAutoSave();
+                }
+            });
+        };
+
+        function renderYearlyView() {
+            const yg = document.getElementById('year-grid-container');
+            if (yg) {
+                yg.innerHTML = '';
+                academicMonths.forEach((m, idx) => {
+                    const cellKey = `year_${currentCurriculum}_${m.year}_${m.month}`;
+                    let content = localStorage.getItem(cellKey);
+                    if(!content && curriculumData[currentCurriculum][m.name]) {
+                        content = curriculumData[currentCurriculum][m.name];
+                    } else if (!content) {
+                        content = '';
+                    }
+
+                    yg.innerHTML += `
+                        <div class="year-month-card season-${m.season}" style="--i:${idx};">
+                            <div class="year-month-header">
+                                <span style="color: #b45309;">${m.name}</span>
+                                <span style="font-size:1.1em;">${m.icon}</span>
+                            </div>
+                            <div class="year-month-body" contenteditable="true" id="${cellKey}">
+                                ${content}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                yg.innerHTML += `
+                        <div class="year-month-card" style="--i:${academicMonths.length}; border-top-color: #e7c56b; background: #fffdf5;">
+                            <div class="year-month-header" style="background: transparent;">
+                                <span style="color: #b45309;">Department Goals</span>
+                                <span style="font-size:1.1em;">🎯</span>
+                            </div>
+                            <div class="year-month-body" contenteditable="true" id="dept-goals-${currentCurriculum}">
+                                ${currentCurriculum === 'elementary' ?
+                                    '<ul><li>100% TPR Chants & Songs</li><li>Oral Speaking Confidence</li><li>Flashcard Mastery</li></ul>' :
+                                    '<ul><li>90% Target Language Use</li><li>Mastery of Preterite/Imperfect</li><li>Cultural Project Completion</li></ul>'
+                                }
+                            </div>
+                        </div>
+                    `;
+                attachInputAutoSaveListeners();
+            }
+        }
+
+        /* ============ BACKUP & RESTORE (Google Drive friendly) ============ */
+
+        function collectAllPlannerData() {
+            const data = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                data[key] = localStorage.getItem(key);
+            }
+            return {
+                app: 'maria-cartiera-planner',
+                version: PLANNER_VERSION,
+                exportedAt: new Date().toISOString(),
+                data: data
+            };
+        }
+
+        async function exportBackup() {
+            markBackupDone();
+            const backup = collectAllPlannerData();
+            const json = JSON.stringify(backup, null, 2);
+            const today = formatDateForInput(new Date());
+            const filename = `lesson-planner-backup-${today}.json`;
+            const blob = new Blob([json], { type: 'application/json' });
+
+            // On Android tablets the share sheet lets Maria pick "Drive" to save
+            // the backup directly into her work Google Drive.
+            const file = new File([blob], filename, { type: 'application/json' });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({ files: [file], title: 'Lesson Planner Backup' });
+                    return;
+                } catch (err) {
+                    if (err.name === 'AbortError') return; // user cancelled the share sheet
+                    // otherwise fall through to a normal download
+                }
+            }
+
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+            alert('Backup downloaded: ' + filename + '\n\nUpload this file to your Google Drive to keep it safe.');
+        }
+
+        function importBackup(event) {
+            const fileInput = event.target;
+            const file = fileInput.files && fileInput.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const backup = JSON.parse(reader.result);
+                    if (backup.app !== 'maria-cartiera-planner' || !backup.data) {
+                        alert('This file is not a valid planner backup.');
+                        return;
+                    }
+                    const when = backup.exportedAt ? new Date(backup.exportedAt).toLocaleString() : 'unknown date';
+                    if (!confirm(`Restore backup from ${when}?\n\nThis will replace everything currently in the planner.`)) return;
+                    localStorage.clear();
+                    for (const [key, value] of Object.entries(backup.data)) {
+                        localStorage.setItem(key, value);
+                    }
+                    location.reload();
+                } catch (e) {
+                    alert('Could not read that backup file. Please make sure you picked a planner backup (.json).');
+                } finally {
+                    fileInput.value = '';
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        /* ============ TOUCH SUPPORT FOR STICKERS (tablet) ============ */
+
+        let selectedSticker = null;
+
+        function initStickerTapSupport() {
+            document.querySelectorAll('.sticker').forEach(sticker => {
+                sticker.addEventListener('click', () => {
+                    if (selectedSticker === sticker.innerText) {
+                        clearStickerSelection();
+                        return;
+                    }
+                    document.querySelectorAll('.sticker.selected').forEach(s => s.classList.remove('selected'));
+                    sticker.classList.add('selected');
+                    selectedSticker = sticker.innerText;
+                    showStickerHint();
+                });
+            });
+
+            // Place the selected sticker on tap of any editable cell
+            document.addEventListener('click', (e) => {
+                if (!selectedSticker) return;
+                const cell = e.target.closest('[contenteditable="true"]');
+                if (!cell) return;
+                const stickerEl = document.createElement('span');
+                stickerEl.className = 'dropped-sticker';
+                stickerEl.innerText = selectedSticker;
+                cell.appendChild(stickerEl);
+                clearStickerSelection();
+                triggerAutoSave();
+            });
+
+            // Tap a placed sticker to remove it (works even after reload,
+            // unlike per-element onclick handlers which are lost on save/load)
+            document.addEventListener('click', (e) => {
+                if (selectedSticker) return;
+                if (e.target.classList && e.target.classList.contains('dropped-sticker')) {
+                    e.stopPropagation();
+                    e.target.remove();
+                    triggerAutoSave();
+                }
+            }, true);
+        }
+
+        function showStickerHint() {
+            let hint = document.getElementById('sticker-hint');
+            if (!hint) {
+                hint = document.createElement('div');
+                hint.id = 'sticker-hint';
+                hint.style.cssText = 'position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#1e293b; color:white; padding:10px 18px; border-radius:24px; font-size:0.9em; font-weight:bold; z-index:1000; box-shadow:0 4px 12px rgba(0,0,0,0.4);';
+                document.body.appendChild(hint);
+            }
+            hint.innerText = `${selectedSticker} selected. Tap any planner cell to place it, or tap the sticker again to cancel.`;
+            hint.style.display = 'block';
+        }
+
+        function clearStickerSelection() {
+            selectedSticker = null;
+            document.querySelectorAll('.sticker.selected').forEach(s => s.classList.remove('selected'));
+            const hint = document.getElementById('sticker-hint');
+            if (hint) hint.style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', initStickerTapSupport);
+
+        /* ============ IMPORT PLANS (paste box, parser, photo OCR) ============ */
+
+        let importModeTab = 'single';
+
+        function openImportModal() {
+            if (currentViewId !== 'weekly') switchView('weekly');
+            // Preselect today's weekday (Mon-Thu), defaulting to Monday
+            const dow = new Date().getDay();
+            document.getElementById('import-day').value = (dow >= 1 && dow <= 4) ? String(dow) : '1';
+            document.getElementById('import-status').innerText = '';
+            document.getElementById('import-preview').style.display = 'none';
+            document.getElementById('import-modal-backdrop').style.display = 'flex';
+            document.getElementById('import-text').focus();
+        }
+
+        function closeImportModal() {
+            document.getElementById('import-modal-backdrop').style.display = 'none';
+        }
+
+        function setImportMode(mode) {
+            importModeTab = mode;
+            document.getElementById('imp-tab-single').classList.toggle('active', mode === 'single');
+            document.getElementById('imp-tab-week').classList.toggle('active', mode === 'week');
+            document.getElementById('import-help-single').style.display = mode === 'single' ? 'block' : 'none';
+            document.getElementById('import-help-week').style.display = mode === 'week' ? 'block' : 'none';
+            document.getElementById('import-single-controls').style.display = mode === 'single' ? 'flex' : 'none';
+            document.getElementById('imp-btn-preview').style.display = mode === 'week' ? 'flex' : 'none';
+            document.getElementById('import-preview').style.display = 'none';
+            document.getElementById('import-status').innerText = '';
+        }
+
+        function importSubmit() {
+            if (importModeTab === 'week') addParsedPlans();
+            else insertImportedPlan();
+        }
+
+        // Shared: put text into a weekly cell's notes area
+        function appendToWeeklyCell(dayIdx, rowIdx, text, mode) {
+            const row = document.querySelectorAll('#weekly-tbody tr')[rowIdx];
+            if (!row) return null;
+            const cell = row.querySelectorAll('td')[dayIdx];
+            if (!cell) return null;
+            // Old-format saved weeks may not have a notes div; fall back to the cell
+            const target = cell.querySelector('.cell-notes') || cell;
+            const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const html = escaped.replace(/\n/g, '<br>');
+            if (mode === 'replace' || !target.innerHTML.trim()) {
+                target.innerHTML = html;
+            } else {
+                target.innerHTML = target.innerHTML + '<br>' + html;
+            }
+            cell.classList.add('highlight-grade-target');
+            setTimeout(() => cell.classList.remove('highlight-grade-target'), 2000);
+            return cell;
+        }
+
+        function insertImportedPlan() {
+            const textarea = document.getElementById('import-text');
+            const status = document.getElementById('import-status');
+            const text = textarea.value.trim();
+            if (!text) {
+                status.style.color = '#b91c1c';
+                status.innerText = 'Paste some text first.';
+                return;
+            }
+            const dayIdx = parseInt(document.getElementById('import-day').value);
+            const rowIdx = parseInt(document.getElementById('import-period').value);
+            const mode = document.getElementById('import-mode').value;
+
+            saveHistory();
+            const cell = appendToWeeklyCell(dayIdx, rowIdx, text, mode);
+            if (!cell) return;
+            triggerAutoSave();
+
+            const dayName = document.getElementById('import-day').selectedOptions[0].innerText;
+            const periodName = document.getElementById('import-period').selectedOptions[0].innerText;
+            status.style.color = '#047857';
+            status.innerText = `Added to ${dayName}, ${periodName} ✓`;
+            textarea.value = '';
+            textarea.focus();
+        }
+
+        /* ---- Whole-week text parser ---- */
+
+        const IMPORT_DAY_PATTERNS = [
+            { re: /^(?:monday|lunes|mon)\b/i, day: 1 },
+            { re: /^(?:tuesday|martes|tues|tue)\b/i, day: 2 },
+            { re: /^(?:wednesday|mi[eé]rcoles|weds|wed)\b/i, day: 3 },
+            { re: /^(?:thursday|jueves|thurs|thur|thu)\b/i, day: 4 }
+        ];
+        const IMPORT_DAY_NAMES = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
+        const IMPORT_ROW_NAMES = ['Period 1', 'Period 2', 'Period 3', 'Period 4', 'Period 5', 'Lunch', 'Period 6', 'Period 7', 'Period 8'];
+
+        function parseWeekText(text) {
+            const periodToRow = n => (n <= 5 ? n - 1 : n); // Lunch occupies row 5
+            const buckets = [];
+            const bucketMap = {};
+            const unassigned = [];
+            let curDay = null, curRow = null;
+
+            // A heading only counts if the keyword stands alone or is followed by
+            // a separator, so content like "Monday's homework" is not a heading.
+            const restIsSeparator = rest => rest === '' || /^[\s:.,\-]/.test(rest);
+            const stripSeparators = rest => rest.replace(/^[\s:.,\-]+/, '');
+
+            text.split('\n').forEach(raw => {
+                let line = raw.trim();
+                if (!line) return;
+                let consumed = true;
+                while (consumed && line) {
+                    consumed = false;
+                    for (const d of IMPORT_DAY_PATTERNS) {
+                        const m = line.match(d.re);
+                        if (m) {
+                            const rest = line.slice(m[0].length);
+                            if (restIsSeparator(rest)) {
+                                curDay = d.day;
+                                curRow = null;
+                                line = stripSeparators(rest);
+                                consumed = true;
+                            }
+                            break;
+                        }
+                    }
+                    if (consumed) continue;
+                    let m = line.match(/^(?:period|per|p)[\s.]*([1-8])\b/i);
+                    if (m && restIsSeparator(line.slice(m[0].length))) {
+                        curRow = periodToRow(parseInt(m[1]));
+                        line = stripSeparators(line.slice(m[0].length));
+                        consumed = true;
+                        continue;
+                    }
+                    m = line.match(/^lunch\b/i);
+                    if (m && restIsSeparator(line.slice(m[0].length))) {
+                        curRow = 5;
+                        line = stripSeparators(line.slice(m[0].length));
+                        consumed = true;
+                    }
+                }
+                if (!line) return;
+                if (curDay !== null && curRow !== null) {
+                    const key = curDay + '_' + curRow;
+                    if (!bucketMap[key]) {
+                        bucketMap[key] = { day: curDay, row: curRow, lines: [] };
+                        buckets.push(bucketMap[key]);
+                    }
+                    bucketMap[key].lines.push(line);
+                } else {
+                    unassigned.push(line);
+                }
+            });
+            return { buckets, unassigned };
+        }
+
+        function escapeForPreview(s) {
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function previewParse() {
+            const text = document.getElementById('import-text').value;
+            const box = document.getElementById('import-preview');
+            const { buckets, unassigned } = parseWeekText(text);
+            box.style.display = 'block';
+            if (!buckets.length && !unassigned.length) {
+                box.innerHTML = '<div class="preview-item">Nothing to preview yet. Paste some text first.</div>';
+                return;
+            }
+            let html = buckets.map(b => {
+                const snippet = escapeForPreview(b.lines[0].slice(0, 45)) + (b.lines[0].length > 45 ? '...' : '');
+                return `<div class="preview-item"><span class="preview-target">${IMPORT_DAY_NAMES[b.day]} · ${IMPORT_ROW_NAMES[b.row]}</span>: ${b.lines.length} line(s). "${snippet}"</div>`;
+            }).join('');
+            if (unassigned.length) {
+                html += `<div class="preview-item preview-warn">⚠ ${unassigned.length} line(s) have no day + period heading yet and will be skipped.</div>`;
+            }
+            box.innerHTML = html;
+        }
+
+        function addParsedPlans() {
+            const textarea = document.getElementById('import-text');
+            const status = document.getElementById('import-status');
+            const { buckets, unassigned } = parseWeekText(textarea.value);
+            if (!buckets.length) {
+                status.style.color = '#b91c1c';
+                status.innerText = 'No day + period headings found. Start lines with a day like "Monday" and a period like "Period 3".';
+                previewParse();
+                return;
+            }
+            saveHistory();
+            buckets.forEach(b => appendToWeeklyCell(b.day, b.row, b.lines.join('\n'), 'append'));
+            triggerAutoSave();
+            status.style.color = '#047857';
+            status.innerText = `Added ${buckets.length} section(s) to the week ✓` +
+                (unassigned.length ? ` The ${unassigned.length} unlabeled line(s) were kept below; add headings and try again.` : '');
+            // Keep only the skipped lines so they can be labeled and re-added
+            textarea.value = unassigned.join('\n');
+            document.getElementById('import-preview').style.display = 'none';
+        }
+
+        /* ---- Photo OCR (Tesseract, loaded on demand) ---- */
+
+        let tesseractLoader = null;
+
+        function loadTesseract() {
+            if (window.Tesseract) return Promise.resolve();
+            if (!tesseractLoader) {
+                tesseractLoader = new Promise((resolve, reject) => {
+                    const s = document.createElement('script');
+                    s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+                    s.onload = resolve;
+                    s.onerror = () => { tesseractLoader = null; reject(new Error('script load failed')); };
+                    document.head.appendChild(s);
+                });
+            }
+            return tesseractLoader;
+        }
+
+        async function ocrPhotoToText(event) {
+            const input = event.target;
+            const file = input.files && input.files[0];
+            if (!file) return;
+            const status = document.getElementById('ocr-status');
+            try {
+                status.style.color = '#475569';
+                status.innerText = 'Loading the photo reader (needs internet the first time)...';
+                await loadTesseract();
+                const worker = await Tesseract.createWorker('spa+eng', 1, {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            status.innerText = `Reading photo... ${Math.round(m.progress * 100)}%`;
+                        }
+                    }
+                });
+                const { data } = await worker.recognize(file);
+                await worker.terminate();
+                const text = (data.text || '').trim();
+                if (!text) {
+                    status.style.color = '#b91c1c';
+                    status.innerText = 'No text found in that photo. For handwriting, Google Lens usually reads better; copy its text and paste it here.';
+                } else {
+                    const ta = document.getElementById('import-text');
+                    ta.value = ta.value.trim() ? ta.value + '\n' + text : text;
+                    status.style.color = '#047857';
+                    status.innerText = 'Text added below. Please check it for reading mistakes before adding to the planner.';
+                }
+            } catch (e) {
+                status.style.color = '#b91c1c';
+                status.innerText = 'Could not read the photo here. Tip: open it with Google Lens, copy the text, and paste it instead.';
+            } finally {
+                input.value = '';
+            }
+        }
+
+        /* ============ DAILY BACKUP REMINDER ============ */
+
+        function checkBackupReminder() {
+            const today = formatDateForInput(new Date());
+            const lastBackup = localStorage.getItem('planner_last_backup');
+            const snoozedOn = localStorage.getItem('planner_backup_snooze');
+            const hasData = localStorage.length > 2;
+            if (hasData && lastBackup !== today && snoozedOn !== today) {
+                document.getElementById('backup-banner').style.display = 'flex';
+            }
+        }
+
+        function markBackupDone() {
+            localStorage.setItem('planner_last_backup', formatDateForInput(new Date()));
+            document.getElementById('backup-banner').style.display = 'none';
+        }
+
+        function snoozeBackupReminder() {
+            localStorage.setItem('planner_backup_snooze', formatDateForInput(new Date()));
+            document.getElementById('backup-banner').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
