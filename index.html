@@ -541,11 +541,21 @@
             user-select: none;
             cursor: default;
         }
-        .month-day-cell.has-holiday { background: #fffdf6; }
+        .holiday-badge.cal-noschool { background: linear-gradient(135deg, #fde2e2, #fbcaca); border-color: #f0a3a3; color: #8a1c1c; }
+        .holiday-badge.cal-early { background: linear-gradient(135deg, #dcf5eb, #c3eddc); border-color: #8fd6b8; color: #0f6b4a; }
+        .holiday-badge.cal-event { background: #f1f4f9; border-color: #d6dde8; color: #3d4a5e; font-weight: 600; }
+        .month-day-cell.cal-day-noschool { background: #fff4f4; }
+        .month-day-cell.cal-day-early { background: #f0faf5; }
+        .month-day-cell.cal-day-theme { background: #fffdf6; }
         .th-date { display: block; font-weight: 600; font-size: 0.8em; opacity: 0.85; margin-top: 3px; letter-spacing: 0.02em; }
-        th .holiday-badge { display: inline-block; margin: 5px 0 0; font-size: 0.74em; background: #fdf3dc; border-color: #eed49a; color: #8a5a10; }
+        th .holiday-badge { display: block; margin: 4px auto 0; font-size: 0.72em; max-width: 100%; white-space: normal; }
         td.holiday-col { background: #fffbf0 !important; }
+        td.holiday-col.cal-col-noschool { background: #fff4f4 !important; }
+        td.holiday-col.cal-col-early { background: #f0faf5 !important; }
         td.holiday-col .cell-notes:empty::before { content: attr(data-placeholder); }
+        .cal-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.74em; color: #475569; font-weight: 600; margin-top: 2px; }
+        .cal-legend span { display: inline-flex; align-items: center; gap: 5px; }
+        .cal-legend i { width: 12px; height: 12px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.12); display: inline-block; }
 
         /* ============ YEARLY VIEW ============ */
         .year-grid {
@@ -874,7 +884,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.21</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.22</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana 🇲🇽</span>
         </div>
@@ -982,6 +992,12 @@
                         <div class="monthly-header">
                             <div class="monthly-header-left">
                                 <h2 id="monthly-title" style="margin:0; font-family:'Playfair Display', serif; font-size: 2em; color: #1a2130;">Month Year</h2>
+                                <div class="cal-legend">
+                                    <span><i style="background:#fbcaca;"></i>No School</span>
+                                    <span><i style="background:#c3eddc;"></i>Early Dismissal 12:30</span>
+                                    <span><i style="background:#e5e9f0;"></i>School Event</span>
+                                    <span><i style="background:#fbe9c3;"></i>Spanish / Faith Theme</span>
+                                </div>
                                 <div class="curriculum-toggle">
                                     <span>View Calendar For:</span>
                                     <button class="toggle-btn active" onclick="setMonthlyCurriculum('elementary')" id="btn-month-elem">Grades 1-5</button>
@@ -1269,7 +1285,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.08.21';
+        const PLANNER_VERSION = 'v2026.08.22';
         let currentViewId = 'weekly';
         let autoSaveTimeout = null;
         let currentMonthlyCurriculum = 'elementary';
@@ -1537,46 +1553,170 @@
             }
         };
 
-        // Holidays for the 2026-2027 school year, keyed by year_monthIndex_day.
-        // Shown as fixed badges on the monthly calendar (not editable, not saved).
-        const schoolHolidays = {
+        // ---- St. Paul School calendar 2026-2027 ----
+        // Source: Student/Parent Handbook 2026-27, Appendix III (p. 51), rev 8/5/2026.
+        // Dates use 'YYYY-MM-DD' or a range 'YYYY-MM-DD..YYYY-MM-DD'.
+        // type: 'noschool' | 'early' (12:30 dismissal, no aftercare) | 'event'
+        const schoolCalendar = [
+            // AUGUST
+            ['2026-08-24', 'event', 'Faculty Retreat'],
+            ['2026-08-25', 'event', 'Faculty & Staff PD'],
+            ['2026-08-25', 'event', 'Meet & Greet / School Pictures 3:30-6pm'],
+            ['2026-08-27', 'event', '🎒 First Day of School'],
+            ['2026-08-27', 'early', 'ED 12:30 · No Aftercare'],
+            ['2026-08-28', 'early', 'ED 12:30 · No Aftercare'],
+            // SEPTEMBER
+            ['2026-09-01', 'event', '⛪ All School Mass Gr 1-8'],
+            ['2026-09-07', 'noschool', 'NO SCHOOL · Labor Day'],
+            ['2026-09-12', 'event', 'Family Fun Day'],
+            ['2026-09-13', 'event', 'Rain Date: Family Fun Day'],
+            ['2026-09-14', 'event', 'State of the School & Back to School Night'],
+            ['2026-09-18', 'noschool', 'NO SCHOOL · Berlin Fair'],
+            ['2026-09-21', 'event', '8th Grade Retreat'],
+            ['2026-09-23', 'early', 'ED 12:30 · No Aftercare · PD'],
+            ['2026-09-27', 'event', 'Father Joe Memorial Walk'],
+            // OCTOBER
+            ['2026-10-02', 'event', 'Fun Run'],
+            ['2026-10-05', 'event', 'Rain Date: Fun Run'],
+            ['2026-10-06', 'event', '⛪ All School Mass'],
+            ['2026-10-06', 'event', 'Picture Retake Day'],
+            ['2026-10-07', 'event', 'High School Fair'],
+            ['2026-10-08', 'noschool', 'NO SCHOOL · Archdiocese (AOH)'],
+            ['2026-10-09', 'event', 'Halloween Movie Night'],
+            ['2026-10-12', 'noschool', 'NO SCHOOL · Columbus Day'],
+            ['2026-10-14', 'event', 'Living Rosary'],
+            ['2026-10-17', 'event', "Trunk o' Treat"],
+            ['2026-10-19', 'event', 'What to Expect in Kindergarten'],
+            ['2026-10-21', 'early', 'ED 12:30 · No Aftercare · Conferences (SPT)'],
+            ['2026-10-22', 'early', 'ED 12:30 · No Aftercare · Conferences (SPT)'],
+            ['2026-10-23', 'event', 'Halloween Parade & Boo Bash'],
+            ['2026-10-23', 'event', 'MS Halloween Dance'],
+            ['2026-10-24', 'event', "Rain Date: Trunk o' Treat"],
+            ['2026-10-25', 'event', 'Open House'],
+            // NOVEMBER
+            ['2026-11-02', 'event', '⛪ Alumni Mass'],
+            ['2026-11-03', 'event', '⛪ All School Mass'],
+            ['2026-11-09', 'early', 'ED 12:30 · No Aftercare · PD'],
+            ['2026-11-11', 'event', 'Veterans Day Assembly'],
+            ['2026-11-15', 'event', 'Science Fair Setup 1-3pm'],
+            ['2026-11-16..2026-11-18', 'event', 'Science Fair'],
+            ['2026-11-25', 'event', 'End of Trimester 1'],
+            ['2026-11-25', 'early', 'ED 12:30 · No Aftercare'],
+            ['2026-11-26..2026-11-27', 'noschool', 'NO SCHOOL · Thanksgiving'],
+            // DECEMBER
+            ['2026-12-04', 'event', 'Christmas Shopping Fair'],
+            ['2026-12-05', 'event', 'Lighting of the Parish Green'],
+            ['2026-12-08', 'event', '⛪ All School Mass'],
+            ['2026-12-11', 'event', 'Polar Express Pajama / Movie Day'],
+            ['2026-12-17', 'early', 'ED 12:30 · No Aftercare'],
+            ['2026-12-17', 'event', '🎄 Christmas Concert'],
+            ['2026-12-23', 'early', 'ED 12:30 · No Aftercare'],
+            ['2026-12-24..2026-12-31', 'noschool', 'NO SCHOOL · Christmas Break'],
+            // JANUARY
+            ['2027-01-01', 'noschool', "NO SCHOOL · New Year's Day"],
+            ['2027-01-04', 'event', 'Return to School'],
+            ['2027-01-07', 'event', 'What to Expect in Middle School'],
+            ['2027-01-15', 'early', 'ED 12:30 · No Aftercare'],
+            ['2027-01-15..2027-01-18', 'event', 'MLK Tournament'],
+            ['2027-01-18', 'noschool', 'NO SCHOOL · MLK Day'],
+            ['2027-01-29', 'event', 'Winter Ball'],
+            ['2027-01-31', 'event', '⛪ CSW Mass, Social & Open House'],
+            ['2027-01-31..2027-02-06', 'event', 'Catholic Schools Week'],
+            // FEBRUARY
+            ['2027-02-02', 'event', '⛪ All School Mass Gr 1-8'],
+            ['2027-02-05', 'event', 'HSA Ice Cream Social'],
+            ['2027-02-10', 'event', '⛪ Ash Wednesday · All School Mass'],
+            ['2027-02-11', 'early', 'ED 12:30 · No Aftercare · PD'],
+            ['2027-02-12..2027-02-15', 'noschool', 'NO SCHOOL · Presidents Day'],
+            ['2027-02-20', 'event', 'Fr. Joe Memorial Basketball Game'],
+            ['2027-02-22..2027-02-23', 'event', 'Trimester 2 Conferences (by request)'],
+            // MARCH
+            ['2027-03-05', 'event', 'End of Trimester 2'],
+            ['2027-03-15..2027-03-17', 'event', 'Scholastic Book Fair'],
+            ['2027-03-17', 'event', '⛪ All School Mass · Grandparents Day'],
+            ['2027-03-24', 'event', 'Living Stations'],
+            ['2027-03-26', 'noschool', 'NO SCHOOL · Good Friday'],
+            ['2027-03-29', 'noschool', 'NO SCHOOL · Easter Monday'],
+            // APRIL
+            ['2027-04-03', 'event', 'Annual Auction 5-9pm'],
+            ['2027-04-05', 'noschool', 'NO SCHOOL · Archdiocese (AOH)'],
+            ['2027-04-12..2027-04-16', 'noschool', 'NO SCHOOL · Spring Break'],
+            ['2027-04-25', 'event', 'Travel Faire Set Up 1-3pm'],
+            ['2027-04-26..2027-04-28', 'event', 'Travel Faire'],
+            // MAY
+            ['2027-05-04', 'early', 'ED 12:30 · No Aftercare · PD'],
+            ['2027-05-05', 'event', "Mother's Day Flower Pick Up"],
+            ['2027-05-06', 'event', '⛪ All School Mass'],
+            ['2027-05-11', 'event', '⛪ All School Mass · May Crowning'],
+            ['2027-05-21', 'event', 'K-8 Camp Sloper'],
+            ['2027-05-21', 'early', 'ED 12:30 · No Aftercare'],
+            ['2027-05-31', 'noschool', 'NO SCHOOL · Memorial Day'],
+            // JUNE
+            ['2027-06-02', 'event', 'Annual Golf Tournament'],
+            ['2027-06-03', 'event', 'Gr 7 & 8 Breakfast'],
+            ['2027-06-04', 'event', 'Gr 8 Class Night & Middle School Dance'],
+            ['2027-06-07', 'event', '🎓 Gr 8 Graduation & Mass'],
+            ['2027-06-15', 'event', '🎉 Last Day of School (tentative)']
+        ];
+
+        // Spanish-class and faith theme days that are NOT on the school calendar,
+        // keyed by year_monthIndex_day. Shown as gold badges.
+        const themeDays = {
             '2026_7_15': '⛪ Assumption of Mary',
-            '2026_8_7': '🇺🇸 Labor Day',
             '2026_8_15': '🎉 Hispanic Heritage Month Begins',
-            '2026_9_12': '🇺🇸 Columbus Day',
             '2026_9_15': '🎊 Hispanic Heritage Month Ends',
             '2026_9_31': '🎃 Halloween',
-            '2026_10_1': '⛪ All Saints\' Day',
+            '2026_10_1': "⛪ All Saints' Day",
             '2026_10_2': '💀 Día de los Muertos',
             '2026_10_3': '🗳️ Election Day',
-            '2026_10_11': '🎖️ Veterans Day',
-            '2026_10_26': '🦃 Thanksgiving',
-            '2026_10_27': '🍂 Thanksgiving Break',
             '2026_11_8': '⛪ Immaculate Conception',
             '2026_11_12': '🌹 Our Lady of Guadalupe',
             '2026_11_16': '🕯️ Las Posadas Begin',
-            '2026_11_24': '🌟 Christmas Eve',
             '2026_11_25': '🎄 Christmas Day',
-            '2026_11_31': '🎆 New Year\'s Eve',
-            '2027_0_1': '🎉 New Year\'s Day',
             '2027_0_6': '👑 Día de los Reyes',
-            '2027_0_18': '✊ MLK Jr. Day',
-            '2027_1_1': '🏫 Catholic Schools Week',
-            '2027_1_10': '⛪ Ash Wednesday',
-            '2027_1_14': '❤️ Valentine\'s Day',
-            '2027_1_15': '🇺🇸 Presidents\' Day',
-            '2027_2_17': '☘️ St. Patrick\'s Day',
+            '2027_1_14': "❤️ Valentine's Day",
+            '2027_2_17': "☘️ St. Patrick's Day",
             '2027_2_21': '🌿 Palm Sunday',
-            '2027_2_26': '⛪ Good Friday',
             '2027_2_28': '🐣 Easter Sunday',
             '2027_3_22': '🌎 Earth Day',
             '2027_4_5': '🎉 Cinco de Mayo',
-            '2027_4_9': '💐 Mother\'s Day',
-            '2027_4_31': '🇺🇸 Memorial Day',
+            '2027_4_9': "💐 Mother's Day",
             '2027_5_14': '🇺🇸 Flag Day',
             '2027_5_19': '🕊️ Juneteenth',
-            '2027_5_20': '👔 Father\'s Day'
+            '2027_5_20': "👔 Father's Day"
         };
+
+        // Lookup table: 'year_monthIndex_day' -> [{ type, label }, ...]
+        const calendarByDay = {};
+        function addCalDay(key, type, label) {
+            (calendarByDay[key] = calendarByDay[key] || []).push({ type, label });
+        }
+        schoolCalendar.forEach(([dateSpec, type, label]) => {
+            const [from, to] = dateSpec.split('..');
+            const start = new Date(from + 'T00:00:00');
+            const end = new Date((to || from) + 'T00:00:00');
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                addCalDay(`${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`, type, label);
+            }
+        });
+        Object.entries(themeDays).forEach(([key, label]) => addCalDay(key, 'theme', label));
+
+        const CAL_ICON = { noschool: '🚫', early: '⏰', event: '', theme: '' };
+        function dayEntries(key) { return calendarByDay[key] || []; }
+        function dayBadgesHtml(key) {
+            return dayEntries(key).map(e =>
+                `<div class="holiday-badge cal-${e.type}" contenteditable="false">${CAL_ICON[e.type] ? CAL_ICON[e.type] + ' ' : ''}${e.label}</div>`
+            ).join('');
+        }
+        // Strongest type on a day decides the tint: noschool > early > theme > event
+        function dayTypeClass(key) {
+            const types = dayEntries(key).map(e => e.type);
+            if (types.includes('noschool')) return 'cal-day-noschool';
+            if (types.includes('early')) return 'cal-day-early';
+            if (types.includes('theme')) return 'cal-day-theme';
+            if (types.includes('event')) return 'cal-day-event';
+            return '';
+        }
 
         let currentCurriculum = 'elementary';
         let currentMonthIdx = 0;
@@ -1621,10 +1761,11 @@
             for (let day = 1; day <= monthInfo.days; day++) {
                 const cellKey = `month_${currentMonthlyCurriculum}_${monthInfo.year}_${monthInfo.month}_${day}`;
                 let savedContent = localStorage.getItem(cellKey) || '';
-                const holiday = schoolHolidays[`${monthInfo.year}_${monthInfo.month}_${day}`];
-                const holidayHtml = holiday ? `<div class="holiday-badge" contenteditable="false">${holiday}</div>` : '';
+                const dayKey = `${monthInfo.year}_${monthInfo.month}_${day}`;
+                const holidayHtml = dayBadgesHtml(dayKey);
+                const typeClass = dayTypeClass(dayKey);
                 html += `
-                    <div class="month-day-cell${holiday ? ' has-holiday' : ''}" contenteditable="true" id="${cellKey}">
+                    <div class="month-day-cell${typeClass ? ' has-holiday ' + typeClass : ''}" contenteditable="true" id="${cellKey}">
                         <div class="month-day-num">${day}</div>
                         ${holidayHtml}
                         <div style="flex-grow:1; outline:none;" class="day-content">${savedContent}</div>
@@ -1710,8 +1851,8 @@
         }
 
 
-        // Show each weekday's date under the column header and flag national /
-        // school holidays from the schoolHolidays calendar on the weekly view.
+        // Show each weekday's date under the column header, with the school
+        // calendar (no school / early dismissal / events) and theme days.
         function updateWeeklyHeaders() {
             const val = document.getElementById('weekDate').value;
             if (!val) return;
@@ -1721,18 +1862,20 @@
                 const d = new Date(monday);
                 d.setDate(monday.getDate() + (i - 1));
                 const key = `${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`;
-                const holiday = schoolHolidays[key];
+                const typeClass = dayTypeClass(key);
                 const dateEl = document.getElementById('wk-date-' + i);
                 if (dateEl) {
                     const label = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
-                    dateEl.innerHTML = holiday
-                        ? `${label}<br><span class="holiday-badge">${holiday}</span>`
-                        : label;
+                    dateEl.innerHTML = label + dayBadgesHtml(key);
                 }
-                // Tint that day's column so the holiday is obvious while planning
+                // Tint the column for no-school, early-dismissal and theme days
+                const tint = typeClass === 'cal-day-noschool' || typeClass === 'cal-day-early' || typeClass === 'cal-day-theme';
                 document.querySelectorAll('#weekly-tbody tr').forEach(tr => {
                     const td = tr.querySelectorAll('td')[i];
-                    if (td) td.classList.toggle('holiday-col', !!holiday);
+                    if (!td) return;
+                    td.classList.toggle('holiday-col', tint);
+                    td.classList.toggle('cal-col-noschool', typeClass === 'cal-day-noschool');
+                    td.classList.toggle('cal-col-early', typeClass === 'cal-day-early');
                 });
             }
         }
