@@ -849,6 +849,45 @@
         }
         .backup-banner .nav-btn { padding: 7px 12px; font-size: 0.9em; }
 
+        /* ============ HOME DASHBOARD ============ */
+        .tab-home { background: linear-gradient(160deg, #932222, #691616); }
+        .home-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; border-bottom: 2px solid var(--border-light); padding-bottom: 12px; margin-bottom: 16px; }
+        .home-clock { font-family: 'Playfair Display', serif; font-size: 2.4em; color: var(--brand-700); font-weight: 700; }
+        .home-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; align-items: start; }
+        .home-side { display: flex; flex-direction: column; gap: 16px; }
+        .home-card { background: white; border: 1px solid var(--border-light); border-radius: 12px; box-shadow: var(--shadow-1); padding: 16px 18px; }
+        .home-card h3 { margin: 0 0 10px; font-size: 1em; color: #1a2130; }
+        .home-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .home-stat { display: flex; gap: 10px; align-items: center; }
+        .stat-emoji { font-size: 1.8em; }
+        .stat-label { margin: 0; font-size: 0.7em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a0b4; }
+        .stat-value { margin: 2px 0 0; font-weight: 800; color: #1a2130; font-size: 0.92em; line-height: 1.35; }
+        .progress-track { background: #f1f4f9; border: 1px solid var(--border-light); border-radius: 999px; height: 14px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--brand-600), var(--gold)); transition: width 0.6s var(--ease); width: 0; }
+        .progress-track.trimester { height: 10px; }
+        .progress-track.trimester .progress-fill { background: linear-gradient(90deg, #047857, #34d399); }
+        .progress-text { margin: 6px 0 0; font-size: 0.78em; color: #64748b; font-weight: 600; }
+        .quick-links { display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 10px; }
+        .quick-link { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; background: #f8fafc; border: 1px solid var(--border-light); border-radius: 10px; padding: 12px 6px; text-decoration: none; color: #334155; font-weight: 700; font-size: 0.78em; text-align: center; transition: transform 0.15s var(--ease), box-shadow 0.2s var(--ease), background 0.2s var(--ease); }
+        .quick-link:hover { transform: translateY(-2px); box-shadow: var(--shadow-1); background: white; }
+        .quick-link .ql-emoji { font-size: 1.6em; }
+        .quick-link .ql-del { position: absolute; top: 2px; right: 5px; border: none; background: none; color: #cbd5e0; font-weight: 700; cursor: pointer; font-size: 0.95em; padding: 2px; }
+        .quick-link .ql-del:hover { color: #ef4444; }
+        .home-sched-row { display: flex; gap: 10px; align-items: flex-start; padding: 7px 6px; border-radius: 8px; border-bottom: 1px solid #f1f4f9; }
+        .home-sched-row:last-child { border-bottom: none; }
+        .home-sched-row.now { background: #fdf3dc; box-shadow: inset 0 0 0 2px var(--gold); }
+        .home-sched-time { min-width: 118px; font-size: 0.74em; font-weight: 700; color: #94a0b4; padding-top: 2px; }
+        .home-sched-label { font-weight: 700; font-size: 0.88em; color: #1a2130; }
+        .home-sched-notes { font-size: 0.78em; color: #64748b; margin-top: 1px; }
+        .sticky-board { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
+        .sticky-note { position: relative; border-radius: 4px; padding: 14px 12px 16px; min-height: 110px; box-shadow: 2px 4px 10px rgba(15, 23, 42, 0.12); font-family: 'Nunito', sans-serif; font-weight: 600; font-size: 0.9em; color: #4a4423; line-height: 1.45; }
+        .sticky-note:nth-child(odd) { transform: rotate(-1.2deg); }
+        .sticky-note:nth-child(even) { transform: rotate(1deg); }
+        .sticky-note .sticky-text { outline: none; min-height: 78px; white-space: pre-wrap; }
+        .sticky-note .sticky-text:empty::before { content: 'Tap to write...'; opacity: 0.5; font-style: italic; }
+        .sticky-del { position: absolute; top: 4px; right: 7px; border: none; background: none; color: rgba(0, 0, 0, 0.3); font-weight: 800; cursor: pointer; font-size: 1em; }
+        .sticky-del:hover { color: #b91c1c; }
+        @media (max-width: 900px) { .home-grid { grid-template-columns: 1fr; } .home-clock { font-size: 1.8em; } }
         /* ============ TABLET & SMALL SCREENS ============ */
         @media (max-width: 1024px) {
             body { height: auto; min-height: 100vh; overflow: auto; }
@@ -884,7 +923,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.22</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.23</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana 🇲🇽</span>
         </div>
@@ -943,6 +982,7 @@
 
         <!-- LEFT TABS -->
         <div class="tabs-left">
+            <div class="tab tab-home" onclick="switchView('home')">🏠 Home</div>
             <div class="tab tab-year" onclick="switchView('yearly')">🗓 Year</div>
             <div class="tab tab-month" onclick="switchView('monthly')">📅 Month</div>
             <div class="tab tab-week" onclick="switchView('weekly')">📋 Weekly</div>
@@ -956,8 +996,68 @@
             <div class="page">
                 <div class="page-content">
 
+                    <!-- HOME DASHBOARD -->
+                    <div id="view-home" class="view active">
+                        <div class="home-header">
+                            <div>
+                                <h2 id="home-greeting" style="font-family:'Playfair Display', serif; color:#1a2130; margin:0; font-size:2em;">¡Buenos días, Maria!</h2>
+                                <p id="home-date" style="margin:4px 0 0; color:#64748b; font-weight:600; font-size:0.9em;"></p>
+                            </div>
+                            <div class="home-clock" id="home-clock"></div>
+                        </div>
+
+                        <div class="home-grid">
+                            <div class="home-card">
+                                <h3>📋 Today at a Glance</h3>
+                                <div id="home-today-badges"></div>
+                                <div id="home-schedule"></div>
+                            </div>
+
+                            <div class="home-side">
+                                <div class="home-stats">
+                                    <div class="home-card home-stat">
+                                        <div class="stat-emoji">🏖️</div>
+                                        <div>
+                                            <p class="stat-label">Next Day Off</p>
+                                            <p class="stat-value" id="stat-dayoff"></p>
+                                        </div>
+                                    </div>
+                                    <div class="home-card home-stat">
+                                        <div class="stat-emoji">🎓</div>
+                                        <div>
+                                            <p class="stat-label">Last Day of School</p>
+                                            <p class="stat-value" id="stat-summer"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="home-card">
+                                    <h3>📈 School Year Progress</h3>
+                                    <div class="progress-track"><div class="progress-fill" id="year-progress-fill"></div></div>
+                                    <p class="progress-text" id="year-progress-text"></p>
+                                    <div style="margin-top:10px;">
+                                        <div class="progress-track trimester"><div class="progress-fill" id="tri-progress-fill"></div></div>
+                                        <p class="progress-text" id="tri-progress-text"></p>
+                                    </div>
+                                </div>
+                                <div class="home-card">
+                                    <h3 style="display:flex; justify-content:space-between; align-items:center;">🔗 Quick Links
+                                        <button class="nav-btn btn-light" style="padding:4px 10px; font-size:0.72em;" onclick="openLinkModal()">+ Add Link</button>
+                                    </h3>
+                                    <div class="quick-links" id="quick-links"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="home-card" style="margin-top:16px;">
+                            <h3 style="display:flex; justify-content:space-between; align-items:center;">📌 Sticky Notes
+                                <button class="nav-btn btn-light" style="padding:4px 10px; font-size:0.72em;" onclick="addSticky()">+ New Note</button>
+                            </h3>
+                            <div class="sticky-board" id="sticky-board"></div>
+                        </div>
+                    </div>
+
                     <!-- WEEKLY VIEW -->
-                    <div id="view-weekly" class="view active">
+                    <div id="view-weekly" class="view">
                         <div class="spread-header">
                             <div class="spread-title">
                                 <h2>Lesson Planner</h2>
@@ -1277,6 +1377,27 @@
         </div>
     </div>
 
+    <!-- ADD QUICK LINK MODAL -->
+    <div id="link-modal-backdrop" class="modal-backdrop" style="display:none;" onclick="if (event.target === this) closeLinkModal()">
+        <div class="import-modal" style="max-width:430px;">
+            <h3>🔗 Add a Quick Link</h3>
+            <p>Add any website Maria uses often. It becomes a tile on the Home dashboard.</p>
+            <div class="import-row" style="flex-direction:column;">
+                <label style="width:100%;">Name
+                    <input type="text" id="link-name" placeholder="e.g. Duolingo Classroom" style="padding:9px; border:1px solid #cbd5e0; border-radius:8px; font-family:inherit; font-size:1em;">
+                </label>
+                <label style="width:100%;">Web address
+                    <input type="text" id="link-url" placeholder="e.g. duolingo.com" style="padding:9px; border:1px solid #cbd5e0; border-radius:8px; font-family:inherit; font-size:1em;">
+                </label>
+            </div>
+            <div class="import-actions">
+                <button class="nav-btn btn-light" onclick="closeLinkModal()">Cancel</button>
+                <button class="nav-btn btn-brand" onclick="saveQuickLink()">Add Link</button>
+            </div>
+            <div id="link-status"></div>
+        </div>
+    </div>
+
     <!-- DAILY BACKUP REMINDER -->
     <div id="backup-banner" class="backup-banner" style="display:none;">
         <span>💾 Save today's backup to your tablet or Drive</span>
@@ -1285,8 +1406,8 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.08.22';
-        let currentViewId = 'weekly';
+        const PLANNER_VERSION = 'v2026.08.23';
+        let currentViewId = 'home';
         let autoSaveTimeout = null;
         let currentMonthlyCurriculum = 'elementary';
         let currentTodoCurriculum = 'elementary';
@@ -1421,6 +1542,7 @@
             setActiveTab(viewId);
 
             if (viewId === 'todo') loadTodoData();
+            if (viewId === 'home') renderHome();
             currentViewId = viewId;
         }
 
@@ -2120,7 +2242,8 @@
             renderYearlyView();
             loadWeeklyData();
             attachDropListeners();
-            setActiveTab('weekly');
+            setActiveTab('home');
+            renderHome();
             checkBackupReminder();
             refreshLastBackupLabel();
             updateWeeklyHeaders();
@@ -2607,6 +2730,245 @@
         function snoozeBackupReminder() {
             localStorage.setItem('planner_backup_snooze', formatDateForInput(new Date()));
             document.getElementById('backup-banner').style.display = 'none';
+        }
+
+        /* ============ HOME DASHBOARD ============ */
+
+        const SCHOOL_YEAR = { firstDay: new Date(2026, 7, 27), lastDay: new Date(2027, 5, 15) };
+        const TRIMESTERS = [
+            { name: 'Trimester 1', start: new Date(2026, 7, 27), end: new Date(2026, 10, 25) },
+            { name: 'Trimester 2', start: new Date(2026, 10, 30), end: new Date(2027, 2, 5) },
+            { name: 'Trimester 3', start: new Date(2027, 2, 8), end: new Date(2027, 5, 15) }
+        ];
+        const STICKY_COLORS = ['#fef08a', '#fbcfe8', '#bbf7d0', '#bfdbfe', '#fde68a'];
+        const DEFAULT_LINKS = [
+            { name: 'Classroom', url: 'https://classroom.google.com', emoji: '📚' },
+            { name: 'Gmail', url: 'https://mail.google.com', emoji: '✉️' },
+            { name: 'Drive', url: 'https://drive.google.com', emoji: '📁' },
+            { name: 'Gradebook', url: 'https://accounts.renweb.com', emoji: '📊' }
+        ];
+
+        function renderHome() {
+            updateHomeClock();
+            renderHomeToday();
+            renderHomeStats();
+            renderQuickLinks();
+            renderStickies();
+        }
+
+        function updateHomeClock() {
+            const clockEl = document.getElementById('home-clock');
+            if (!clockEl) return;
+            const now = new Date();
+            clockEl.innerText = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            const h = now.getHours();
+            document.getElementById('home-greeting').innerText =
+                h < 12 ? '¡Buenos días, Maria!' : (h < 18 ? '¡Buenas tardes, Maria!' : '¡Buenas noches, Maria!');
+            document.getElementById('home-date').innerText =
+                now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+        }
+        setInterval(() => { if (currentViewId === 'home') updateHomeClock(); }, 30000);
+
+        // "8:25 - 9:06 AM" -> [start, end] minutes since midnight. The AM/PM
+        // suffix belongs to the end time; the start flips to AM if it would
+        // otherwise land after the end (e.g. "11:19 - 12:00 PM").
+        function parseTimeRange(str) {
+            const m = str.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+            if (!m) return null;
+            const pm = m[5].toUpperCase() === 'PM';
+            const end = (parseInt(m[3]) % 12 + (pm ? 12 : 0)) * 60 + parseInt(m[4]);
+            let start = (parseInt(m[1]) % 12 + (pm ? 12 : 0)) * 60 + parseInt(m[2]);
+            if (start > end) start -= 720;
+            return [start, end];
+        }
+
+        // Today's column of the weekly grid: the saved current week if there is
+        // one, otherwise the default template. Null on Fri-Sun.
+        function todaysColumnTexts() {
+            const dow = new Date().getDay();
+            if (dow < 1 || dow > 4) return null;
+            const monday = getStartOfWeek(new Date());
+            const saved = localStorage.getItem('week_' + formatDateForInput(monday));
+            const rows = [];
+            if (saved) {
+                const doc = new DOMParser().parseFromString('<table><tbody>' + saved + '</tbody></table>', 'text/html');
+                doc.querySelectorAll('tbody > tr').forEach(tr => {
+                    const tds = tr.querySelectorAll('td');
+                    if (tds.length < 5) return;
+                    const periodEl = tds[0].querySelector('.period-badge');
+                    const timeEl = tds[0].querySelector('.time-badge');
+                    const cell = tds[dow];
+                    const labelEl = cell.querySelector('.cell-header');
+                    const notesEl = cell.querySelector('.cell-notes');
+                    rows.push({
+                        period: periodEl ? periodEl.innerText.trim() : '',
+                        time: timeEl ? timeEl.innerText.replace('🕒', '').trim() : '',
+                        label: (labelEl ? labelEl.innerText : cell.innerText).trim().split('\n')[0],
+                        notes: notesEl ? notesEl.innerText.trim() : ''
+                    });
+                });
+            } else {
+                const dayName = ['', 'Mon', 'Tue', 'Wed', 'Thu'][dow];
+                const tmp = document.createElement('div');
+                defaultWeeklySchedule.forEach(slot => {
+                    tmp.innerHTML = slot.days[dayName] || '';
+                    rows.push({ period: slot.period, time: slot.time, label: tmp.innerText.trim(), notes: '' });
+                });
+            }
+            return rows.filter(r => r.label && !/dismissal/i.test(r.period));
+        }
+
+        function renderHomeToday() {
+            const badges = document.getElementById('home-today-badges');
+            const sched = document.getElementById('home-schedule');
+            if (!badges || !sched) return;
+            const now = new Date();
+            const key = `${now.getFullYear()}_${now.getMonth()}_${now.getDate()}`;
+            badges.innerHTML = dayBadgesHtml(key);
+            if (dayEntries(key).some(e => e.type === 'noschool')) {
+                sched.innerHTML = '<p style="color:#8a1c1c; font-weight:700; margin:8px 0 0;">No school today. ¡Disfruta el día! 🎉</p>';
+                return;
+            }
+            const dow = now.getDay();
+            if (dow < 1 || dow > 4) {
+                sched.innerHTML = '<p style="color:#64748b; font-weight:600; margin:8px 0 0;">No classes today. ¡Buen fin de semana! ☀️</p>';
+                return;
+            }
+            const mins = now.getHours() * 60 + now.getMinutes();
+            sched.innerHTML = (todaysColumnTexts() || []).map(r => {
+                const range = parseTimeRange(r.time);
+                const isNow = range && mins >= range[0] && mins <= range[1];
+                const notes = r.notes
+                    ? `<div class="home-sched-notes">${escapeForPreview(r.notes.slice(0, 80))}${r.notes.length > 80 ? '...' : ''}</div>`
+                    : '';
+                return `<div class="home-sched-row${isNow ? ' now' : ''}">
+                    <div class="home-sched-time">${escapeForPreview(r.period)}<br>${escapeForPreview(r.time)}</div>
+                    <div><div class="home-sched-label">${escapeForPreview(r.label)}</div>${notes}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderHomeStats() {
+            const now = new Date(); now.setHours(0, 0, 0, 0);
+            let dayoff = null;
+            for (let i = 0; i <= 400; i++) {
+                const d = new Date(now); d.setDate(now.getDate() + i);
+                const e = dayEntries(`${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`).find(x => x.type === 'noschool');
+                if (e) { dayoff = { days: i, label: e.label.replace(/^NO SCHOOL · /, ''), date: d }; break; }
+            }
+            const offEl = document.getElementById('stat-dayoff');
+            if (offEl) {
+                offEl.innerText = !dayoff ? 'None scheduled'
+                    : dayoff.days === 0 ? 'Today! ' + dayoff.label
+                    : `${dayoff.days} day${dayoff.days === 1 ? '' : 's'} · ${dayoff.label} (${dayoff.date.toLocaleDateString([], { month: 'short', day: 'numeric' })})`;
+            }
+            const sumEl = document.getElementById('stat-summer');
+            if (sumEl) {
+                const toSummer = Math.ceil((SCHOOL_YEAR.lastDay - now) / 86400000);
+                sumEl.innerText = toSummer > 0 ? `${toSummer} days · Jun 15 🎉` : 'Summer is here! 🏖️';
+            }
+            const total = SCHOOL_YEAR.lastDay - SCHOOL_YEAR.firstDay;
+            const pct = Math.min(100, Math.max(0, Math.round((now - SCHOOL_YEAR.firstDay) / total * 100)));
+            document.getElementById('year-progress-fill').style.width = pct + '%';
+            document.getElementById('year-progress-text').innerText = now < SCHOOL_YEAR.firstDay
+                ? `School year starts Aug 27 (${(d => d === 1 ? 'tomorrow!' : 'in ' + d + ' days')(Math.ceil((SCHOOL_YEAR.firstDay - now) / 86400000))})`
+                : `${pct}% of the school year complete`;
+            const tri = TRIMESTERS.find(t => now <= t.end) || TRIMESTERS[2];
+            const tPct = Math.min(100, Math.max(0, Math.round((now - tri.start) / (tri.end - tri.start) * 100)));
+            document.getElementById('tri-progress-fill').style.width = tPct + '%';
+            document.getElementById('tri-progress-text').innerText = now < tri.start
+                ? `${tri.name} starts ${tri.start.toLocaleDateString([], { month: 'short', day: 'numeric' })}`
+                : `${tri.name}: ${tPct}% · ends ${tri.end.toLocaleDateString([], { month: 'short', day: 'numeric' })}`;
+        }
+
+        /* ---- Quick links ---- */
+
+        function getCustomLinks() {
+            return JSON.parse(localStorage.getItem('home_links') || '[]');
+        }
+
+        function renderQuickLinks() {
+            const box = document.getElementById('quick-links');
+            if (!box) return;
+            box.innerHTML = DEFAULT_LINKS.map(l =>
+                `<a class="quick-link" href="${l.url}" target="_blank" rel="noopener"><span class="ql-emoji">${l.emoji}</span>${l.name}</a>`
+            ).join('') + getCustomLinks().map((l, i) =>
+                `<a class="quick-link" href="${escapeForPreview(l.url)}" target="_blank" rel="noopener">
+                    <button class="ql-del" title="Remove link" onclick="event.preventDefault(); removeQuickLink(${i});">✕</button>
+                    <span class="ql-emoji">🔗</span>${escapeForPreview(l.name)}</a>`
+            ).join('');
+        }
+
+        function openLinkModal() {
+            document.getElementById('link-name').value = '';
+            document.getElementById('link-url').value = '';
+            document.getElementById('link-status').innerText = '';
+            document.getElementById('link-modal-backdrop').style.display = 'flex';
+            document.getElementById('link-name').focus();
+        }
+
+        function closeLinkModal() {
+            document.getElementById('link-modal-backdrop').style.display = 'none';
+        }
+
+        function saveQuickLink() {
+            const name = document.getElementById('link-name').value.trim();
+            let url = document.getElementById('link-url').value.trim();
+            const status = document.getElementById('link-status');
+            if (!name || !url) {
+                status.style.color = '#b91c1c';
+                status.innerText = 'Please fill in both the name and the web address.';
+                return;
+            }
+            if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+            const links = getCustomLinks();
+            links.push({ name, url });
+            localStorage.setItem('home_links', JSON.stringify(links));
+            renderQuickLinks();
+            closeLinkModal();
+        }
+
+        function removeQuickLink(i) {
+            const links = getCustomLinks();
+            links.splice(i, 1);
+            localStorage.setItem('home_links', JSON.stringify(links));
+            renderQuickLinks();
+        }
+
+        /* ---- Sticky notes ---- */
+
+        function getStickies() {
+            const saved = JSON.parse(localStorage.getItem('home_stickies') || 'null');
+            return saved || [{ text: '¡Bienvenida! Tap a note to write on it, or add a new one.', color: 0 }];
+        }
+
+        function saveStickiesFromDom() {
+            const notes = [];
+            document.querySelectorAll('#sticky-board .sticky-note').forEach(n => {
+                notes.push({ text: n.querySelector('.sticky-text').innerText, color: parseInt(n.dataset.color) || 0 });
+            });
+            localStorage.setItem('home_stickies', JSON.stringify(notes));
+        }
+
+        function renderStickies() {
+            const board = document.getElementById('sticky-board');
+            if (!board) return;
+            board.innerHTML = getStickies().map(s =>
+                `<div class="sticky-note" data-color="${s.color % STICKY_COLORS.length}" style="background:${STICKY_COLORS[s.color % STICKY_COLORS.length]};">
+                    <button class="sticky-del" title="Delete note" onclick="this.parentElement.remove(); saveStickiesFromDom();">✕</button>
+                    <div class="sticky-text" contenteditable="true" oninput="saveStickiesFromDom()">${escapeForPreview(s.text)}</div>
+                </div>`
+            ).join('');
+        }
+
+        function addSticky() {
+            saveStickiesFromDom();
+            const notes = getStickies();
+            notes.push({ text: '', color: notes.length % STICKY_COLORS.length });
+            localStorage.setItem('home_stickies', JSON.stringify(notes));
+            renderStickies();
+            const last = document.querySelector('#sticky-board .sticky-note:last-child .sticky-text');
+            if (last) last.focus();
         }
     </script>
 </body>
