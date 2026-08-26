@@ -923,7 +923,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.23</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.24</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana 🇲🇽</span>
         </div>
@@ -1008,7 +1008,14 @@
 
                         <div class="home-grid">
                             <div class="home-card">
-                                <h3>📋 Today at a Glance</h3>
+                                <h3 style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+                                    <span id="home-today-title">📋 Today at a Glance</span>
+                                    <span style="display:flex; gap:6px;">
+                                        <button class="nav-btn btn-light" style="padding:3px 12px; font-size:0.85em;" title="Previous day" onclick="shiftHomeDay(-1)">‹</button>
+                                        <button id="home-today-reset" class="nav-btn btn-light" style="padding:3px 10px; font-size:0.72em; display:none;" onclick="resetHomeDay()">Back to Today</button>
+                                        <button class="nav-btn btn-light" style="padding:3px 12px; font-size:0.85em;" title="Next day" onclick="shiftHomeDay(1)">›</button>
+                                    </span>
+                                </h3>
                                 <div id="home-today-badges"></div>
                                 <div id="home-schedule"></div>
                             </div>
@@ -1406,7 +1413,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.08.23';
+        const PLANNER_VERSION = 'v2026.08.24';
         let currentViewId = 'home';
         let autoSaveTimeout = null;
         let currentMonthlyCurriculum = 'elementary';
@@ -1558,13 +1565,13 @@
             { period: "Period 1", time: "8:25 - 9:06 AM",
               days: { Mon: "<span class='cell-header header-g7'>Spanish 7</span>", Tue: "<span class='cell-header header-prep'>Prep / Planning</span>", Wed: "<span class='cell-header header-g7'>Spanish 7</span>", Thu: "<span class='cell-header header-g7'>Spanish 7</span>" } },
             { period: "Period 2", time: "9:08 - 9:49 AM",
-              days: { Mon: "<span class='cell-header header-g8'>Spanish 8</span>", Tue: "<span class='cell-header header-prep'>Prep / Planning</span>", Wed: "<span class='cell-header header-g8'>Spanish 8</span>", Thu: "<span class='cell-header header-plc'>Weekly PLC</span>" } },
+              days: { Mon: "<span class='cell-header header-g8'>Spanish 8</span>", Tue: "<span class='cell-header header-g1'>Spanish 1</span>", Wed: "<span class='cell-header header-g8'>Spanish 8</span>", Thu: "<span class='cell-header header-plc'>Weekly PLC</span>" } },
             { period: "Period 3", time: "9:51 - 10:32 AM",
               days: { Mon: "<span class='cell-header header-g5'>Spanish 5</span>", Tue: "<span class='cell-header header-g2'>Spanish 2</span>", Wed: "<span class='cell-header header-g5'>Spanish 5</span>", Thu: "<span class='cell-header header-g8'>Spanish 8</span>" } },
             { period: "Period 4", time: "10:36 - 11:17 AM",
-              days: { Mon: "<span class='cell-header header-prep'>Prep / Planning</span>", Tue: "<span class='cell-header header-g1'>Spanish 1</span>", Wed: "<span class='cell-header header-prep'>Prep / Planning</span>", Thu: "<span class='cell-header header-prep'>Prep / Planning</span>" } },
+              days: { Mon: "<span class='cell-header header-prep'>Prep / Planning</span>", Tue: "<span class='cell-header header-prep'>Prep / Planning</span>", Wed: "<span class='cell-header header-prep'>Prep / Planning</span>", Thu: "<span class='cell-header header-prep'>Prep / Planning</span>" } },
             { period: "Period 5", time: "11:19 - 12:00 PM",
-              days: { Mon: "<span class='cell-header header-lunch'>Recess / Lunch Duty</span>", Tue: "<span class='cell-header header-lunch'>Recess / Lunch Duty</span>", Wed: "<span class='cell-header header-prep'>Prep / Planning</span>", Thu: "<span class='cell-header header-prep'>Prep / Planning</span>" } },
+              days: { Mon: "<span class='cell-header header-prep'>Prep / Planning</span>", Tue: "<span class='cell-header header-prep'>Prep / Planning</span>", Wed: "<span class='cell-header header-prep'>Prep / Planning</span>", Thu: "<span class='cell-header header-prep'>Prep / Planning</span>" } },
             { period: "Lunch", time: "12:05 - 12:43 PM", isLunch: true,
               days: { Mon: "<span class='cell-header header-lunch'>Recess / Lunch</span>", Tue: "<span class='cell-header header-lunch'>Recess / Lunch</span>", Wed: "<span class='cell-header header-lunch'>Recess / Lunch</span>", Thu: "<span class='cell-header header-lunch'>Recess / Lunch</span>" } },
             { period: "Period 6", time: "12:45 - 1:26 PM",
@@ -2782,12 +2789,12 @@
             return [start, end];
         }
 
-        // Today's column of the weekly grid: the saved current week if there is
-        // one, otherwise the default template. Null on Fri-Sun.
-        function todaysColumnTexts() {
-            const dow = new Date().getDay();
+        // One day's column of the weekly grid: from that week's saved data if
+        // there is any, otherwise the default template. Null on Fri-Sun.
+        function columnTextsFor(date) {
+            const dow = date.getDay();
             if (dow < 1 || dow > 4) return null;
-            const monday = getStartOfWeek(new Date());
+            const monday = getStartOfWeek(new Date(date));
             const saved = localStorage.getItem('week_' + formatDateForInput(monday));
             const rows = [];
             if (saved) {
@@ -2818,26 +2825,50 @@
             return rows.filter(r => r.label && !/dismissal/i.test(r.period));
         }
 
+        let homeDayOffset = 0; // 0 = today, -1 = yesterday, +1 = tomorrow, ...
+
+        function shiftHomeDay(delta) {
+            homeDayOffset += delta;
+            renderHomeToday();
+        }
+
+        function resetHomeDay() {
+            homeDayOffset = 0;
+            renderHomeToday();
+        }
+
         function renderHomeToday() {
             const badges = document.getElementById('home-today-badges');
             const sched = document.getElementById('home-schedule');
             if (!badges || !sched) return;
-            const now = new Date();
-            const key = `${now.getFullYear()}_${now.getMonth()}_${now.getDate()}`;
+            const target = new Date();
+            target.setDate(target.getDate() + homeDayOffset);
+            const dayWord = homeDayOffset === 0 ? 'Today'
+                : homeDayOffset === -1 ? 'Yesterday'
+                : homeDayOffset === 1 ? 'Tomorrow'
+                : target.toLocaleDateString([], { weekday: 'long' });
+            const titleEl = document.getElementById('home-today-title');
+            if (titleEl) titleEl.innerText = `📋 ${dayWord} at a Glance · ${target.toLocaleDateString([], { month: 'short', day: 'numeric' })}`;
+            const resetBtn = document.getElementById('home-today-reset');
+            if (resetBtn) resetBtn.style.display = homeDayOffset === 0 ? 'none' : 'inline-flex';
+
+            const key = `${target.getFullYear()}_${target.getMonth()}_${target.getDate()}`;
             badges.innerHTML = dayBadgesHtml(key);
+            const dayRef = homeDayOffset === 0 ? 'today' : 'that day';
             if (dayEntries(key).some(e => e.type === 'noschool')) {
-                sched.innerHTML = '<p style="color:#8a1c1c; font-weight:700; margin:8px 0 0;">No school today. ¡Disfruta el día! 🎉</p>';
+                sched.innerHTML = `<p style="color:#8a1c1c; font-weight:700; margin:8px 0 0;">No school ${dayRef}. ¡Disfruta el día! 🎉</p>`;
                 return;
             }
-            const dow = now.getDay();
+            const dow = target.getDay();
             if (dow < 1 || dow > 4) {
-                sched.innerHTML = '<p style="color:#64748b; font-weight:600; margin:8px 0 0;">No classes today. ¡Buen fin de semana! ☀️</p>';
+                sched.innerHTML = `<p style="color:#64748b; font-weight:600; margin:8px 0 0;">No classes ${dayRef}. ¡Buen fin de semana! ☀️</p>`;
                 return;
             }
+            const now = new Date();
             const mins = now.getHours() * 60 + now.getMinutes();
-            sched.innerHTML = (todaysColumnTexts() || []).map(r => {
+            sched.innerHTML = (columnTextsFor(target) || []).map(r => {
                 const range = parseTimeRange(r.time);
-                const isNow = range && mins >= range[0] && mins <= range[1];
+                const isNow = homeDayOffset === 0 && range && mins >= range[0] && mins <= range[1];
                 const notes = r.notes
                     ? `<div class="home-sched-notes">${escapeForPreview(r.notes.slice(0, 80))}${r.notes.length > 80 ? '...' : ''}</div>`
                     : '';
