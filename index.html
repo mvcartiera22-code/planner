@@ -964,7 +964,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.29</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.30</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana 🇲🇽</span>
         </div>
@@ -1024,10 +1024,10 @@
         <!-- LEFT TABS -->
         <div class="tabs-left">
             <div class="tab tab-home" onclick="switchView('home')">🏠 Home</div>
+            <div class="tab tab-tracker" onclick="location.href='participation.html'">📊 Tracker</div>
+            <div class="tab tab-week" onclick="switchView('weekly')">📋 Weekly</div>
             <div class="tab tab-year" onclick="switchView('yearly')">🗓 Year</div>
             <div class="tab tab-month" onclick="switchView('monthly')">📅 Month</div>
-            <div class="tab tab-week" onclick="switchView('weekly')">📋 Weekly</div>
-            <div class="tab tab-tracker" onclick="location.href='participation.html'">📊 Tracker</div>
             <div class="tab tab-goals" onclick="switchView('todo')">🎯 Goals</div>
             <div class="tab tab-stickers" onclick="switchView('stickers')">🏷️ Stickers</div>
             <div class="tab tab-ai" onclick="switchView('ai-studio')">✨ AI Studio</div>
@@ -1507,7 +1507,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.08.29';
+        const PLANNER_VERSION = 'v2026.08.30';
         let currentViewId = 'home';
         let autoSaveTimeout = null;
         let currentMonthlyCurriculum = 'elementary';
