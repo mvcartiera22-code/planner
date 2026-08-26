@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#1f6feb">
+<meta name="theme-color" content="#7f1d1d">
 <title>Spanish Participation Tracker — Mrs. Cartiera</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&family=Playfair+Display:wght@600;700&display=swap');
 :root{
-  --bg:#eef1f5; --card:#fff; --ink:#12161c; --muted:#5b6472; --line:#d8dee7;
-  --accent:#1f6feb; --accent-soft:#e8f0fe;
+  --bg:#f7f4ef; --card:#fff; --ink:#1e2433; --muted:#64748b; --line:#e5e9f0;
+  --accent:#7f1d1d; --accent-soft:#f6ebe9;
   --gA-bg:#e3f6ea; --gA-fg:#0f7a3b;
   --gB-bg:#e6eefe; --gB-fg:#1b5fd0;
   --gC-bg:#fff2d0; --gC-fg:#8a6100;
@@ -21,7 +22,7 @@
 html,body{margin:0;padding:0}
 body{
   background:var(--bg); color:var(--ink);
-  font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font:15px/1.45 'Outfit','Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   padding-bottom:90px; overscroll-behavior-y:contain;
 }
 button,input,select,textarea{font:inherit;color:inherit}
@@ -31,12 +32,12 @@ button{cursor:pointer}
 .topbar{position:sticky;top:0;z-index:40;background:linear-gradient(180deg,#fff,#fbfcfe);
   border-bottom:1px solid var(--line);box-shadow:0 1px 8px rgba(16,24,40,.06)}
 .topbar .row1{display:flex;align-items:center;gap:12px;padding:10px 14px 8px;flex-wrap:wrap}
-.brand{font-weight:700;font-size:17px;letter-spacing:-.2px;white-space:nowrap}
+.brand{font-family:"Playfair Display",serif;font-weight:700;font-size:19px;letter-spacing:0;white-space:nowrap;color:#7f1d1d}
 .brand small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
 .grades{display:flex;gap:6px;background:#eef1f6;padding:4px;border-radius:12px}
 .grades button{border:0;background:transparent;padding:9px 16px;border-radius:9px;
   font-weight:650;font-size:15px;color:var(--muted);min-height:44px}
-.grades button.on{background:var(--accent);color:#fff;box-shadow:0 1px 3px rgba(31,111,235,.4)}
+.grades button.on{background:var(--accent);color:#fff;box-shadow:0 1px 3px rgba(127,29,29,.4)}
 .grades button small{display:block;font-size:10px;font-weight:600;opacity:.8;letter-spacing:.02em}
 .spacer{flex:1}
 .tools{display:flex;gap:6px;flex-wrap:wrap}
@@ -61,7 +62,7 @@ button{cursor:pointer}
   display:flex;gap:10px;align-items:flex-start}
 .banner b{font-weight:750}
 .banner.warn{background:#fff6e5;border:1px solid #f0d69a;color:#7a5600}
-.banner.info{background:var(--accent-soft);border:1px solid #bcd3fb;color:#14459c}
+.banner.info{background:var(--accent-soft);border:1px solid #e0c4be;color:#7f1d1d}
 .banner .x{margin-left:auto;border:0;background:transparent;font-size:18px;line-height:1;color:inherit;opacity:.6;padding:0 4px}
 
 /* ---------- rubric ---------- */
@@ -193,7 +194,7 @@ td.notes{padding:5px 8px 5px 5px;text-align:left}
 .padhead .sub{font-size:12px;color:var(--muted)}
 .padtools{display:flex;gap:6px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap;background:#fafbfd}
 .tool{height:44px;min-width:44px;padding:0 12px;border:1px solid var(--line);background:#fff;border-radius:11px;font-weight:650;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
-.tool.on{background:var(--accent-soft);border-color:#a9c6fb;color:#14459c}
+.tool.on{background:var(--accent-soft);border-color:#d0a49c;color:#7f1d1d}
 .swatch{width:34px;height:34px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1.5px var(--line);padding:0}
 .swatch.on{box-shadow:0 0 0 3px var(--accent)}
 .padcanvaswrap{flex:1;overflow:auto;padding:10px 14px;background:#fff;min-height:0}
@@ -211,7 +212,7 @@ td.notes{padding:5px 8px 5px 5px;text-align:left}
 .dayrow{display:flex;gap:10px;align-items:center;margin-bottom:8px}
 .daychk{height:48px;min-width:74px;padding:0 14px;border:1.5px solid var(--line);background:#fff;border-radius:12px;
   font-weight:700;font-size:14px;display:inline-flex;align-items:center;justify-content:center}
-.daychk.on{background:var(--accent-soft);border-color:#8fb6f8;color:#14459c}
+.daychk.on{background:var(--accent-soft);border-color:#d0a49c;color:#7f1d1d}
 .dayrow input{height:48px;border:1px solid var(--line);border-radius:11px;padding:0 12px;width:190px;background:#fff}
 .dayrow input:disabled{background:#f4f6f9;color:#c3cad4}
 .rosterbox{padding:14px}
@@ -244,13 +245,15 @@ td.notes{padding:5px 8px 5px 5px;text-align:left}
 .printhead{display:none;padding:0 0 10px}
 .printhead h1{margin:0 0 2px;font-size:18px}
 .printhead p{margin:0;font-size:12px;color:#444}
+.embedded #backToPlanner{display:none}
 </style>
+<script>if (window.self !== window.top) document.documentElement.classList.add("embedded");</script>
 </head>
 <body>
 
 <header class="topbar" id="topbar">
   <div class="row1">
-    <a href="index.html" class="btn" style="text-decoration:none; margin-right:10px; white-space:nowrap;" title="Back to the Lesson Planner">&#8592; Planner</a>
+    <a href="index.html" id="backToPlanner" class="btn" style="text-decoration:none; margin-right:10px; white-space:nowrap;" title="Back to the Lesson Planner">&#8592; Planner</a>
     <div class="brand">Participación &mdash; Spanish
       <small>Mrs. Cartiera &middot; Weekly Tracking Sheet</small>
     </div>

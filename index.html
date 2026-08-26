@@ -964,7 +964,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.30</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.31</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana 🇲🇽</span>
         </div>
@@ -1024,7 +1024,7 @@
         <!-- LEFT TABS -->
         <div class="tabs-left">
             <div class="tab tab-home" onclick="switchView('home')">🏠 Home</div>
-            <div class="tab tab-tracker" onclick="location.href='participation.html'">📊 Tracker</div>
+            <div class="tab tab-tracker" onclick="switchView('tracker')">📊 Tracker</div>
             <div class="tab tab-week" onclick="switchView('weekly')">📋 Weekly</div>
             <div class="tab tab-year" onclick="switchView('yearly')">🗓 Year</div>
             <div class="tab tab-month" onclick="switchView('monthly')">📅 Month</div>
@@ -1109,6 +1109,11 @@
                             </h3>
                             <div class="sticky-board" id="sticky-board"></div>
                         </div>
+                    </div>
+
+                    <!-- PARTICIPATION TRACKER (embedded) -->
+                    <div id="view-tracker" class="view">
+                        <iframe id="tracker-frame" title="Participation Tracker" style="width:100%; height:calc(100vh - 285px); min-height:480px; border:1px solid var(--border-light); border-radius:12px; background:white; box-shadow:var(--shadow-1);"></iframe>
                     </div>
 
                     <!-- WEEKLY VIEW -->
@@ -1507,7 +1512,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.08.30';
+        const PLANNER_VERSION = 'v2026.08.31';
         let currentViewId = 'home';
         let autoSaveTimeout = null;
         let currentMonthlyCurriculum = 'elementary';
@@ -1644,6 +1649,10 @@
 
             if (viewId === 'todo') loadTodoData();
             if (viewId === 'home') renderHome();
+            if (viewId === 'tracker') {
+                const f = document.getElementById('tracker-frame');
+                if (f && !f.src) f.src = 'participation.html';
+            }
             currentViewId = viewId;
         }
 
@@ -2971,8 +2980,7 @@
             { name: 'Classroom', url: 'https://classroom.google.com', emoji: '📚' },
             { name: 'Gmail', url: 'https://mail.google.com', emoji: '✉️' },
             { name: 'Drive', url: 'https://drive.google.com', emoji: '📁' },
-            { name: 'Gradebook', url: 'https://accounts.renweb.com', emoji: '📊' },
-            { name: 'Participation', url: 'participation.html', emoji: '🖊️', sameTab: true }
+            { name: 'Gradebook', url: 'https://accounts.renweb.com', emoji: '📊' }
         ];
 
         function renderHome() {
