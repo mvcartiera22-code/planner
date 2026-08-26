@@ -923,7 +923,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.24</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.25</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana 🇲🇽</span>
         </div>
@@ -1413,7 +1413,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.08.24';
+        const PLANNER_VERSION = 'v2026.08.25';
         let currentViewId = 'home';
         let autoSaveTimeout = null;
         let currentMonthlyCurriculum = 'elementary';
@@ -2247,6 +2247,7 @@
             renderBlankWeeklyGrid();
             renderMonthlyCalendar(0);
             renderYearlyView();
+            migrateSavedWeeks();
             loadWeeklyData();
             attachDropListeners();
             setActiveTab('home');
@@ -2304,6 +2305,66 @@
                     `;
                 attachInputAutoSaveListeners();
             }
+        }
+
+        /* ============ SAVED-WEEK SCHEDULE REPAIR ============ */
+        // Weeks that were saved before a schedule change keep their old labels
+        // (the labels live in the saved data, not the template). This runs on
+        // every load and quietly fixes known old labels in saved weeks without
+        // touching any notes or stickers. It is safe to run repeatedly: once a
+        // week is fixed, nothing matches anymore.
+        function migrateSavedWeeks() {
+            const keys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith('week_')) keys.push(k);
+            }
+            keys.forEach(k => {
+                const html = localStorage.getItem(k);
+                if (!html) return;
+                const doc = new DOMParser().parseFromString('<table><tbody>' + html + '</tbody></table>', 'text/html');
+                let changed = false;
+                const rows = Array.from(doc.querySelectorAll('tbody > tr'));
+                const findRow = label => rows.find(tr => {
+                    const b = tr.querySelector('.period-badge');
+                    return b && b.textContent.includes(label);
+                });
+                const setHeader = (cell, cls, text) => {
+                    const h = cell && cell.querySelector('.cell-header');
+                    if (h) { h.className = 'cell-header ' + cls; h.textContent = text; changed = true; }
+                };
+                // Change 1 (v2026.08.25): Tuesday Spanish 1 moved from Period 4 to Period 2
+                const p2 = findRow('Period 2');
+                const p4 = findRow('Period 4');
+                if (p2 && p4) {
+                    const p2tue = p2.querySelectorAll('td')[2];
+                    const p4tue = p4.querySelectorAll('td')[2];
+                    const p2h = p2tue && p2tue.querySelector('.cell-header');
+                    const p4h = p4tue && p4tue.querySelector('.cell-header');
+                    if (p4h && /Spanish\s*1\b/.test(p4h.textContent) && p2h && /Prep/.test(p2h.textContent)) {
+                        setHeader(p2tue, 'header-g1', 'Spanish 1');
+                        setHeader(p4tue, 'header-prep', 'Prep / Planning');
+                        // Notes follow their class: what was written under Spanish 1
+                        // (old P4) moves to P2, and vice versa.
+                        const p2n = p2tue.querySelector('.cell-notes');
+                        const p4n = p4tue.querySelector('.cell-notes');
+                        if (p2n && p4n) {
+                            const tmp = p2n.innerHTML;
+                            p2n.innerHTML = p4n.innerHTML;
+                            p4n.innerHTML = tmp;
+                        }
+                    }
+                }
+                // Change 2 (v2026.08.25): "Recess / Lunch Duty" retired (Period 5 is Prep again)
+                doc.querySelectorAll('.cell-header').forEach(h => {
+                    if (/Recess \/ Lunch Duty/.test(h.textContent)) {
+                        h.className = 'cell-header header-prep';
+                        h.textContent = 'Prep / Planning';
+                        changed = true;
+                    }
+                });
+                if (changed) localStorage.setItem(k, doc.querySelector('tbody').innerHTML);
+            });
         }
 
         /* ============ BACKUP & RESTORE (Google Drive friendly) ============ */
