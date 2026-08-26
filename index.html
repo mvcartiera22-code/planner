@@ -290,6 +290,7 @@
         .tab-month { background: linear-gradient(160deg, #0479bd, #02598a); }
         .tab-week { background: linear-gradient(160deg, #059166, #036c4c); }
         .tab-goals { background: linear-gradient(160deg, #7c3aed, #5f21c4); }
+        .tab-tracker { background: linear-gradient(160deg, #0d9488, #0a6e63); }
         .tab-stickers { background: linear-gradient(160deg, #e11d48, #b3123a); }
         .tab-ai { background: linear-gradient(160deg, #dcaa48, #b3801f); color: #2e2308; border: 1px solid rgba(255, 245, 220, 0.5); }
         .grade-tab { background: linear-gradient(160deg, #c05d0a, #9a4a07); font-size: 0.76em; padding: 10px 6px; }
@@ -544,14 +545,17 @@
         .holiday-badge.cal-noschool { background: linear-gradient(135deg, #fde2e2, #fbcaca); border-color: #f0a3a3; color: #8a1c1c; }
         .holiday-badge.cal-early { background: linear-gradient(135deg, #dcf5eb, #c3eddc); border-color: #8fd6b8; color: #0f6b4a; }
         .holiday-badge.cal-event { background: #f1f4f9; border-color: #d6dde8; color: #3d4a5e; font-weight: 600; }
+        .holiday-badge.cal-mass { background: linear-gradient(135deg, #e6eefb, #d4e2f7); border-color: #a9c4e8; color: #2b4a7a; }
         .month-day-cell.cal-day-noschool { background: #fff4f4; }
         .month-day-cell.cal-day-early { background: #f0faf5; }
+        .month-day-cell.cal-day-mass { background: #f5f8fd; }
         .month-day-cell.cal-day-theme { background: #fffdf6; }
         .th-date { display: block; font-weight: 600; font-size: 0.8em; opacity: 0.85; margin-top: 3px; letter-spacing: 0.02em; }
         th .holiday-badge { display: block; margin: 4px auto 0; font-size: 0.72em; max-width: 100%; white-space: normal; }
         td.holiday-col { background: #fffbf0 !important; }
         td.holiday-col.cal-col-noschool { background: #fff4f4 !important; }
         td.holiday-col.cal-col-early { background: #f0faf5 !important; }
+        td.holiday-col.cal-col-mass { background: #f5f8fd !important; }
         td.holiday-col .cell-notes:empty::before { content: attr(data-placeholder); }
         .cal-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.74em; color: #475569; font-weight: 600; margin-top: 2px; }
         .cal-legend span { display: inline-flex; align-items: center; gap: 5px; }
@@ -888,6 +892,43 @@
         .sticky-del { position: absolute; top: 4px; right: 7px; border: none; background: none; color: rgba(0, 0, 0, 0.3); font-weight: 800; cursor: pointer; font-size: 1em; }
         .sticky-del:hover { color: #b91c1c; }
         @media (max-width: 900px) { .home-grid { grid-template-columns: 1fr; } .home-clock { font-size: 1.8em; } }
+        /* ============ BELL SCHEDULES ============ */
+        .bell-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; max-height: 60vh; overflow-y: auto; }
+        .bell-card { border: 1px solid var(--border-light); border-radius: 10px; padding: 12px 14px; background: #f8fafc; }
+        .bell-card h4 { margin: 0 0 8px; color: var(--brand-700); font-size: 0.9em; }
+        .bell-note { display: block; font-size: 0.82em; font-weight: 600; color: #94a0b4; margin-top: 2px; }
+        .bell-row { display: flex; justify-content: space-between; gap: 8px; font-size: 0.78em; padding: 2.5px 0; border-bottom: 1px solid #eef1f6; color: #334155; }
+        .bell-row:last-child { border-bottom: none; }
+        .bell-row b { font-weight: 700; }
+        #home-bell-select { padding: 3px 6px; border: 1px solid #dde3ec; border-radius: 8px; font-family: inherit; font-size: 0.74em; font-weight: 700; color: #334155; background: #eef1f6; }
+        /* ============ PRINT / PDF EXPORT ============ */
+        #print-area { display: none; }
+        @media print {
+            @page { size: letter; margin: 0.6in; }
+            html, body { height: auto !important; overflow: visible !important; background: white !important; }
+            body > *:not(#print-area) { display: none !important; }
+            #print-area { display: block !important; color: #111; font-family: 'Outfit', 'Nunito', sans-serif; }
+        }
+        #print-area .pr-header { text-align: center; border-bottom: 3px double #7f1d1d; padding-bottom: 10px; margin-bottom: 14px; }
+        #print-area .pr-school { font-size: 0.85em; letter-spacing: 0.18em; text-transform: uppercase; color: #7f1d1d; font-weight: 700; }
+        #print-area .pr-title { font-family: 'Playfair Display', serif; font-size: 1.9em; color: #111; margin: 2px 0; }
+        #print-area .pr-meta { font-size: 0.85em; color: #333; font-weight: 600; }
+        #print-area .pr-week-title { font-family: 'Playfair Display', serif; font-size: 1.25em; color: #7f1d1d; border-bottom: 1.5px solid #7f1d1d; margin: 12px 0 8px; padding-bottom: 3px; }
+        #print-area .pr-week-break { page-break-before: always; }
+        #print-area .pr-day { margin-bottom: 12px; }
+        #print-area .pr-day-head { font-weight: 800; font-size: 1em; color: #111; background: #f2e8e8; border-left: 4px solid #7f1d1d; padding: 4px 8px; margin-bottom: 6px; }
+        #print-area .pr-day-notes { font-weight: 600; font-style: italic; font-size: 0.78em; color: #555; margin-left: 8px; }
+        #print-area .pr-noschool { font-style: italic; color: #555; font-size: 0.85em; padding: 2px 8px 8px; }
+        #print-area .pr-class { border: 1px solid #bbb; border-radius: 6px; padding: 7px 10px; margin-bottom: 8px; break-inside: avoid; page-break-inside: avoid; }
+        #print-area .pr-class-head { font-size: 0.85em; color: #111; border-bottom: 1px solid #ddd; padding-bottom: 3px; margin-bottom: 5px; }
+        #print-area .pr-sec { display: flex; gap: 10px; margin-bottom: 5px; align-items: flex-start; }
+        #print-area .pr-sec-label { flex: 0 0 74px; font-size: 0.72em; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #7f1d1d; padding-top: 2px; }
+        #print-area .pr-sec-body { flex: 1; font-size: 0.85em; line-height: 1.45; color: #111; }
+        #print-area .pr-blank { border-bottom: 1px solid #999; height: 0.26in; }
+        #print-area .pr-signoff { display: flex; gap: 40px; margin-top: 26px; break-inside: avoid; }
+        #print-area .pr-sign { flex: 1; font-size: 0.78em; color: #333; font-weight: 600; }
+        #print-area .pr-sign-line { border-bottom: 1px solid #111; height: 0.35in; margin-bottom: 4px; }
+        #print-area .pr-footer { margin-top: 14px; font-size: 0.7em; color: #888; text-align: right; }
         /* ============ TABLET & SMALL SCREENS ============ */
         @media (max-width: 1024px) {
             body { height: auto; min-height: 100vh; overflow: auto; }
@@ -923,7 +964,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.25</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.29</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana 🇲🇽</span>
         </div>
@@ -986,6 +1027,7 @@
             <div class="tab tab-year" onclick="switchView('yearly')">🗓 Year</div>
             <div class="tab tab-month" onclick="switchView('monthly')">📅 Month</div>
             <div class="tab tab-week" onclick="switchView('weekly')">📋 Weekly</div>
+            <div class="tab tab-tracker" onclick="location.href='participation.html'">📊 Tracker</div>
             <div class="tab tab-goals" onclick="switchView('todo')">🎯 Goals</div>
             <div class="tab tab-stickers" onclick="switchView('stickers')">🏷️ Stickers</div>
             <div class="tab tab-ai" onclick="switchView('ai-studio')">✨ AI Studio</div>
@@ -1010,7 +1052,13 @@
                             <div class="home-card">
                                 <h3 style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
                                     <span id="home-today-title">📋 Today at a Glance</span>
-                                    <span style="display:flex; gap:6px;">
+                                    <span style="display:flex; gap:6px; align-items:center;">
+                                        <select id="home-bell-select" onchange="setHomeBell(this.value)" title="Bell schedule for this day">
+                                            <option value="normal">Normal bells</option>
+                                            <option value="mass">Mass Day</option>
+                                            <option value="half">Half Day</option>
+                                            <option value="delayed">Delayed Opening</option>
+                                        </select>
                                         <button class="nav-btn btn-light" style="padding:3px 12px; font-size:0.85em;" title="Previous day" onclick="shiftHomeDay(-1)">‹</button>
                                         <button id="home-today-reset" class="nav-btn btn-light" style="padding:3px 10px; font-size:0.72em; display:none;" onclick="resetHomeDay()">Back to Today</button>
                                         <button class="nav-btn btn-light" style="padding:3px 12px; font-size:0.85em;" title="Next day" onclick="shiftHomeDay(1)">›</button>
@@ -1073,6 +1121,8 @@
                             <div class="spread-controls">
                                 <span style="font-weight:bold; color:#475569; font-size:0.88em;">Week Of:</span>
                                 <input type="date" id="weekDate" onchange="handleDateChange()">
+                                <button class="nav-btn btn-light" onclick="openBellModal()">🔔 Bells</button>
+                                <button class="nav-btn btn-light" onclick="openExportModal()">🖨️ Print/PDF</button>
                                 <button class="nav-btn btn-brand" onclick="openImportModal()">📥 Import Plans</button>
                                 <button class="nav-btn btn-success" onclick="renderBlankWeeklyGrid()">✏️ Reset Template</button>
                             </div>
@@ -1103,6 +1153,7 @@
                                     <span><i style="background:#fbcaca;"></i>No School</span>
                                     <span><i style="background:#c3eddc;"></i>Early Dismissal 12:30</span>
                                     <span><i style="background:#e5e9f0;"></i>School Event</span>
+                                    <span><i style="background:#d4e2f7;"></i>Mass & Liturgy</span>
                                     <span><i style="background:#fbe9c3;"></i>Spanish / Faith Theme</span>
                                 </div>
                                 <div class="curriculum-toggle">
@@ -1405,6 +1456,49 @@
         </div>
     </div>
 
+    <!-- BELL SCHEDULES MODAL -->
+    <div id="bell-modal-backdrop" class="modal-backdrop" style="display:none;" onclick="if (event.target === this) closeBellModal()">
+        <div class="import-modal" style="max-width:840px;">
+            <h3>🔔 Bell Schedules</h3>
+            <p>From the school's bell schedule sheet (2/5/2025). The Home dashboard switches to Mass or Half Day bells automatically on those days; pick Delayed Opening by hand on snow-delay mornings. Note: the sheet does not list lunch on Mass days; 12:00-12:45 is the gap between Periods 5 and 6.</p>
+            <div class="bell-grid" id="bell-grid"></div>
+            <div class="import-actions" style="margin-top:12px;">
+                <button class="nav-btn btn-light" onclick="closeBellModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXPORT / PRINT MODAL -->
+    <div id="export-modal-backdrop" class="modal-backdrop" style="display:none;" onclick="if (event.target === this) closeExportModal()">
+        <div class="import-modal" style="max-width:460px;">
+            <h3>🖨️ Print / Export PDF</h3>
+            <p>Builds a clean lesson-plan packet with <b>Objective, Activities, and Closure</b> for every class. In the print window that opens, choose <b>Save as PDF</b> to make a PDF, or pick a printer to print the hard copy.</p>
+            <div class="import-row">
+                <label>Starting week
+                    <input type="date" id="export-start" style="padding:8px; border:1px solid #cbd5e0; border-radius:8px; font-family:inherit; font-size:1em;">
+                </label>
+                <label>How much
+                    <select id="export-weeks">
+                        <option value="2" selected>Two weeks (biweekly)</option>
+                        <option value="1">One week</option>
+                    </select>
+                </label>
+            </div>
+            <label style="display:flex; align-items:center; gap:8px; font-size:0.82em; font-weight:600; color:#334155; margin-bottom:6px;">
+                <input type="checkbox" id="export-include-all" style="width:16px; height:16px;"> Also include Prep, PLC and Lunch rows
+            </label>
+            <p style="font-size:0.78em; color:#94a0b4;">Tip: in your notes, start lines with <b>Obj:</b>, <b>Act:</b> and <b>Close:</b> and the export sorts them into the right boxes. Unlabeled notes print under Activities, and empty boxes print as blank lines you can handwrite on.</p>
+            <div class="import-actions">
+                <button class="nav-btn btn-light" onclick="closeExportModal()">Cancel</button>
+                <button class="nav-btn btn-brand" onclick="exportAndPrint()">🖨️ Print / Save PDF</button>
+            </div>
+            <div id="export-status"></div>
+        </div>
+    </div>
+    <!-- PRINT AREA (filled by the export feature, visible only when printing) -->
+    <div id="print-area"></div>
+
+
     <!-- DAILY BACKUP REMINDER -->
     <div id="backup-banner" class="backup-banner" style="display:none;">
         <span>💾 Save today's backup to your tablet or Drive</span>
@@ -1413,7 +1507,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.08.25';
+        const PLANNER_VERSION = 'v2026.08.29';
         let currentViewId = 'home';
         let autoSaveTimeout = null;
         let currentMonthlyCurriculum = 'elementary';
@@ -1572,7 +1666,7 @@
               days: { Mon: "<span class='cell-header header-prep'>Prep / Planning</span>", Tue: "<span class='cell-header header-prep'>Prep / Planning</span>", Wed: "<span class='cell-header header-prep'>Prep / Planning</span>", Thu: "<span class='cell-header header-prep'>Prep / Planning</span>" } },
             { period: "Period 5", time: "11:19 - 12:00 PM",
               days: { Mon: "<span class='cell-header header-prep'>Prep / Planning</span>", Tue: "<span class='cell-header header-prep'>Prep / Planning</span>", Wed: "<span class='cell-header header-prep'>Prep / Planning</span>", Thu: "<span class='cell-header header-prep'>Prep / Planning</span>" } },
-            { period: "Lunch", time: "12:05 - 12:43 PM", isLunch: true,
+            { period: "Lunch", time: "12:02 - 12:43 PM", isLunch: true,
               days: { Mon: "<span class='cell-header header-lunch'>Recess / Lunch</span>", Tue: "<span class='cell-header header-lunch'>Recess / Lunch</span>", Wed: "<span class='cell-header header-lunch'>Recess / Lunch</span>", Thu: "<span class='cell-header header-lunch'>Recess / Lunch</span>" } },
             { period: "Period 6", time: "12:45 - 1:26 PM",
               days: { Mon: "<span class='cell-header header-g6'>Spanish 6</span>", Tue: "<span class='cell-header header-g6'>Spanish 6</span>", Wed: "<span class='cell-header header-g6'>Spanish 6</span>", Thu: "<span class='cell-header header-g6'>Spanish 6</span>" } },
@@ -1580,7 +1674,7 @@
               days: { Mon: "<span class='cell-header header-prep'>Prep / Planning</span>", Tue: "<span class='cell-header header-g7'>Spanish 7</span>", Wed: "<span class='cell-header header-prep'>Prep / Planning</span>", Thu: "<span class='cell-header header-prep'>Prep / Planning</span>" } },
             { period: "Period 8", time: "2:11 - 2:52 PM",
               days: { Mon: "<span class='cell-header header-g4'>Spanish 4</span>", Tue: "<span class='cell-header header-g8'>Spanish 8</span>", Wed: "<span class='cell-header header-g3'>Spanish 3</span>", Thu: "<span class='cell-header header-prep'>Prep / Planning</span>" } },
-            { period: "Dismissal", time: "3:00 PM", isDismissal: true,
+            { period: "Dismissal", time: "2:55 - 3:00 PM", isDismissal: true,
               days: { Mon: "Dismissal", Tue: "Dismissal", Wed: "Dismissal", Thu: "Dismissal" } }
         ];
 
@@ -1695,7 +1789,6 @@
             ['2026-08-27', 'early', 'ED 12:30 · No Aftercare'],
             ['2026-08-28', 'early', 'ED 12:30 · No Aftercare'],
             // SEPTEMBER
-            ['2026-09-01', 'event', '⛪ All School Mass Gr 1-8'],
             ['2026-09-07', 'noschool', 'NO SCHOOL · Labor Day'],
             ['2026-09-12', 'event', 'Family Fun Day'],
             ['2026-09-13', 'event', 'Rain Date: Family Fun Day'],
@@ -1707,7 +1800,6 @@
             // OCTOBER
             ['2026-10-02', 'event', 'Fun Run'],
             ['2026-10-05', 'event', 'Rain Date: Fun Run'],
-            ['2026-10-06', 'event', '⛪ All School Mass'],
             ['2026-10-06', 'event', 'Picture Retake Day'],
             ['2026-10-07', 'event', 'High School Fair'],
             ['2026-10-08', 'noschool', 'NO SCHOOL · Archdiocese (AOH)'],
@@ -1724,7 +1816,6 @@
             ['2026-10-25', 'event', 'Open House'],
             // NOVEMBER
             ['2026-11-02', 'event', '⛪ Alumni Mass'],
-            ['2026-11-03', 'event', '⛪ All School Mass'],
             ['2026-11-09', 'early', 'ED 12:30 · No Aftercare · PD'],
             ['2026-11-11', 'event', 'Veterans Day Assembly'],
             ['2026-11-15', 'event', 'Science Fair Setup 1-3pm'],
@@ -1735,7 +1826,6 @@
             // DECEMBER
             ['2026-12-04', 'event', 'Christmas Shopping Fair'],
             ['2026-12-05', 'event', 'Lighting of the Parish Green'],
-            ['2026-12-08', 'event', '⛪ All School Mass'],
             ['2026-12-11', 'event', 'Polar Express Pajama / Movie Day'],
             ['2026-12-17', 'early', 'ED 12:30 · No Aftercare'],
             ['2026-12-17', 'event', '🎄 Christmas Concert'],
@@ -1752,9 +1842,7 @@
             ['2027-01-31', 'event', '⛪ CSW Mass, Social & Open House'],
             ['2027-01-31..2027-02-06', 'event', 'Catholic Schools Week'],
             // FEBRUARY
-            ['2027-02-02', 'event', '⛪ All School Mass Gr 1-8'],
             ['2027-02-05', 'event', 'HSA Ice Cream Social'],
-            ['2027-02-10', 'event', '⛪ Ash Wednesday · All School Mass'],
             ['2027-02-11', 'early', 'ED 12:30 · No Aftercare · PD'],
             ['2027-02-12..2027-02-15', 'noschool', 'NO SCHOOL · Presidents Day'],
             ['2027-02-20', 'event', 'Fr. Joe Memorial Basketball Game'],
@@ -1762,8 +1850,6 @@
             // MARCH
             ['2027-03-05', 'event', 'End of Trimester 2'],
             ['2027-03-15..2027-03-17', 'event', 'Scholastic Book Fair'],
-            ['2027-03-17', 'event', '⛪ All School Mass · Grandparents Day'],
-            ['2027-03-24', 'event', 'Living Stations'],
             ['2027-03-26', 'noschool', 'NO SCHOOL · Good Friday'],
             ['2027-03-29', 'noschool', 'NO SCHOOL · Easter Monday'],
             // APRIL
@@ -1775,8 +1861,6 @@
             // MAY
             ['2027-05-04', 'early', 'ED 12:30 · No Aftercare · PD'],
             ['2027-05-05', 'event', "Mother's Day Flower Pick Up"],
-            ['2027-05-06', 'event', '⛪ All School Mass'],
-            ['2027-05-11', 'event', '⛪ All School Mass · May Crowning'],
             ['2027-05-21', 'event', 'K-8 Camp Sloper'],
             ['2027-05-21', 'early', 'ED 12:30 · No Aftercare'],
             ['2027-05-31', 'noschool', 'NO SCHOOL · Memorial Day'],
@@ -1817,8 +1901,8 @@
 
         // Lookup table: 'year_monthIndex_day' -> [{ type, label }, ...]
         const calendarByDay = {};
-        function addCalDay(key, type, label) {
-            (calendarByDay[key] = calendarByDay[key] || []).push({ type, label });
+        function addCalDay(key, type, label, bellMass) {
+            (calendarByDay[key] = calendarByDay[key] || []).push({ type, label, bellMass: !!bellMass });
         }
         schoolCalendar.forEach(([dateSpec, type, label]) => {
             const [from, to] = dateSpec.split('..');
@@ -1830,18 +1914,73 @@
         });
         Object.entries(themeDays).forEach(([key, label]) => addCalDay(key, 'theme', label));
 
-        const CAL_ICON = { noschool: '🚫', early: '⏰', event: '', theme: '' };
+        // ---- Liturgy schedule (school sheet "SY 26-27 Liturgy", updated 8/18/26) ----
+        // [date, label, bellMass] - bellMass true = 8:45 Mass, the school runs Mass Day bells.
+        // Confessions / Stations / evening Masses do not change the bells.
+        const liturgyCalendar = [
+            ['2026-09-01', '⛪ Opening School Mass · Gr 1-8', true],
+            ['2026-09-08', '⛪ Mass 8:45 · Gr 6-8', true],
+            ['2026-09-14', '🕊️ Confessions 1:00 · Gr 4-8', false],
+            ['2026-09-15', '⛪ Mass 8:45 · Gr 3-5', true],
+            ['2026-09-22', '⛪ Mass 8:45 · Gr 6-8', true],
+            ['2026-09-29', '⛪ Mass 8:45 · Gr 3-5 · St. Michael', true],
+            ['2026-10-06', '⛪ Mass 8:45 · All · St. Francis', true],
+            ['2026-10-13', '⛪ Mass 8:45 · Gr 6-8', true],
+            ['2026-10-20', '⛪ Mass 8:45 · Gr 3-5', true],
+            ['2026-10-27', '⛪ Mass 8:45 · Gr 6-8', true],
+            ['2026-11-03', '⛪ Mass 8:45 · All · All Saints', true],
+            ['2026-11-10', '⛪ Mass 8:45 · Gr 3-5', true],
+            ['2026-11-17', '⛪ Mass 8:45 · Gr 6-8', true],
+            ['2026-11-24', '⛪ Mass 8:45 · Gr 3-5', true],
+            ['2026-12-01', '⛪ Mass 8:45 · Gr 6-8', true],
+            ['2026-12-08', '⛪ Mass 8:45 · All · Immaculate Conception', true],
+            ['2026-12-14', '🕊️ Confessions 1:00 · Gr 4-8', false],
+            ['2026-12-15', '⛪ Mass 8:45 · Gr 3-5', true],
+            ['2027-01-05', '⛪ Mass 8:45 · All', true],
+            ['2027-01-12', '⛪ Mass 8:45 · Gr K-2', true],
+            ['2027-01-19', '⛪ Mass 8:45 · Gr 6-8', true],
+            ['2027-01-26', '⛪ Mass 8:45 · Gr 3-5', true],
+            ['2027-02-02', '⛪ CSW Mass 8:45 · All', true],
+            ['2027-02-10', '⛪ Ash Wednesday Mass 8:45 · All', true],
+            ['2027-02-19', '✝️ Stations 2:00 · Gr 6-8', false],
+            ['2027-02-23', '⛪ Mass 8:45 · Gr K-2', true],
+            ['2027-02-26', '✝️ Stations 2:00 · Gr 3-5', false],
+            ['2027-03-02', '⛪ Mass 8:45 · Gr 6-8', true],
+            ['2027-03-05', '✝️ Stations 2:00 · Gr K-2', false],
+            ['2027-03-09', '⛪ Mass 8:45 · Gr 3-5', true],
+            ['2027-03-12', '✝️ Stations 2:00 · Gr 6-8', false],
+            ['2027-03-15', '🕊️ Confessions 1:00 · Gr 4-8', false],
+            ['2027-03-17', "⛪ Grandparents' Day Mass 8:45 · All", true],
+            ['2027-03-19', '✝️ Stations 8:45 · Gr 3-5', false],
+            ['2027-03-24', '✝️ Living Stations 1:45 · All', false],
+            ['2027-03-30', '⛪ Mass 8:45 · Gr 6-8', true],
+            ['2027-04-06', '⛪ Mass 8:45 · All · Annunciation', true],
+            ['2027-04-20', '⛪ Mass 8:45 · Gr 6-8', true],
+            ['2027-04-27', '⛪ Mass 8:45 · Gr K-2', true],
+            ['2027-05-06', '⛪ May Crowning & 1st Communion Mass 8:45 · All', true],
+            ['2027-05-13', '⛪ Mass 8:45 · All · Ascension', true],
+            ['2027-05-25', '⛪ Mass 8:45 · Gr 6-8', true],
+            ['2027-06-01', '⛪ Mass 8:45 · Gr K-2', true],
+            ['2027-06-08', '⛪ Closing School Mass 8:45 · K-7 (tentative)', true]
+        ];
+        liturgyCalendar.forEach(([date, label, bellMass]) => {
+            const d = new Date(date + 'T00:00:00');
+            addCalDay(`${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`, 'mass', label, bellMass);
+        });
+
+        const CAL_ICON = { noschool: '🚫', early: '⏰', event: '', theme: '', mass: '' };
         function dayEntries(key) { return calendarByDay[key] || []; }
         function dayBadgesHtml(key) {
             return dayEntries(key).map(e =>
                 `<div class="holiday-badge cal-${e.type}" contenteditable="false">${CAL_ICON[e.type] ? CAL_ICON[e.type] + ' ' : ''}${e.label}</div>`
             ).join('');
         }
-        // Strongest type on a day decides the tint: noschool > early > theme > event
+        // Strongest type on a day decides the tint: noschool > early > mass > theme > event
         function dayTypeClass(key) {
             const types = dayEntries(key).map(e => e.type);
             if (types.includes('noschool')) return 'cal-day-noschool';
             if (types.includes('early')) return 'cal-day-early';
+            if (types.includes('mass')) return 'cal-day-mass';
             if (types.includes('theme')) return 'cal-day-theme';
             if (types.includes('event')) return 'cal-day-event';
             return '';
@@ -1998,13 +2137,14 @@
                     dateEl.innerHTML = label + dayBadgesHtml(key);
                 }
                 // Tint the column for no-school, early-dismissal and theme days
-                const tint = typeClass === 'cal-day-noschool' || typeClass === 'cal-day-early' || typeClass === 'cal-day-theme';
+                const tint = ['cal-day-noschool', 'cal-day-early', 'cal-day-mass', 'cal-day-theme'].includes(typeClass);
                 document.querySelectorAll('#weekly-tbody tr').forEach(tr => {
                     const td = tr.querySelectorAll('td')[i];
                     if (!td) return;
                     td.classList.toggle('holiday-col', tint);
                     td.classList.toggle('cal-col-noschool', typeClass === 'cal-day-noschool');
                     td.classList.toggle('cal-col-early', typeClass === 'cal-day-early');
+                    td.classList.toggle('cal-col-mass', typeClass === 'cal-day-mass');
                 });
             }
         }
@@ -2333,7 +2473,7 @@
                     const h = cell && cell.querySelector('.cell-header');
                     if (h) { h.className = 'cell-header ' + cls; h.textContent = text; changed = true; }
                 };
-                // Change 1 (v2026.08.25): Tuesday Spanish 1 moved from Period 4 to Period 2
+                // Change 1 (v2026.08.24): Tuesday Spanish 1 moved from Period 4 to Period 2
                 const p2 = findRow('Period 2');
                 const p4 = findRow('Period 4');
                 if (p2 && p4) {
@@ -2355,11 +2495,22 @@
                         }
                     }
                 }
-                // Change 2 (v2026.08.25): "Recess / Lunch Duty" retired (Period 5 is Prep again)
+                // Change 2 (v2026.08.24): "Recess / Lunch Duty" retired (Period 5 is Prep again)
                 doc.querySelectorAll('.cell-header').forEach(h => {
                     if (/Recess \/ Lunch Duty/.test(h.textContent)) {
                         h.className = 'cell-header header-prep';
                         h.textContent = 'Prep / Planning';
+                        changed = true;
+                    }
+                });
+                // Change 3 (v2026.08.26): official bell schedule times (sheet dated 2/5/2025)
+                doc.querySelectorAll('.time-badge').forEach(t => {
+                    if (t.textContent.includes('12:05 - 12:43 PM')) {
+                        t.textContent = t.textContent.replace('12:05 - 12:43 PM', '12:02 - 12:43 PM');
+                        changed = true;
+                    }
+                    if (/🕒\s*3:00 PM\s*$/.test(t.textContent)) {
+                        t.textContent = t.textContent.replace('3:00 PM', '2:55 - 3:00 PM');
                         changed = true;
                     }
                 });
@@ -2447,7 +2598,14 @@
                     }
                     const when = backup.exportedAt ? new Date(backup.exportedAt).toLocaleString() : 'unknown date';
                     if (!confirm(`Restore backup from ${when}?\n\nThis will replace everything currently in the planner.`)) return;
-                    localStorage.clear();
+                    // If the backup predates the participation tracker it has no
+                    // spTracker keys; keep the tracker's grades in that case
+                    // instead of wiping them along with everything else.
+                    const backupHasTracker = Object.keys(backup.data).some(k => k.startsWith('spTracker.'));
+                    for (let i = localStorage.length - 1; i >= 0; i--) {
+                        const k = localStorage.key(i);
+                        if (backupHasTracker || !k.startsWith('spTracker.')) localStorage.removeItem(k);
+                    }
                     for (const [key, value] of Object.entries(backup.data)) {
                         localStorage.setItem(key, value);
                     }
@@ -2813,7 +2971,8 @@
             { name: 'Classroom', url: 'https://classroom.google.com', emoji: '📚' },
             { name: 'Gmail', url: 'https://mail.google.com', emoji: '✉️' },
             { name: 'Drive', url: 'https://drive.google.com', emoji: '📁' },
-            { name: 'Gradebook', url: 'https://accounts.renweb.com', emoji: '📊' }
+            { name: 'Gradebook', url: 'https://accounts.renweb.com', emoji: '📊' },
+            { name: 'Participation', url: 'participation.html', emoji: '🖊️', sameTab: true }
         ];
 
         function renderHome() {
@@ -2925,9 +3084,31 @@
                 sched.innerHTML = `<p style="color:#64748b; font-weight:600; margin:8px 0 0;">No classes ${dayRef}. ¡Buen fin de semana! ☀️</p>`;
                 return;
             }
+            // Apply the day's bell schedule (auto: Half Day on ED days, Mass Day
+            // on Mass days; manual override via the selector, e.g. snow delays)
+            const bellKey = getBellTypeFor(key);
+            const bellSel = document.getElementById('home-bell-select');
+            if (bellSel) bellSel.value = bellKey;
+            const bell = BELL_SCHEDULES[bellKey];
+            const bellTimes = {};
+            bell.rows.forEach(r => { bellTimes[r.k] = r.t; });
+
             const now = new Date();
             const mins = now.getHours() * 60 + now.getMinutes();
-            sched.innerHTML = (columnTextsFor(target) || []).map(r => {
+            const rows = (columnTextsFor(target) || []).map(r => {
+                const pm = r.period.match(/Period\s*(\d)/i);
+                const rk = pm ? 'p' + pm[1] : (/lunch/i.test(r.period) ? 'lunch' : null);
+                return { ...r, time: rk && rk in bellTimes ? bellTimes[rk] : r.time, skip: rk !== null && bellTimes[rk] === null };
+            }).filter(r => !r.skip);
+            // Delayed-opening lunch falls between P4 and P5, so order by start time
+            rows.sort((a, b) => {
+                const ra = parseTimeRange(a.time), rb = parseTimeRange(b.time);
+                return (ra ? ra[0] : 0) - (rb ? rb[0] : 0);
+            });
+            const bellNote = bellKey !== 'normal'
+                ? `<div class="home-sched-notes" style="margin:4px 0 6px; font-weight:700; color:#7f1d1d;">🔔 ${bell.label} bells${bell.note ? ' · ' + bell.note : ''}</div>`
+                : '';
+            sched.innerHTML = bellNote + rows.map(r => {
                 const range = parseTimeRange(r.time);
                 const isNow = homeDayOffset === 0 && range && mins >= range[0] && mins <= range[1];
                 const notes = r.notes
@@ -2983,7 +3164,7 @@
             const box = document.getElementById('quick-links');
             if (!box) return;
             box.innerHTML = DEFAULT_LINKS.map(l =>
-                `<a class="quick-link" href="${l.url}" target="_blank" rel="noopener"><span class="ql-emoji">${l.emoji}</span>${l.name}</a>`
+                `<a class="quick-link" href="${l.url}"${l.sameTab ? '' : ' target="_blank" rel="noopener"'}><span class="ql-emoji">${l.emoji}</span>${l.name}</a>`
             ).join('') + getCustomLinks().map((l, i) =>
                 `<a class="quick-link" href="${escapeForPreview(l.url)}" target="_blank" rel="noopener">
                     <button class="ql-del" title="Remove link" onclick="event.preventDefault(); removeQuickLink(${i});">✕</button>
@@ -3061,6 +3242,215 @@
             renderStickies();
             const last = document.querySelector('#sticky-board .sticky-note:last-child .sticky-text');
             if (last) last.focus();
+        }
+
+        /* ============ BELL SCHEDULES (school sheet dated 2/5/2025) ============ */
+
+        const BELL_SCHEDULES = {
+            normal: { label: 'Normal Day', note: '', rows: [
+                { k: 'opening', label: 'Opening', t: '8:10 - 8:18 AM' },
+                { k: 'p1', label: 'Period 1', t: '8:25 - 9:06 AM' },
+                { k: 'p2', label: 'Period 2', t: '9:08 - 9:49 AM' },
+                { k: 'p3', label: 'Period 3', t: '9:51 - 10:32 AM' },
+                { k: 'p4', label: 'Period 4', t: '10:36 - 11:17 AM' },
+                { k: 'p5', label: 'Period 5', t: '11:19 - 12:00 PM' },
+                { k: 'lunch', label: 'Lunch', t: '12:02 - 12:43 PM' },
+                { k: 'p6', label: 'Period 6', t: '12:45 - 1:26 PM' },
+                { k: 'p7', label: 'Period 7', t: '1:28 - 2:09 PM' },
+                { k: 'p8', label: 'Period 8', t: '2:11 - 2:52 PM' },
+                { k: 'closing', label: 'Closing', t: '2:55 - 3:00 PM' }
+            ] },
+            mass: { label: 'Mass Day', note: 'Mass 8:45 - 9:30 AM', rows: [
+                { k: 'opening', label: 'Opening/HR', t: '8:10 - 8:25 AM' },
+                { k: 'p1', label: 'Period 1', t: '9:35 - 10:02 AM' },
+                { k: 'p2', label: 'Period 2', t: '10:05 - 10:32 AM' },
+                { k: 'p3', label: 'Period 3', t: '10:35 - 11:02 AM' },
+                { k: 'p4', label: 'Period 4', t: '11:05 - 11:32 AM' },
+                { k: 'p5', label: 'Period 5', t: '11:35 - 12:00 PM' },
+                { k: 'lunch', label: 'Lunch', t: '12:00 - 12:45 PM' },
+                { k: 'p6', label: 'Period 6', t: '12:45 - 1:26 PM' },
+                { k: 'p7', label: 'Period 7', t: '1:28 - 2:09 PM' },
+                { k: 'p8', label: 'Period 8', t: '2:11 - 2:52 PM' },
+                { k: 'closing', label: 'Closing', t: '2:52 - 3:00 PM' }
+            ] },
+            half: { label: 'Half Day', note: 'Dismissal 12:30 · no lunch period', rows: [
+                { k: 'opening', label: 'Opening', t: '8:10 - 8:18 AM' },
+                { k: 'p1', label: 'Period 1', t: '8:25 - 8:55 AM' },
+                { k: 'p2', label: 'Period 2', t: '8:55 - 9:25 AM' },
+                { k: 'p3', label: 'Period 3', t: '9:25 - 9:55 AM' },
+                { k: 'p4', label: 'Period 4', t: '9:55 - 10:25 AM' },
+                { k: 'p5', label: 'Period 5', t: '10:25 - 10:55 AM' },
+                { k: 'lunch', label: 'Lunch', t: null },
+                { k: 'p6', label: 'Period 6', t: '10:55 - 11:25 AM' },
+                { k: 'p7', label: 'Period 7', t: '11:25 - 11:55 AM' },
+                { k: 'p8', label: 'Period 8', t: '11:55 - 12:25 PM' },
+                { k: 'closing', label: 'Closing', t: '12:25 - 12:30 PM' }
+            ] },
+            delayed: { label: 'Delayed Opening', note: '', rows: [
+                { k: 'opening', label: 'Opening', t: '10:10 - 10:25 AM' },
+                { k: 'p1', label: 'Period 1', t: '10:25 - 10:55 AM' },
+                { k: 'p2', label: 'Period 2', t: '10:55 - 11:25 AM' },
+                { k: 'p3', label: 'Period 3', t: '11:25 - 11:55 AM' },
+                { k: 'p4', label: 'Period 4', t: '11:55 - 12:20 PM' },
+                { k: 'lunch', label: 'Lunch', t: '12:20 - 12:45 PM' },
+                { k: 'p5', label: 'Period 5', t: '12:45 - 1:15 PM' },
+                { k: 'p6', label: 'Period 6', t: '1:15 - 1:45 PM' },
+                { k: 'p7', label: 'Period 7', t: '1:45 - 2:15 PM' },
+                { k: 'p8', label: 'Period 8', t: '2:15 - 2:52 PM' },
+                { k: 'closing', label: 'Closing', t: '2:52 - 3:00 PM' }
+            ] }
+        };
+
+        // Pick the right bell schedule for a calendar day: early-dismissal days
+        // run the Half Day bells, Mass days the Mass bells. Delayed openings are
+        // weather calls, so those are chosen by hand with the Home selector.
+        function computeBellType(key) {
+            const entries = dayEntries(key);
+            if (entries.some(e => e.type === 'early')) return 'half';
+            if (entries.some(e => e.bellMass)) return 'mass';
+            return 'normal';
+        }
+
+        let homeBellOverride = null; // { key, value } for a manual pick on one day
+
+        function getBellTypeFor(key) {
+            if (homeBellOverride && homeBellOverride.key === key) return homeBellOverride.value;
+            return computeBellType(key);
+        }
+
+        function setHomeBell(value) {
+            const target = new Date();
+            target.setDate(target.getDate() + homeDayOffset);
+            homeBellOverride = { key: `${target.getFullYear()}_${target.getMonth()}_${target.getDate()}`, value };
+            renderHomeToday();
+        }
+
+        function openBellModal() {
+            const grid = document.getElementById('bell-grid');
+            grid.innerHTML = Object.values(BELL_SCHEDULES).map(s => `
+                <div class="bell-card">
+                    <h4>${s.label}${s.note ? `<span class="bell-note">${s.note}</span>` : ''}</h4>
+                    ${s.rows.filter(r => r.t !== null).map(r => `
+                        <div class="bell-row"><b>${r.label}</b><span>${r.t}</span></div>`).join('')}
+                </div>`).join('');
+            document.getElementById('bell-modal-backdrop').style.display = 'flex';
+        }
+
+        function closeBellModal() {
+            document.getElementById('bell-modal-backdrop').style.display = 'none';
+        }
+
+        /* ============ EXPORT / PRINT LESSON PLANS (PDF via print dialog) ============ */
+
+        function openExportModal() {
+            const wk = document.getElementById('weekDate').value;
+            document.getElementById('export-start').value = wk || formatDateForInput(getStartOfWeek(new Date()));
+            document.getElementById('export-status').innerText = '';
+            document.getElementById('export-modal-backdrop').style.display = 'flex';
+        }
+
+        function closeExportModal() {
+            document.getElementById('export-modal-backdrop').style.display = 'none';
+        }
+
+        // Sort a cell's notes into Objective / Activities / Closure. Lines that
+        // start with Obj:/Act:/Close: (or the full words) label a section; text
+        // with no label counts as Activities.
+        function parseLessonSections(notes) {
+            const sec = { objective: [], activities: [], closure: [] };
+            let cur = null;
+            const unlabeled = [];
+            (notes || '').split('\n').forEach(line => {
+                const t = line.trim();
+                if (!t) return;
+                let m;
+                if ((m = t.match(/^obj(?:ective)?s?\s*[:\-]\s*(.*)$/i))) { cur = 'objective'; if (m[1]) sec.objective.push(m[1]); }
+                else if ((m = t.match(/^act(?:ivit(?:y|ies))?\s*[:\-]\s*(.*)$/i))) { cur = 'activities'; if (m[1]) sec.activities.push(m[1]); }
+                else if ((m = t.match(/^clos(?:e|ure|ing)?\s*[:\-]\s*(.*)$/i))) { cur = 'closure'; if (m[1]) sec.closure.push(m[1]); }
+                else if (cur) sec[cur].push(t);
+                else unlabeled.push(t);
+            });
+            if (unlabeled.length) sec.activities = unlabeled.concat(sec.activities);
+            return sec;
+        }
+
+        function printSectionHtml(label, lines) {
+            const body = lines.length
+                ? `<div class="pr-sec-body">${lines.map(l => escapeForPreview(l)).join('<br>')}</div>`
+                : '<div class="pr-sec-body"><div class="pr-blank"></div><div class="pr-blank"></div></div>';
+            return `<div class="pr-sec"><span class="pr-sec-label">${label}</span>${body}</div>`;
+        }
+
+        function exportAndPrint() {
+            const startVal = document.getElementById('export-start').value;
+            if (!startVal) return;
+            const weeks = parseInt(document.getElementById('export-weeks').value);
+            const includeAll = document.getElementById('export-include-all').checked;
+            const p = startVal.split('-');
+            const monday = getStartOfWeek(new Date(p[0], p[1] - 1, p[2]));
+
+            const fmtLong = d => d.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+            const fmtShort = d => d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+            const lastDay = new Date(monday);
+            lastDay.setDate(monday.getDate() + (weeks - 1) * 7 + 3);
+
+            let html = `
+                <div class="pr-header">
+                    <div class="pr-school">St. Paul School</div>
+                    <div class="pr-title">Weekly Lesson Plans</div>
+                    <div class="pr-meta">Mrs. Maria Cartiera · Spanish, Grades 1-8</div>
+                    <div class="pr-meta">${fmtShort(monday)} - ${fmtShort(lastDay)}, ${lastDay.getFullYear()} (${weeks === 2 ? 'two weeks' : 'one week'})</div>
+                </div>`;
+
+            for (let w = 0; w < weeks; w++) {
+                const weekMon = new Date(monday);
+                weekMon.setDate(monday.getDate() + w * 7);
+                html += `<div class="pr-week${w > 0 ? ' pr-week-break' : ''}">`;
+                html += `<div class="pr-week-title">Week of ${fmtShort(weekMon)}</div>`;
+                for (let i = 0; i < 4; i++) {
+                    const day = new Date(weekMon);
+                    day.setDate(weekMon.getDate() + i);
+                    const key = `${day.getFullYear()}_${day.getMonth()}_${day.getDate()}`;
+                    const entries = dayEntries(key);
+                    const dayNotes = entries.map(e => e.label).join(' · ');
+                    html += `<div class="pr-day"><div class="pr-day-head">${fmtLong(day)}${dayNotes ? `<span class="pr-day-notes">${escapeForPreview(dayNotes)}</span>` : ''}</div>`;
+                    if (entries.some(e => e.type === 'noschool')) {
+                        html += `<div class="pr-noschool">No school. No lessons scheduled.</div></div>`;
+                        continue;
+                    }
+                    const rows = (columnTextsFor(day) || []).filter(r =>
+                        includeAll ? !/dismissal/i.test(r.period)
+                                   : !/prep|lunch|plc|dismissal/i.test(r.label + ' ' + r.period));
+                    if (!rows.length) {
+                        html += `<div class="pr-noschool">No classes recorded for this day.</div></div>`;
+                        continue;
+                    }
+                    rows.forEach(r => {
+                        const sec = parseLessonSections(r.notes);
+                        html += `
+                            <div class="pr-class">
+                                <div class="pr-class-head"><b>${escapeForPreview(r.period.replace(/^[^A-Za-z0-9]+/, ""))}</b> · ${escapeForPreview(r.time)} · <b>${escapeForPreview(r.label)}</b></div>
+                                ${printSectionHtml('Objective', sec.objective)}
+                                ${printSectionHtml('Activities', sec.activities)}
+                                ${printSectionHtml('Closure', sec.closure)}
+                            </div>`;
+                    });
+                    html += `</div>`;
+                }
+                html += `</div>`;
+            }
+
+            html += `
+                <div class="pr-signoff">
+                    <div class="pr-sign"><div class="pr-sign-line"></div>Teacher signature &nbsp;·&nbsp; Date</div>
+                    <div class="pr-sign"><div class="pr-sign-line"></div>Principal signature &nbsp;·&nbsp; Date</div>
+                </div>
+                <div class="pr-footer">Printed ${new Date().toLocaleDateString()} · ${PLANNER_VERSION}</div>`;
+
+            document.getElementById('print-area').innerHTML = html;
+            closeExportModal();
+            // Give the browser a beat to lay out the print content first
+            setTimeout(() => window.print(), 150);
         }
     </script>
 </body>

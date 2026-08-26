@@ -1,0 +1,1625 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1f6feb">
+<title>Spanish Participation Tracker — Mrs. Cartiera</title>
+<style>
+:root{
+  --bg:#eef1f5; --card:#fff; --ink:#12161c; --muted:#5b6472; --line:#d8dee7;
+  --accent:#1f6feb; --accent-soft:#e8f0fe;
+  --gA-bg:#e3f6ea; --gA-fg:#0f7a3b;
+  --gB-bg:#e6eefe; --gB-fg:#1b5fd0;
+  --gC-bg:#fff2d0; --gC-fg:#8a6100;
+  --gD-bg:#ffe6d3; --gD-fg:#a8480a;
+  --gF-bg:#fde3e1; --gF-fg:#a81f16;
+  --ab-bg:#eef1f6; --ab-fg:#79838f;
+  --radius:14px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  padding-bottom:90px; overscroll-behavior-y:contain;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+
+/* ---------- top bar ---------- */
+.topbar{position:sticky;top:0;z-index:40;background:linear-gradient(180deg,#fff,#fbfcfe);
+  border-bottom:1px solid var(--line);box-shadow:0 1px 8px rgba(16,24,40,.06)}
+.topbar .row1{display:flex;align-items:center;gap:12px;padding:10px 14px 8px;flex-wrap:wrap}
+.brand{font-weight:700;font-size:17px;letter-spacing:-.2px;white-space:nowrap}
+.brand small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
+.grades{display:flex;gap:6px;background:#eef1f6;padding:4px;border-radius:12px}
+.grades button{border:0;background:transparent;padding:9px 16px;border-radius:9px;
+  font-weight:650;font-size:15px;color:var(--muted);min-height:44px}
+.grades button.on{background:var(--accent);color:#fff;box-shadow:0 1px 3px rgba(31,111,235,.4)}
+.grades button small{display:block;font-size:10px;font-weight:600;opacity:.8;letter-spacing:.02em}
+.spacer{flex:1}
+.tools{display:flex;gap:6px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:#fff;padding:0 14px;height:44px;border-radius:11px;
+  font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.btn:active{background:#f0f3f8}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.danger{color:#a81f16;border-color:#f0c9c5}
+
+.metabar{display:flex;gap:10px;align-items:flex-end;padding:0 14px 11px;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.field input,.field select{height:44px;border:1px solid var(--line);border-radius:11px;padding:0 11px;background:#fff;min-width:118px}
+.field.wk input{min-width:170px}
+.weekspan{font-size:12px;color:var(--muted);padding-bottom:13px;font-weight:600}
+.saved{font-size:12px;color:var(--muted);padding-bottom:13px;min-width:180px;text-align:right}
+.saved b{color:#0f7a3b}
+.saved.saving b{color:var(--muted)}
+
+/* ---------- banners ---------- */
+.banner{border-radius:12px;padding:11px 14px;margin-bottom:12px;font-size:13.5px;line-height:1.45;
+  display:flex;gap:10px;align-items:flex-start}
+.banner b{font-weight:750}
+.banner.warn{background:#fff6e5;border:1px solid #f0d69a;color:#7a5600}
+.banner.info{background:var(--accent-soft);border:1px solid #bcd3fb;color:#14459c}
+.banner .x{margin-left:auto;border:0;background:transparent;font-size:18px;line-height:1;color:inherit;opacity:.6;padding:0 4px}
+
+/* ---------- rubric ---------- */
+main{padding:14px;max-width:1560px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 1px 3px rgba(16,24,40,.05);margin-bottom:14px}
+details.rubric summary{list-style:none;cursor:pointer;padding:13px 16px;font-weight:700;display:flex;align-items:center;gap:9px}
+details.rubric summary::-webkit-details-marker{display:none}
+details.rubric summary::before{content:"\25B8";color:var(--muted);transition:transform .15s}
+details.rubric[open] summary::before{transform:rotate(90deg)}
+.rubric-body{padding:0 16px 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:9px}
+.tier{border-radius:11px;padding:10px 12px;border:1px solid transparent}
+.tier b{display:block;font-size:14px;margin-bottom:2px}
+.tier .lg{font-size:24px;font-weight:800;float:right;line-height:1;margin:-2px 0 0 6px;opacity:.85}
+.tier span{font-size:12.5px;line-height:1.35;display:block;opacity:.92}
+.tier.kA{background:var(--gA-bg);color:var(--gA-fg);border-color:#bfe6cd}
+.tier.kB{background:var(--gB-bg);color:var(--gB-fg);border-color:#c6d8fb}
+.tier.kC{background:var(--gC-bg);color:var(--gC-fg);border-color:#eddaa4}
+.tier.kD{background:var(--gD-bg);color:var(--gD-fg);border-color:#f2c6a4}
+.tier.kF{background:var(--gF-bg);color:var(--gF-fg);border-color:#f3c0bc}
+.legend{padding:0 16px 15px;font-size:12.5px;color:var(--muted);line-height:1.7}
+.legend code{background:#eef1f6;border-radius:5px;padding:1px 6px;font-weight:700;color:var(--ink)}
+.legend b{color:var(--ink)}
+
+/* ---------- table ---------- */
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--radius);
+  scrollbar-width:none;-ms-overflow-style:none}
+.tablewrap::-webkit-scrollbar{display:none}
+table{border-collapse:separate;border-spacing:0;width:100%;background:#fff}
+thead th{position:sticky;top:0;z-index:5;background:#f7f9fc;border-bottom:2px solid var(--line);
+  font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);
+  padding:0 8px;text-align:center;font-weight:750;white-space:nowrap;height:56px;vertical-align:middle}
+thead th.nm{text-align:left;padding-left:14px}
+.dayheadbtn{width:100%;height:50px;border:0;background:transparent;border-radius:9px;font:inherit;
+  font-size:12px;letter-spacing:.03em;color:var(--muted);font-weight:750;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:0;line-height:1.15}
+.dayheadbtn .wd{font-size:12.5px;text-transform:uppercase}
+.dayheadbtn .dt{font-size:10.5px;font-weight:650;opacity:.75;text-transform:none;letter-spacing:0}
+.dayheadbtn .why{font-size:9px;letter-spacing:.02em;color:#b6414a;font-weight:800;text-transform:uppercase;
+  max-width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dayheadbtn .why.ed{color:#8a6100}
+th.hasEd{background:#fffaf0}
+.dayheadbtn.off .wd,.dayheadbtn.off .dt{text-decoration:line-through;opacity:.5}
+th.dayoff{background:#f0f2f5}
+tbody td{border-bottom:1px solid #eaeef3;padding:0;text-align:center;vertical-align:middle}
+tbody tr:nth-child(even) td{background:#fcfdff}
+tbody tr.flagged td{background:#fff8f7}
+td.num{width:38px;color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums}
+td.nm{text-align:left;padding:8px 10px 8px 14px;font-weight:600;font-size:14.5px;line-height:1.25;min-width:186px}
+.daycell{width:76px;padding:4px}
+.daybtn{width:100%;height:48px;border-radius:10px;border:1.5px dashed #d3dae4;background:#fff;
+  font-size:20px;font-weight:800;color:#b9c2ce;display:flex;align-items:center;justify-content:center}
+.daybtn.set{border-style:solid}
+.daybtn.gA{background:var(--gA-bg);color:var(--gA-fg);border-color:#a8dcbc}
+.daybtn.gB{background:var(--gB-bg);color:var(--gB-fg);border-color:#b4cdfa}
+.daybtn.gC{background:var(--gC-bg);color:var(--gC-fg);border-color:#e6cd8e}
+.daybtn.gD{background:var(--gD-bg);color:var(--gD-fg);border-color:#eeb68c}
+.daybtn.gF{background:var(--gF-bg);color:var(--gF-fg);border-color:#eeaba5}
+.daybtn.gAB{background:var(--ab-bg);color:var(--ab-fg);border-color:#cfd6de;font-size:14px;font-weight:750}
+td.dayoff .daybtn{opacity:.3;filter:grayscale(1)}
+td.dayoff{background:#f4f6f9 !important}
+td.score{width:96px}
+.scorepill{display:inline-flex;flex-direction:column;line-height:1.05;font-variant-numeric:tabular-nums;
+  font-weight:800;font-size:23px;padding:5px 9px;border-radius:9px;min-width:76px}
+.scorepill small{font-size:10.5px;font-weight:650;opacity:.85;margin-top:2px}
+.scorepill.gA{background:var(--gA-bg);color:var(--gA-fg)}
+.scorepill.gB{background:var(--gB-bg);color:var(--gB-fg)}
+.scorepill.gC{background:var(--gC-bg);color:var(--gC-fg)}
+.scorepill.gD{background:var(--gD-bg);color:var(--gD-fg)}
+.scorepill.gF{background:var(--gF-bg);color:var(--gF-fg)}
+.scorepill.none{color:#b9c2ce;background:#f4f6f9;font-size:17px}
+td.bonus{width:114px}
+.stepper{display:inline-flex;align-items:center}
+.stepper button{width:34px;height:40px;border:1px solid var(--line);background:#fff;font-size:19px;font-weight:700;line-height:1}
+.stepper button:first-child{border-radius:9px 0 0 9px}
+.stepper button:last-child{border-radius:0 9px 9px 0}
+.stepper .val{min-width:44px;height:40px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;
+  font-variant-numeric:tabular-nums;background:#fff}
+.stepper .val.pos{color:#0f7a3b;background:var(--gA-bg)}
+td.refcol{width:172px;padding:5px 6px}
+.refbtn{width:100%;min-height:46px;border-radius:10px;border:1.5px solid var(--line);background:#fff;
+  font-size:12.5px;font-weight:700;line-height:1.2;color:#c3cad4;padding:5px 8px;
+  display:flex;align-items:center;justify-content:center;text-align:center}
+.refbtn.needs{background:#fdecea;border-color:#f3b8b1;color:#a81f16}
+.refbtn.on{background:#f3e8ff;border-color:#c9a3f5;color:#5b1d9c}
+td.notes{padding:5px 8px 5px 5px;text-align:left}
+.notebtn{width:100%;min-height:58px;border:1.5px dashed #d3dae4;border-radius:11px;background:#fff;
+  display:flex;align-items:center;gap:9px;padding:4px 9px;text-align:left;overflow:hidden}
+.notebtn.has{border-style:solid;border-color:#cfd8e4}
+.notebtn .ph{color:#aeb7c3;font-size:13px;font-style:italic}
+.notebtn .txt{font-size:13.5px;line-height:1.3;max-height:52px;overflow:hidden;flex:1;min-width:0;word-break:break-word}
+.notebtn canvas{display:block;flex-shrink:0;max-width:100%}
+
+/* ---------- floating header + scrollbar ---------- */
+.fhead{position:fixed;z-index:35;display:none;overflow:hidden;background:#f7f9fc;
+  border-bottom:2px solid var(--line);box-shadow:0 4px 12px rgba(16,24,40,.10)}
+.fhead.show{display:block}
+.fhead table{table-layout:fixed;min-width:0;background:#f7f9fc}
+.fhead th{position:static;border-bottom:0}
+.hbar{position:fixed;bottom:14px;z-index:30;height:36px;display:none;align-items:center;gap:7px;padding:0 10px;
+  background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border:1px solid var(--line);border-radius:20px;box-shadow:0 5px 20px rgba(16,24,40,.18);
+  touch-action:none;user-select:none;-webkit-user-select:none}
+.hbar.show{display:flex}
+.hbar .arw{font-size:14px;color:#aeb7c3;font-weight:700;line-height:1}
+.hbar-track{position:relative;flex:1;height:22px;border-radius:11px;background:#eaeef4}
+.hbar-thumb{position:absolute;top:0;left:0;height:22px;border-radius:11px;background:#aab4c2;transition:background .12s}
+.hbar.drag .hbar-thumb{background:var(--accent)}
+
+/* ---------- summary ---------- */
+.sumgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:11px;padding:14px}
+.stat{background:#f7f9fc;border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+.stat .k{font-size:11px;font-weight:750;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.stat .v{font-size:25px;font-weight:750;font-variant-numeric:tabular-nums;line-height:1.3}
+.stat .s{font-size:12px;color:var(--muted)}
+.watchlist{padding:0 14px 14px}
+.watchlist h4{margin:0 0 7px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.chip{display:inline-block;background:var(--gF-bg);color:var(--gF-fg);border-radius:20px;padding:5px 12px;font-size:13px;font-weight:600;margin:0 6px 6px 0}
+.chip.ok{background:var(--gA-bg);color:var(--gA-fg)}
+.chip.neutral{background:var(--ab-bg);color:var(--ab-fg)}
+.cardhead{padding:13px 16px;font-weight:700;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+
+/* ---------- modals ---------- */
+.modal{position:fixed;inset:0;z-index:100;background:rgba(14,20,29,.55);display:none;align-items:center;justify-content:center;padding:14px}
+.modal.open{display:flex}
+.pad{background:#fff;border-radius:18px;width:min(1080px,100%);max-height:100%;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.padhead{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.padhead .who{font-weight:750;font-size:16px}
+.padhead .sub{font-size:12px;color:var(--muted)}
+.padtools{display:flex;gap:6px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap;background:#fafbfd}
+.tool{height:44px;min-width:44px;padding:0 12px;border:1px solid var(--line);background:#fff;border-radius:11px;font-weight:650;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.tool.on{background:var(--accent-soft);border-color:#a9c6fb;color:#14459c}
+.swatch{width:34px;height:34px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1.5px var(--line);padding:0}
+.swatch.on{box-shadow:0 0 0 3px var(--accent)}
+.padcanvaswrap{flex:1;overflow:auto;padding:10px 14px;background:#fff;min-height:0}
+#padCanvas{display:block;width:100%;border:1px solid var(--line);border-radius:12px;touch-action:none;
+  background-image:repeating-linear-gradient(to bottom,transparent 0 47px,#eef1f6 47px 48px);background-color:#fff}
+.padtype{padding:10px 14px;border-top:1px solid var(--line);display:flex;gap:9px;align-items:center;background:#fafbfd}
+.padtype input{flex:1;height:46px;border:1px solid var(--line);border-radius:11px;padding:0 12px;background:#fff}
+.padfoot{padding:11px 14px;display:flex;gap:9px;justify-content:flex-end;border-top:1px solid var(--line);flex-wrap:wrap}
+.hint{font-size:12px;color:var(--muted);margin-right:auto;align-self:center;max-width:52%}
+.modalbody{padding:14px;overflow:auto}
+.modalbody h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.modalbody textarea{width:100%;min-height:260px;border:1px solid var(--line);border-radius:12px;padding:12px;
+  font:14px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;resize:vertical}
+.daychecks{margin-bottom:18px}
+.dayrow{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.daychk{height:48px;min-width:74px;padding:0 14px;border:1.5px solid var(--line);background:#fff;border-radius:12px;
+  font-weight:700;font-size:14px;display:inline-flex;align-items:center;justify-content:center}
+.daychk.on{background:var(--accent-soft);border-color:#8fb6f8;color:#14459c}
+.dayrow input{height:48px;border:1px solid var(--line);border-radius:11px;padding:0 12px;width:190px;background:#fff}
+.dayrow input:disabled{background:#f4f6f9;color:#c3cad4}
+.rosterbox{padding:14px}
+.rosterbox textarea{width:100%;min-height:340px;border:1px solid var(--line);border-radius:12px;padding:12px;
+  font:14px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;resize:vertical}
+
+/* ---------- toast ---------- */
+#toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,90px);z-index:200;
+  background:#12161c;color:#fff;padding:12px 20px;border-radius:30px;font-weight:600;font-size:14px;
+  transition:transform .22s ease;box-shadow:0 8px 26px rgba(0,0,0,.3);pointer-events:none;max-width:90vw}
+#toast.show{transform:translate(-50%,0)}
+
+/* ---------- print ---------- */
+@media print{
+  body{background:#fff;padding:0}
+  .topbar,.tools,#toast,.metabar .field,.noprint,.hbar,.fhead,.banner .x{display:none !important}
+  main{padding:0;max-width:none}
+  .card{border:0;box-shadow:none;margin:0 0 10px}
+  .tablewrap{overflow:visible}
+  table{min-width:0 !important;font-size:11px}
+  thead th{position:static;background:#f2f2f2 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;height:auto;padding:6px 4px}
+  .daybtn,.scorepill,.refbtn,.notebtn,.stepper .val{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .stepper button{display:none}
+  .stepper .val{border-radius:8px;border:1px solid #ccc}
+  .notebtn .ph{display:none}
+  .daybtn{font-size:15px;height:34px}
+  .printhead{display:block !important}
+  tbody tr{break-inside:avoid}
+}
+.printhead{display:none;padding:0 0 10px}
+.printhead h1{margin:0 0 2px;font-size:18px}
+.printhead p{margin:0;font-size:12px;color:#444}
+</style>
+</head>
+<body>
+
+<header class="topbar" id="topbar">
+  <div class="row1">
+    <a href="index.html" class="btn" style="text-decoration:none; margin-right:10px; white-space:nowrap;" title="Back to the Lesson Planner">&#8592; Planner</a>
+    <div class="brand">Participación &mdash; Spanish
+      <small>Mrs. Cartiera &middot; Weekly Tracking Sheet</small>
+    </div>
+    <div class="grades" id="gradeTabs"></div>
+    <div class="spacer"></div>
+    <div class="tools">
+      <button class="btn" id="btnPrev" title="Previous week">&#8592; Week</button>
+      <button class="btn" id="btnNext" title="Next week">Week &#8594;</button>
+      <button class="btn" id="btnSchedule">Days &amp; Calendar</button>
+      <button class="btn" id="btnRoster">Roster</button>
+      <button class="btn" id="btnCsv">Export CSV</button>
+      <button class="btn" id="btnBackup">Backup</button>
+      <button class="btn" id="btnRestore">Restore</button>
+      <button class="btn primary" id="btnPrint">Print / PDF</button>
+    </div>
+  </div>
+  <div class="metabar">
+    <div class="field wk"><label for="weekOf">Week of (Monday)</label><input type="date" id="weekOf"></div>
+    <div class="weekspan" id="weekSpan"></div>
+    <div class="field"><label for="trimester">Trimester</label>
+      <select id="trimester"><option value=""></option><option>1</option><option>2</option><option>3</option></select>
+    </div>
+    <div class="field"><label for="period">Section / room</label><input type="text" id="period" placeholder="optional"></div>
+    <div class="spacer"></div>
+    <div class="saved" id="savedNote">Autosaves on this tablet.</div>
+  </div>
+</header>
+
+<main>
+  <div class="printhead" id="printHead"></div>
+  <div id="banners"></div>
+
+  <details class="card rubric" id="rubric">
+    <summary>Weekly Scoring Guide &amp; How Grades Are Figured</summary>
+    <div class="rubric-body">
+      <div class="tier kA"><b><span class="lg">A</span>5 / 5 &mdash; &iexcl;Excelente!</b><span>Spanish only, active volunteer, positive team player. <b>100%</b></span></div>
+      <div class="tier kB"><b><span class="lg">B</span>4.5 / 5 &mdash; &iexcl;Buen Trabajo!</b><span>Good effort &amp; attitude, basic greetings only, less volunteering, minor distraction. <b>90%</b></span></div>
+      <div class="tier kC"><b><span class="lg">C</span>4 / 5 &mdash; &iexcl;Poco a Poco!</b><span>English default, speaks only when called on, frequently off-task. <b>80%</b></span></div>
+      <div class="tier kD"><b><span class="lg">D</span>3.25 / 5 &mdash; &iexcl;Cuidado!</b><span>English almost exclusively, constant redirection needed, low engagement. <b>65%</b></span></div>
+      <div class="tier kF"><b><span class="lg">F</span>2.5 / 5 &mdash; &iexcl;Ojo!</b><span>Avoids Spanish entirely, negative or disruptive, unprepared. <b>50%</b></span></div>
+    </div>
+    <div class="legend">
+      <b>Tap a day box to cycle:</b>
+      <code>A</code> &rarr; <code>B</code> &rarr; <code>C</code> &rarr; <code>D</code> &rarr; <code>F</code> &rarr;
+      <code>Abs</code> (absent) &rarr; blank.<br>
+      <b>Absences never lower a grade.</b> An <code>Abs</code> day is left out of the average entirely &mdash; the week is scored only on the days the student was actually there.
+      A student marked absent every class shows <b>&ldquo;Absent&rdquo;</b> instead of a grade.<br>
+      <b>The columns are this grade&rsquo;s class days</b>, with the real date for the week you are viewing.
+      Set which weekdays each grade meets under <b>Days &amp; Calendar</b>.<br>
+      <b>No-school days come from the Saint Paul School 2026&ndash;27 calendar</b>, already loaded &mdash; a holiday or vacation greys the column out
+      automatically and names the reason. Tap any day heading to mark a one-off closing yourself (snow day, assembly).
+      Either way that day leaves every student&rsquo;s average.<br>
+      <b>Early dismissal (12:30) days show an amber note but keep counting</b>, since school is still in session.
+      If Spanish did not meet that day, tap the heading to close it.<br>
+      <b>Weekly grade</b> = the average of the classes that actually counted, so a one-class week is graded on that one class.<br>
+      <b>Bonus</b> <code>+</code> initiated Spanish outside class (+0.5 to +1 per instance). &nbsp;
+      <b>Needs Reflection Sheet</b> lights up automatically at 4/5 (80%) or lower. &nbsp;
+      <b>Notes</b> &mdash; tap the notes box for a full-size <b>S&nbsp;Pen writing pad</b>.
+    </div>
+  </details>
+
+  <div class="card">
+    <div class="tablewrap" id="tableWrap">
+      <table id="rosterTable">
+        <thead id="rosterHead"></thead>
+        <tbody id="rosterBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" id="summaryCard">
+    <div class="cardhead">Class Summary <span class="spacer"></span>
+      <button class="btn noprint" id="btnCopySummary">Copy summary</button>
+      <button class="btn danger noprint" id="btnClearWeek">Clear this week</button>
+    </div>
+    <div class="sumgrid" id="sumGrid"></div>
+    <div class="watchlist" id="watchList"></div>
+  </div>
+</main>
+
+<div class="fhead" id="fhead" aria-hidden="true"></div>
+<div class="hbar" id="hbar" aria-hidden="true">
+  <span class="arw">&#9664;</span>
+  <div class="hbar-track" id="hbarTrack"><div class="hbar-thumb" id="hbarThumb"></div></div>
+  <span class="arw">&#9654;</span>
+</div>
+
+<!-- ============ S Pen writing pad ============ -->
+<div class="modal" id="padModal">
+  <div class="pad">
+    <div class="padhead"><div><div class="who" id="padWho">Student</div><div class="sub" id="padSub"></div></div></div>
+    <div class="padtools">
+      <button class="tool" data-tool="pen" id="toolPen">&#9998; Write</button>
+      <button class="tool" data-tool="erase" id="toolErase">&#9003; Erase</button>
+      <button class="tool" id="toolUndo">&#8630; Undo</button>
+      <button class="tool" id="toolClear">Clear</button>
+      <span style="width:8px"></span>
+      <button class="swatch" data-color="#12161c" style="background:#12161c"></button>
+      <button class="swatch" data-color="#1b5fd0" style="background:#1b5fd0"></button>
+      <button class="swatch" data-color="#c62828" style="background:#c62828"></button>
+      <button class="swatch" data-color="#0f7a3b" style="background:#0f7a3b"></button>
+      <span style="width:8px"></span>
+      <button class="tool" data-size="2">Thin</button>
+      <button class="tool" data-size="3.4">Med</button>
+      <button class="tool" data-size="5.5">Thick</button>
+      <span class="spacer" style="flex:1"></span>
+      <button class="tool on" id="toolPenOnly">&#9998; S&nbsp;Pen only</button>
+    </div>
+    <div class="padcanvaswrap"><canvas id="padCanvas"></canvas></div>
+    <div class="padtype"><input type="text" id="padText" placeholder="…or type / dictate a short note (optional)"></div>
+    <div class="padfoot">
+      <span class="hint" id="padHint">S&nbsp;Pen only is on &mdash; your palm and fingers will not draw.</span>
+      <button class="btn" id="padCancel">Cancel</button>
+      <button class="btn primary" id="padSave">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ days & calendar ============ -->
+<div class="modal" id="schedModal">
+  <div class="pad">
+    <div class="padhead"><div>
+      <div class="who" id="schedWho">Class days &amp; school calendar</div>
+      <div class="sub">Which weekdays this grade meets, and every day school is closed.</div>
+    </div></div>
+    <div class="modalbody">
+      <h4 id="schedDaysLabel">Class days</h4>
+      <div class="daychecks" id="dayChecks"></div>
+      <h4>No-school days &mdash; holidays, vacations, in-service</h4>
+      <p style="margin:0 0 9px;font-size:12.5px;color:var(--muted);line-height:1.6">
+        One per line. Either <code>2026-09-07 Labor Day</code> or <code>9/7/2026 Labor Day</code>.<br>
+        For a vacation, give a range: <code>2026-12-24 to 2027-01-02 Christmas Break</code>.<br>
+        This calendar is shared by all four grades.
+      </p>
+      <textarea id="calText" spellcheck="false" placeholder="2026-09-07 Labor Day&#10;2026-11-25 to 2026-11-27 Thanksgiving Break"></textarea>
+      <div id="calCount" style="font-size:12.5px;color:var(--muted);margin-top:8px"></div>
+
+      <h4 style="margin-top:20px">Early dismissal days &mdash; 12:30, school still open</h4>
+      <p style="margin:0 0 9px;font-size:12.5px;color:var(--muted);line-height:1.6">
+        These do <b>not</b> close a class on their own, since school is in session at 12:30.
+        They show an amber note on the day so you can close one with a tap if Spanish did not meet.
+      </p>
+      <textarea id="edText" spellcheck="false" style="min-height:150px"></textarea>
+      <div id="edCount" style="font-size:12.5px;color:var(--muted);margin-top:8px"></div>
+    </div>
+    <div class="padfoot">
+      <span class="hint">Class days are saved per grade; both calendars apply to every grade.</span>
+      <button class="btn" id="schedReset">Reset to school calendar</button>
+      <button class="btn" id="schedCancel">Cancel</button>
+      <button class="btn primary" id="schedSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ roster editor ============ -->
+<div class="modal" id="rosterModal">
+  <div class="pad">
+    <div class="padhead"><div><div class="who" id="rosterWho">Edit roster</div>
+      <div class="sub">One student per line, in the order they should appear. Saved scores follow the student name.</div></div></div>
+    <div class="rosterbox"><textarea id="rosterText" spellcheck="false"></textarea></div>
+    <div class="padfoot">
+      <span class="hint">Renaming a student starts a fresh record for that name.</span>
+      <button class="btn" id="rosterReset">Reset to original</button>
+      <button class="btn" id="rosterCancel">Cancel</button>
+      <button class="btn primary" id="rosterSave">Save roster</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="restoreFile" accept="application/json" style="display:none">
+<div id="toast"></div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   Rosters transcribed from the original PDF tracking sheets
+   ============================================================ */
+const DEFAULT_ROSTERS = {
+  "5": ["Bravo, Sophia","Cameron, Charlotte","Campbell, Grace","Caravaca, Reid","Durkin, Mackenzie",
+        "Fazio, Cosette","Harris, Donnelly","Hetnar, Vivienne","Jacques, Daphne","Krysinski, Ava",
+        "Leggett, Jaxon","Newman, Joseph","Obrebski, Marcel","Pabon, Anthony","Pietrzak, Jr., Robert",
+        "Ramatula, Gabriel","Rutkowski, Abigail","Ryan, Styles","Vento, Zayne","Witherspoon, Elizabeth",
+        "Witherspoon, Nathan"],
+  "6": ["Antoine, Keanu","Buckley, Ronan","Butler-Czarnota, Cason","Cartiera, Antonella","Ciszewska, Lilliana",
+        "Claxton, Rylee","Delgado, Reese","Diorio, Jacqueline","Douglas, Gavin","Dreher, Grace",
+        "Esposito, Nicholas","Heslin III, John","Idiong, Angela","Kane, Declan","Makara, Lucas",
+        "Mascarenhas, Gabriel","Merville, Nathan","Mokhiber, Presley","Phanavong, Raegan","Piechota, Daniel",
+        "Reese, Brady","Scalise, Stella","Scott, Ayden","Tabak, Lenka","Vaughan, Camille"],
+  "7": ["Browne, Nahla","Cichy, Liliana","Duplessis, Whitney","Emmens, Gwendolyn Mary","Ennever, Emmett George",
+        "Giammarco, Mia Sky","Hairston, Caleb","Harrington, Korey","Hetnar, Chloe","Jimenez, Chloe Valentina",
+        "Julmisse, Daniel","Kachala, Mattias Julian","Kosiorek, Jakub","Markow, Olivia","Nesci, Santino",
+        "Pace, Nicole","Patel, Ved","Prentiss, Grayson","Rauti, Simona","Saint Laurent, Noah"],
+  "8": ["Bohn, Andrew","Buckley, Fiona","Carlson, Owen","Chernega, Mark Andriyovich","Douglas, Owen",
+        "Durkin, Keira Alexandria","Genova, Mia Elise","Glowicki, Andrew","Gospodarczyk, Anthony","Koziol, Anna",
+        "Krzynowek, Lillian","Micik, Nicholas","Mota, Vivienne","Nwigwe, Emme","Petrucci, Hunter",
+        "Pietrzak, Katelyn","Purcell, Isabella Mary","Raczkowski, Hubert","Rivera, Amelia Rose",
+        "Rutkowski, Christopher Antoni","Savini, Giulia","Skinner, Kennedy","Sosnowski, Ryan","Ziecina, Oliver"]
+};
+
+/* Weekdays each grade meets. 0=Sun … 6=Sat.
+   Grade 5 meets Monday & Wednesday (confirmed by Mrs. Cartiera).
+   Grades 6–8 still hold the original 4-column Mon–Thu layout — change under Days & Calendar. */
+/* Which weekdays each grade meets, and the period it meets in that day.
+   Grade 7 and 8 move period depending on the day, so the period lives on the day. */
+const DEFAULT_MEET = {
+  "5": { 1:"3rd", 3:"3rd" },                     /* Mon & Wed, 3rd period */
+  "6": { 1:"6th", 2:"6th", 3:"6th", 4:"6th" },   /* Mon–Thu, 6th period */
+  "7": { 1:"1st", 2:"7th", 3:"1st", 4:"1st" },
+  "8": { 1:"2nd", 2:"8th", 3:"2nd", 4:"3rd" }
+};
+const MEET_CONFIRMED = { "5":true, "6":true, "7":true, "8":true };
+
+/* ============================================================
+   Saint Paul School calendar 2026–27 (Appendix III, rev 8/5/2026)
+   Yellow "NO SCHOOL" days close the class automatically.
+   Green "ED" early-dismissal days stay open — school is in session at
+   12:30, so whether your class meets depends on the period. They show
+   an amber note in the heading and you can close one with a tap.
+   ============================================================ */
+const SCHOOL_YEAR = { start:"2026-08-27", end:"2027-06-15", label:"2026–27" };
+
+const DEFAULT_CAL_TEXT = [
+  "2026-09-07 Labor Day",
+  "2026-09-18 Berlin Fair",
+  "2026-10-08 AOH",
+  "2026-10-12 Columbus Day",
+  "2026-11-26 to 2026-11-27 Thanksgiving",
+  "2026-12-24 to 2026-12-31 Christmas Break",
+  "2027-01-01 New Year's Day",
+  "2027-01-18 MLK Day",
+  "2027-02-12 to 2027-02-15 Presidents Day",
+  "2027-03-26 Good Friday",
+  "2027-03-29 Easter Monday",
+  "2027-04-05 AOH",
+  "2027-04-12 to 2027-04-16 Spring Break",
+  "2027-05-31 Memorial Day"
+].join("\n");
+
+const DEFAULT_ED_TEXT = [
+  "2026-08-27 First day · 12:30",
+  "2026-08-28 12:30 dismissal",
+  "2026-09-23 12:30 · PD",
+  "2026-10-21 12:30 · SPT",
+  "2026-10-22 12:30 · SPT",
+  "2026-11-09 12:30 · PD",
+  "2026-11-25 12:30 · End T1",
+  "2026-12-17 12:30 dismissal",
+  "2026-12-23 12:30 dismissal",
+  "2027-01-15 12:30 dismissal",
+  "2027-02-11 12:30 · PD",
+  "2027-05-04 12:30 · PD",
+  "2027-06-15 Last day (tentative)"
+].join("\n");
+
+/* Trimester 1 ends 11/25, Trimester 2 ends 3/5 */
+const TRIMESTERS = [
+  { n:"1", start:"2026-08-27", end:"2026-11-25" },
+  { n:"2", start:"2026-11-30", end:"2027-03-05" },
+  { n:"3", start:"2027-03-08", end:"2027-06-15" }
+];
+function trimesterFor(k){
+  const t = TRIMESTERS.find(t2 => k >= t2.start && k <= t2.end);
+  return t ? t.n : "";
+}
+const WD_SHORT = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+const CODES = ["", "A", "B", "C", "D", "F", "AB"];
+const CODE_INFO = {
+  "A": { pts:5,    cls:"gA" }, "B": { pts:4.5, cls:"gB" }, "C": { pts:4, cls:"gC" },
+  "D": { pts:3.25, cls:"gD" }, "F": { pts:2.5, cls:"gF" }
+};
+const BANDS = [
+  { min:4.75,  letter:"A", cls:"gA" }, { min:4.25, letter:"B", cls:"gB" },
+  { min:3.625, letter:"C", cls:"gC" }, { min:2.875, letter:"D", cls:"gD" },
+  { min:-1,    letter:"F", cls:"gF" }
+];
+const LEGACY = { "✓":"A", "B":"B", "E":"C", "D":"D", "O":"F" };
+
+const NS = "spTracker.v1";
+const $  = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.prototype.slice.call((r || document).querySelectorAll(s));
+
+let grade   = localStorage.getItem(NS + ".lastGrade") || "5";
+let weekKey = localStorage.getItem(NS + ".lastWeek")  || mondayOf(new Date());
+let week    = null;
+let slots   = [];          /* one entry per class day of the current grade + week */
+let saveTimer = null;
+
+/* ---------- dates ---------- */
+function mondayOf(d){
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+  return iso(x);
+}
+function iso(d){
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function fromIso(k){ const p = k.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+function prettyDate(k){
+  return k ? fromIso(k).toLocaleDateString(undefined, { weekday:"short", month:"long", day:"numeric", year:"numeric" })
+           : "____________";
+}
+function shortDate(d){ return d.toLocaleDateString(undefined, { month:"short", day:"numeric" }); }
+function shiftWeek(days){
+  const d = fromIso(weekKey);
+  d.setDate(d.getDate() + days);
+  return iso(d);
+}
+/* the date a given weekday falls on inside the Monday-anchored week */
+function dateForWeekday(wk, wd){
+  const d = fromIso(wk);
+  d.setDate(d.getDate() + (wd === 0 ? 6 : wd - 1));
+  return d;
+}
+
+/* ---------- stored settings ---------- */
+function rosterKey(g){ return NS + ".roster." + g; }
+function weekDataKey(g, w){ return NS + ".week." + g + "." + w; }
+function meetKey(g){ return NS + ".meet." + g; }
+function calKey(){ return NS + ".calendar"; }
+function edKey(){ return NS + ".earlydismissal"; }
+
+function getRoster(g){
+  try{
+    const arr = JSON.parse(localStorage.getItem(rosterKey(g)));
+    if (Array.isArray(arr) && arr.length) return arr;
+  }catch(e){}
+  return DEFAULT_ROSTERS[g].slice();
+}
+function setRoster(g, arr){ localStorage.setItem(rosterKey(g), JSON.stringify(arr)); }
+
+/* returns [{wd, period}, …] ordered Mon→Fri */
+function meetToList(o){
+  return Object.keys(o).map(Number).sort((a, b) => a - b)
+    .map(wd => ({ wd, period: o[wd] || "" }));
+}
+function getMeet(g){
+  try{
+    const a = JSON.parse(localStorage.getItem(meetKey(g)));
+    /* older versions stored a bare array of weekday numbers */
+    if (Array.isArray(a) && a.length) return a.slice().sort((x, y) => x - y).map(wd => ({ wd, period:"" }));
+    if (a && typeof a === "object" && Object.keys(a).length) return meetToList(a);
+  }catch(e){}
+  return meetToList(DEFAULT_MEET[g]);
+}
+function setMeet(g, list){
+  const o = {};
+  list.forEach(m => { o[m.wd] = m.period || ""; });
+  localStorage.setItem(meetKey(g), JSON.stringify(o));
+}
+
+let _defCal = null, _defEd = null;
+function defaultCal(){ if (!_defCal) _defCal = parseCalText(DEFAULT_CAL_TEXT).map; return _defCal; }
+function defaultEd(){  if (!_defEd)  _defEd  = parseCalText(DEFAULT_ED_TEXT).map;  return _defEd; }
+
+function getCal(){
+  try{
+    const o = JSON.parse(localStorage.getItem(calKey()));
+    if (o && typeof o === "object") return o;
+  }catch(e){}
+  return defaultCal();
+}
+function setCal(o){ localStorage.setItem(calKey(), JSON.stringify(o)); }
+function getEd(){
+  try{
+    const o = JSON.parse(localStorage.getItem(edKey()));
+    if (o && typeof o === "object") return o;
+  }catch(e){}
+  return defaultEd();
+}
+function setEd(o){ localStorage.setItem(edKey(), JSON.stringify(o)); }
+
+/* ---------- week record ----------
+   Day marks and closings are keyed by WEEKDAY (1=Mon … 5=Fri), not by column
+   position, so changing which days a grade meets can never shift an already
+   recorded grade onto the wrong day. */
+function blankRow(){ return { d:{}, bonus:0, r:false, note:"", ink:null }; }
+
+function computeSlots(){
+  const meet = getMeet(grade);
+  const cal  = getCal();
+  const eds  = getEd();
+  slots = meet.map(m => {
+    const wd   = m.wd;
+    const date = dateForWeekday(weekKey, wd);
+    const key  = iso(date);
+    let holiday = cal[key] || null;
+    let outOfYear = false;
+    if (!holiday){
+      if (key < SCHOOL_YEAR.start){ holiday = "Before first day"; outOfYear = true; }
+      else if (key > SCHOOL_YEAR.end){ holiday = "Summer break"; outOfYear = true; }
+    }
+    const manualOff = !!(week.off && week.off[wd]);
+    return { wd, date, key, holiday, outOfYear, manualOff,
+             period: m.period || "",
+             ed: eds[key] || null,
+             off: !!holiday || manualOff,
+             label: WD_SHORT[wd],
+             sub: shortDate(date) + (m.period ? " · " + m.period : "") };
+  });
+}
+/* array-of-columns (older sheets) -> object keyed by weekday */
+function migrateDays(arr, meet){
+  const out = {};
+  arr.forEach((c, i) => {
+    if (!meet[i] || !c) return;
+    out[meet[i].wd] = LEGACY[c] || c;
+  });
+  return out;
+}
+function loadWeek(){
+  let rec = null;
+  try{ rec = JSON.parse(localStorage.getItem(weekDataKey(grade, weekKey)) || "null"); }catch(e){}
+  if (!rec || typeof rec !== "object") rec = { trimester:"", period:"", off:{}, rows:{} };
+  if (!rec.rows) rec.rows = {};
+  const meet = getMeet(grade);
+  let converted = false;
+  if (Array.isArray(rec.off)){
+    const o = {};
+    rec.off.forEach((v, i) => { if (v && meet[i]) o[meet[i].wd] = true; });
+    rec.off = o;
+    converted = true;
+  }
+  if (!rec.off || typeof rec.off !== "object") rec.off = {};
+  Object.keys(rec.rows).forEach(name => {
+    const r = rec.rows[name];
+    if (!r) return;
+    if (Array.isArray(r.d)){ r.d = migrateDays(r.d, meet); converted = true; }
+    else if (!r.d || typeof r.d !== "object") r.d = {};
+    else Object.keys(r.d).forEach(k => {
+      if (LEGACY[r.d[k]]){ r.d[k] = LEGACY[r.d[k]]; converted = true; }
+    });
+  });
+  if (!rec.trimester && !rec.period){
+    const last = lastWeekRecord(grade, weekKey);
+    if (last){ rec.trimester = last.trimester || ""; rec.period = last.period || ""; }
+  }
+  /* the calendar knows which trimester this week falls in */
+  if (!rec.trimester) rec.trimester = trimesterFor(weekKey);
+  week = rec;
+  computeSlots();
+  /* write the converted record straight back, so an old sheet is normalised once
+     and can never be re-interpreted against a different set of class days later */
+  if (converted) saveNow();
+}
+function lastWeekRecord(g, before){
+  const keys = allWeekKeys(g).filter(k => k < before).sort();
+  if (!keys.length) return null;
+  try{ return JSON.parse(localStorage.getItem(weekDataKey(g, keys[keys.length - 1]))); }catch(e){ return null; }
+}
+function allWeekKeys(g){
+  const pre = NS + ".week." + g + ".";
+  const out = [];
+  for (let i = 0; i < localStorage.length; i++){
+    const k = localStorage.key(i);
+    if (k && k.indexOf(pre) === 0) out.push(k.slice(pre.length));
+  }
+  return out;
+}
+function rowFor(name){
+  if (!week.rows[name]) week.rows[name] = blankRow();
+  const r = week.rows[name];
+  if (!r.d || typeof r.d !== "object" || Array.isArray(r.d)) r.d = {};
+  return r;
+}
+
+/* ============================================================
+   Autosave
+   ============================================================ */
+function queueSave(){
+  markSaving();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveNow, 200);
+}
+function isEmptyRow(r){
+  const marked = r.d && Object.keys(r.d).some(k => r.d[k]);
+  return !marked && !r.bonus && !r.r && !r.note && !(r.ink && r.ink.s && r.ink.s.length);
+}
+function saveNow(){
+  clearTimeout(saveTimer);
+  try{
+    const lean = { trimester: week.trimester, period: week.period, off: week.off, rows: {} };
+    Object.keys(week.rows).forEach(n => { if (!isEmptyRow(week.rows[n])) lean.rows[n] = week.rows[n]; });
+    localStorage.setItem(weekDataKey(grade, weekKey), JSON.stringify(lean));
+    localStorage.setItem(NS + ".lastGrade", grade);
+    localStorage.setItem(NS + ".lastWeek", weekKey);
+    stamp("Saved");
+  }catch(err){
+    stamp("Storage full — back up and clear old weeks", true);
+    toast("Could not save: storage for this page is full. Use Backup, then Clear this week on old weeks.");
+  }
+}
+function markSaving(){
+  const el = $("#savedNote");
+  el.classList.add("saving");
+  el.innerHTML = "<b>Saving…</b>";
+}
+function stamp(msg, bad){
+  const el = $("#savedNote");
+  el.classList.remove("saving");
+  const t = new Date().toLocaleTimeString(undefined, { hour:"numeric", minute:"2-digit" });
+  el.innerHTML = bad ? "<b style='color:#a81f16'>" + msg + "</b>" : "<b>&#10003; " + msg + "</b> " + t;
+}
+let toastTimer = null;
+function toast(msg){
+  const el = $("#toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 3800);
+}
+
+/* ============================================================
+   Scoring — absences and closed days are excluded, never zeroed
+   ============================================================ */
+function scoreOf(row){
+  let sum = 0, counted = 0, absent = 0, held = 0;
+  for (let i = 0; i < slots.length; i++){
+    if (slots[i].off) continue;
+    held++;
+    const c = row.d[slots[i].wd];
+    if (c === "AB"){ absent++; continue; }
+    if (c && CODE_INFO[c]){ sum += CODE_INFO[c].pts; counted++; }
+  }
+  return { counted, absent, held, avg: counted ? sum / counted : null, allAbsent: held > 0 && absent === held };
+}
+function bandFor(v){ return BANDS.find(b => v >= b.min); }
+function fmt(n){ return (Math.round(n * 100) / 100).toString(); }
+function pct(n){ return Math.round((n / 5) * 100); }
+function esc(s){
+  return String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+}
+
+/* ============================================================
+   Render
+   ============================================================ */
+function renderTabs(){
+  $("#gradeTabs").innerHTML = ["5","6","7","8"].map(g => {
+    const m = getMeet(g).map(x => WD_SHORT[x.wd]).join(" ");
+    return "<button data-g='" + g + "'" + (g === grade ? " class='on'" : "") + ">Grade " + g +
+           "<small>" + m + "</small></button>";
+  }).join("");
+}
+function renderHead(){
+  let h = "<tr><th>#</th><th class='nm'>Student Name</th>";
+  slots.forEach((s, i) => {
+    h += "<th class='" + (s.off ? "dayoff" : (s.ed ? "hasEd" : "")) + "'>" +
+         "<button class='dayheadbtn" + (s.off ? " off" : "") + "' data-dayhead='" + i +
+         "' title='Tap to mark this class as not held'>" +
+         "<span class='wd'>" + s.label + "</span>" +
+         "<span class='dt'>" + s.sub + "</span>" +
+         (s.holiday ? "<span class='why'>" + esc(s.holiday) + "</span>"
+                    : (s.manualOff ? "<span class='why'>No class</span>"
+                    : (s.ed ? "<span class='why ed'>" + esc(s.ed) + "</span>" : ""))) +
+         "</button></th>";
+  });
+  h += "<th>Weekly<br>Grade</th><th>Bonus</th><th>Needs Reflection Sheet</th>" +
+       "<th class='nm'>Notes / Action Items</th></tr>";
+  $("#rosterHead").innerHTML = h;
+  $("#rosterTable").style.minWidth = (870 + slots.length * 76) + "px";
+}
+function renderBanners(){
+  const b = [];
+  if (!MEET_CONFIRMED[grade]){
+    b.push("<div class='banner info'><span>&#9432;</span><div><b>Which days does Grade " + grade + " meet?</b> " +
+           "The period is set (<b>" + esc(slots.map(s => s.period).filter(Boolean)[0] || "—") + "</b>), but the days are a placeholder &mdash; " +
+           "showing <b>" + slots.map(s => s.label).join(", ") + "</b>. " +
+           "Set them under <b>Days &amp; Calendar</b>.</div></div>");
+  }
+  const open = slots.filter(s => !s.off).length;
+  if (slots.length && open === 0){
+    const why = slots.map(s => s.holiday).filter(Boolean)[0];
+    const outside = slots.every(s => s.outOfYear);
+    b.push("<div class='banner warn'><span>&#127796;</span><div><b>No classes for Grade " + grade + " this week" +
+           (why ? " — " + esc(why) : "") + ".</b> " +
+           (outside ? "The " + SCHOOL_YEAR.label + " year runs " + prettyDate(SCHOOL_YEAR.start) +
+                      " to " + prettyDate(SCHOOL_YEAR.end) + "."
+                    : "Nothing to score; use <b>Week &rarr;</b> to move on.") + "</div></div>");
+  }
+  const eds = slots.filter(s => s.ed && !s.off);
+  if (eds.length){
+    b.push("<div class='banner info'><span>&#8986;</span><div><b>Early dismissal at 12:30 &mdash; " +
+           eds.map(s => s.label + " " + s.sub + " (" + esc(s.ed) + ")").join(", ") + ".</b> " +
+           "School is open, so the class is left counting. If Spanish did not meet, tap that heading to close it.</div></div>");
+  }
+  $("#banners").innerHTML = b.join("");
+}
+function render(){
+  computeSlots();
+  renderTabs();
+  $("#weekOf").value    = weekKey;
+  $("#trimester").value = week.trimester || "";
+  $("#period").value    = week.period || "";
+  $("#weekSpan").innerHTML = slots.length
+    ? slots.map(s => s.label + " " + s.sub).join(" &nbsp;&middot;&nbsp; ")
+    : "no class days set";
+
+  renderHead();
+  renderBanners();
+
+  const roster = getRoster(grade);
+  const body   = $("#rosterBody");
+  body.innerHTML = "";
+
+  roster.forEach((name, i) => {
+    const row = rowFor(name);
+    const s   = scoreOf(row);
+    const tr  = document.createElement("tr");
+    tr.dataset.name = name;
+
+    const total = s.avg === null ? null : s.avg + row.bonus;
+    const needs = total !== null && total <= 4;
+    if (needs) tr.classList.add("flagged");
+
+    let html = "<td class='num'>" + (i + 1) + "</td><td class='nm'>" + esc(name) + "</td>";
+
+    slots.forEach((sl, d) => {
+      const c  = row.d[sl.wd];
+      const ci = c && CODE_INFO[c] ? CODE_INFO[c] : null;
+      const cls = c === "AB" ? "set gAB" : (ci ? "set " + ci.cls : "");
+      html += "<td class='daycell" + (sl.off ? " dayoff" : "") + "'>" +
+              "<button class='daybtn " + cls + "' data-day='" + d + "'>" +
+              (c === "AB" ? "Abs" : (c || "·")) + "</button></td>";
+    });
+
+    let pill;
+    if (total !== null){
+      const b = bandFor(total);
+      pill = "<span class='scorepill " + b.cls + "'>" + b.letter +
+             "<small>" + fmt(total) + " / 5 &middot; " + pct(total) + "%" +
+             (s.counted < s.held ? " &middot; " + s.counted + "d" : "") + "</small></span>";
+    } else if (s.allAbsent){
+      pill = "<span class='scorepill none'>Absent<small>all " + s.held + " class" + (s.held > 1 ? "es" : "") + "</small></span>";
+    } else if (s.held === 0){
+      pill = "<span class='scorepill none'>&mdash;<small>no class</small></span>";
+    } else {
+      pill = "<span class='scorepill none'>&mdash;<small>not scored</small></span>";
+    }
+    html += "<td class='score'>" + pill + "</td>";
+
+    html += "<td class='bonus'><span class='stepper'>" +
+            "<button data-bonus='-0.5'>&minus;</button>" +
+            "<span class='val" + (row.bonus > 0 ? " pos" : "") + "'>" +
+            (row.bonus > 0 ? "+" + fmt(row.bonus) : "0") + "</span>" +
+            "<button data-bonus='0.5'>+</button></span></td>";
+
+    const refCls   = row.r ? "on" : (needs ? "needs" : "");
+    const refLabel = row.r ? "&#10003; Sheet sent" : (needs ? "Needs Reflection Sheet" : "&mdash;");
+    html += "<td class='refcol'><button class='refbtn " + refCls + "' data-r='1'>" + refLabel + "</button></td>";
+
+    const hasNote = !!(row.note || (row.ink && row.ink.s && row.ink.s.length));
+    html += "<td class='notes'><button class='notebtn" + (hasNote ? " has" : "") + "' data-note='1'>" +
+            (hasNote ? "" : "<span class='ph'>Tap to write with your S&nbsp;Pen…</span>") +
+            (row.note ? "<span class='txt'>" + esc(row.note) + "</span>" : "") +
+            "</button></td>";
+
+    tr.innerHTML = html;
+    body.appendChild(tr);
+    if (row.ink && row.ink.s && row.ink.s.length) drawThumb($(".notebtn", tr), row.ink);
+  });
+
+  renderSummary(roster);
+
+  const offList = slots.filter(s => s.off).map(s => s.label + " " + s.sub + (s.holiday ? " (" + s.holiday + ")" : ""));
+  $("#printHead").innerHTML =
+    "<h1>Spanish Class Weekly Participation — Grade " + grade + "</h1>" +
+    "<p>Instructor: Mrs. Cartiera &nbsp;|&nbsp; Week of: " + prettyDate(weekKey) +
+    " &nbsp;|&nbsp; Classes: " + esc(slots.map(s => s.label + " " + s.sub).join(", ")) +
+    " &nbsp;|&nbsp; Trimester: " + (week.trimester || "___") +
+    (week.period ? " &nbsp;|&nbsp; Section: " + esc(week.period) : "") +
+    (offList.length ? " &nbsp;|&nbsp; No class: " + esc(offList.join("; ")) : "") + "</p>";
+
+  scheduleChrome();
+}
+
+function renderSummary(roster){
+  let sum = 0, n = 0, absences = 0, absentAll = 0;
+  const counts = { A:0, B:0, C:0, D:0, F:0 };
+  const watch = [], stars = [];
+
+  roster.forEach(name => {
+    const row = week.rows[name];
+    if (!row) return;
+    const s = scoreOf(row);
+    absences += s.absent;
+    if (s.allAbsent) absentAll++;
+    if (s.avg === null) return;
+    const total = s.avg + row.bonus;
+    sum += total; n++;
+    counts[bandFor(total).letter]++;
+    if (total <= 4) watch.push({ name, total, r: row.r });
+    if (total >= 4.75) stars.push(name);
+  });
+
+  const avg     = n ? sum / n : null;
+  const held    = slots.filter(s => !s.off).length;
+  const closed  = slots.filter(s => s.off).length;
+
+  $("#sumGrid").innerHTML =
+    stat("Class average", avg === null ? "—" : bandFor(avg).letter,
+         avg === null ? n + " of " + roster.length + " scored" : fmt(avg) + " / 5 · " + pct(avg) + "%") +
+    stat("A — ¡Excelente!", counts.A, "5 / 5") +
+    stat("B — ¡Buen Trabajo!", counts.B, "4.5 / 5") +
+    stat("C — ¡Poco a Poco!", counts.C, "4 / 5") +
+    stat("D / F — ¡Cuidado! ¡Ojo!", counts.D + counts.F, "3.25 or below") +
+    stat("Classes this week", held, closed ? closed + " closed" : "all held") +
+    stat("Absences logged", absences, "student-classes missed");
+
+  let w = "";
+  if (watch.length){
+    w += "<h4>Needs a reflection sheet (4/5 · 80% or lower)</h4>";
+    watch.sort((a, b) => a.total - b.total).forEach(s => {
+      w += "<span class='chip" + (s.r ? " ok" : "") + "'>" + esc(s.name) + " · " +
+           bandFor(s.total).letter + " " + fmt(s.total) + (s.r ? " · sent" : "") + "</span>";
+    });
+  }
+  if (stars.length){
+    w += "<h4 style='margin-top:10px'>¡Excelente! this week</h4>";
+    stars.forEach(s => { w += "<span class='chip ok'>" + esc(s) + "</span>"; });
+  }
+  if (absentAll){
+    w += "<h4 style='margin-top:10px'>Absent every class this week</h4>";
+    roster.forEach(name => {
+      const row = week.rows[name];
+      if (row && scoreOf(row).allAbsent) w += "<span class='chip neutral'>" + esc(name) + "</span>";
+    });
+  }
+  if (!w) w = "<h4>No grades entered yet for this week.</h4>";
+  $("#watchList").innerHTML = w;
+}
+function stat(k, v, s){
+  return "<div class='stat'><div class='k'>" + k + "</div><div class='v'>" + v + "</div><div class='s'>" + s + "</div></div>";
+}
+
+/* ============================================================
+   Ink rendering
+   ============================================================ */
+function strokePath(ctx, st, scale){
+  const p = st.p;
+  if (p.length < 3) return;
+  ctx.strokeStyle = st.c; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  if (p.length === 3){
+    ctx.beginPath();
+    ctx.arc(p[0] * scale, p[1] * scale, Math.max(0.4, st.w * scale / 2), 0, Math.PI * 2);
+    ctx.fillStyle = st.c; ctx.fill();
+    return;
+  }
+  for (let i = 3; i < p.length; i += 3){
+    const x0 = p[i-3]*scale, y0 = p[i-2]*scale, pr0 = p[i-1];
+    const x1 = p[i]*scale,   y1 = p[i+1]*scale, pr1 = p[i+2];
+    ctx.beginPath();
+    ctx.lineWidth = Math.max(0.35, st.w * scale * (0.45 + 1.1 * ((pr0 + pr1) / 2 / 100)));
+    ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  }
+}
+function drawThumb(btn, ink){
+  const maxH = 50, avail = Math.max(120, btn.clientWidth - 18);
+  const scale = Math.min(avail / ink.w, maxH / Math.max(1, ink.h), 1);
+  const cv = document.createElement("canvas");
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  cv.style.width  = Math.round(ink.w * scale) + "px";
+  cv.style.height = Math.round(ink.h * scale) + "px";
+  cv.width  = Math.round(ink.w * scale * dpr);
+  cv.height = Math.round(ink.h * scale * dpr);
+  const ctx = cv.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ink.s.forEach(st => strokePath(ctx, st, scale));
+  btn.insertBefore(cv, btn.firstChild);
+}
+
+/* ============================================================
+   Table interaction
+   ============================================================ */
+function toggleDayOff(i){
+  const s = slots[i];
+  if (!s) return;
+  if (s.holiday){
+    toast(s.label + " " + s.sub + " is “" + s.holiday + "” in your school calendar. Edit it under Days & Calendar.");
+    return;
+  }
+  week.off[s.wd] = !week.off[s.wd];
+  queueSave(); render();
+  toast(week.off[s.wd] ? s.label + " " + s.sub + " marked no class — left out of every average."
+                       : s.label + " " + s.sub + " counts again.");
+}
+$("#rosterHead").addEventListener("click", e => {
+  const h = e.target.closest("[data-dayhead]");
+  if (h) toggleDayOff(+h.dataset.dayhead);
+});
+$("#fhead").addEventListener("click", e => {
+  const h = e.target.closest("[data-dayhead]");
+  if (h) toggleDayOff(+h.dataset.dayhead);
+});
+$("#rosterBody").addEventListener("click", e => {
+  const tr = e.target.closest("tr");
+  if (!tr) return;
+  const row = rowFor(tr.dataset.name);
+
+  const day = e.target.closest("[data-day]");
+  if (day){
+    const sl = slots[+day.dataset.day];
+    if (!sl) return;
+    const at = CODES.indexOf(row.d[sl.wd] || "");
+    const next = CODES[(at + 1) % CODES.length];
+    if (next) row.d[sl.wd] = next; else delete row.d[sl.wd];
+    queueSave(); render();
+    return;
+  }
+  const bonus = e.target.closest("[data-bonus]");
+  if (bonus){
+    row.bonus = Math.max(0, Math.min(5, Math.round((row.bonus + parseFloat(bonus.dataset.bonus)) * 2) / 2));
+    queueSave(); render();
+    return;
+  }
+  if (e.target.closest("[data-r]")){ row.r = !row.r; queueSave(); render(); return; }
+  if (e.target.closest("[data-note]")) openPad(tr.dataset.name, row);
+});
+
+/* ============================================================
+   S Pen writing pad
+   ============================================================ */
+const pad = {
+  el:$("#padModal"), cv:$("#padCanvas"), ctx:null, name:null, row:null,
+  strokes:[], cur:null, color:"#12161c", size:3.4, tool:"pen", penOnly:true, w:0, h:0, dpr:1
+};
+pad.ctx = pad.cv.getContext("2d");
+
+function openPad(name, row){
+  pad.name = name; pad.row = row;
+  pad.strokes = row.ink && row.ink.s ? JSON.parse(JSON.stringify(row.ink.s)) : [];
+  $("#padWho").textContent = name;
+  $("#padSub").textContent = "Grade " + grade + " · Week of " + prettyDate(weekKey);
+  $("#padText").value = row.note || "";
+  pad.el.classList.add("open");
+  requestAnimationFrame(() => { sizePad(); redrawPad(); });
+}
+function closePad(){ pad.el.classList.remove("open"); }
+function sizePad(){
+  const cssW = pad.cv.clientWidth;
+  const cssH = Math.max(240, Math.min(480, Math.round(window.innerHeight * 0.42)));
+  pad.cv.style.height = cssH + "px";
+  pad.dpr = Math.min(window.devicePixelRatio || 1, 3);
+  pad.w = cssW; pad.h = cssH;
+  pad.cv.width  = Math.round(cssW * pad.dpr);
+  pad.cv.height = Math.round(cssH * pad.dpr);
+  pad.ctx = pad.cv.getContext("2d");
+  pad.ctx.setTransform(pad.dpr, 0, 0, pad.dpr, 0, 0);
+}
+function redrawPad(){
+  pad.ctx.clearRect(0, 0, pad.w, pad.h);
+  pad.strokes.forEach(st => strokePath(pad.ctx, st, 1));
+}
+function padPoint(e){
+  const r = pad.cv.getBoundingClientRect();
+  let pr = e.pressure;
+  if (!pr || pr === 0.5 || e.pointerType !== "pen") pr = 0.5;
+  return [Math.round((e.clientX - r.left) * 10) / 10,
+          Math.round((e.clientY - r.top) * 10) / 10, Math.round(pr * 100)];
+}
+function acceptPointer(e){ return !(pad.penOnly && e.pointerType !== "pen" && e.pointerType !== "mouse"); }
+pad.cv.addEventListener("pointerdown", e => {
+  if (!acceptPointer(e)) return;
+  e.preventDefault();
+  pad.cv.setPointerCapture(e.pointerId);
+  if (pad.tool === "erase"){ eraseAt(padPoint(e)); return; }
+  pad.cur = { c: pad.color, w: pad.size, p: padPoint(e) };
+  pad.strokes.push(pad.cur);
+});
+pad.cv.addEventListener("pointermove", e => {
+  if (!acceptPointer(e)) return;
+  if (pad.tool === "erase"){ if (e.buttons) eraseAt(padPoint(e)); return; }
+  if (!pad.cur) return;
+  e.preventDefault();
+  let events = [e];
+  if (e.getCoalescedEvents){
+    const c = e.getCoalescedEvents();
+    if (c && c.length) events = c;
+  }
+  events.forEach(ev => {
+    const pt = padPoint(ev), p = pad.cur.p;
+    const dx = pt[0] - p[p.length-3], dy = pt[1] - p[p.length-2];
+    if (dx*dx + dy*dy < 0.6) return;
+    p.push(pt[0], pt[1], pt[2]);
+  });
+  redrawPad();
+});
+function endStroke(){ pad.cur = null; }
+pad.cv.addEventListener("pointerup", endStroke);
+pad.cv.addEventListener("pointercancel", endStroke);
+pad.cv.addEventListener("lostpointercapture", endStroke);
+function eraseAt(pt){
+  const R = 14, before = pad.strokes.length;
+  pad.strokes = pad.strokes.filter(st => {
+    for (let i = 0; i < st.p.length; i += 3){
+      const dx = st.p[i]-pt[0], dy = st.p[i+1]-pt[1];
+      if (dx*dx + dy*dy < R*R) return false;
+    }
+    return true;
+  });
+  if (pad.strokes.length !== before) redrawPad();
+}
+$(".padtools").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  if (b.dataset.tool){
+    pad.tool = b.dataset.tool;
+    $("#toolPen").classList.toggle("on", pad.tool === "pen");
+    $("#toolErase").classList.toggle("on", pad.tool === "erase");
+    return;
+  }
+  if (b.id === "toolUndo"){ pad.strokes.pop(); redrawPad(); return; }
+  if (b.id === "toolClear"){ pad.strokes = []; redrawPad(); return; }
+  if (b.dataset.color){
+    pad.color = b.dataset.color;
+    $$(".swatch").forEach(s => s.classList.toggle("on", s === b));
+    pad.tool = "pen";
+    $("#toolPen").classList.add("on"); $("#toolErase").classList.remove("on");
+    return;
+  }
+  if (b.dataset.size){
+    pad.size = parseFloat(b.dataset.size);
+    $$("[data-size]").forEach(s => s.classList.toggle("on", s === b));
+    return;
+  }
+  if (b.id === "toolPenOnly"){
+    pad.penOnly = !pad.penOnly;
+    b.classList.toggle("on", pad.penOnly);
+    $("#padHint").textContent = pad.penOnly
+      ? "S Pen only is on — your palm and fingers will not draw."
+      : "Finger drawing is on — rest your hand off the pad.";
+  }
+});
+$("#padCancel").addEventListener("click", closePad);
+$("#padSave").addEventListener("click", () => {
+  pad.row.note = $("#padText").value.trim();
+  pad.row.ink  = pad.strokes.length ? { w:pad.w, h:usedHeight(pad.strokes, pad.h), s:pad.strokes } : null;
+  closePad(); queueSave(); render();
+});
+function usedHeight(strokes, fallback){
+  let max = 0;
+  strokes.forEach(st => { for (let i = 1; i < st.p.length; i += 3) if (st.p[i] > max) max = st.p[i]; });
+  return Math.min(fallback, Math.max(48, Math.ceil(max + 10)));
+}
+pad.el.addEventListener("click", e => { if (e.target === pad.el) closePad(); });
+$$(".swatch")[0].classList.add("on");
+$$("[data-size]")[1].classList.add("on");
+$("#toolPen").classList.add("on");
+
+/* ============================================================
+   Days & calendar editor
+   ============================================================ */
+let schedDays = [];
+function openSched(){
+  schedDays = getMeet(grade).map(m => ({ wd:m.wd, period:m.period }));
+  $("#schedWho").textContent = "Class days & school calendar — Grade " + grade;
+  $("#schedDaysLabel").textContent = "Class days for Grade " + grade;
+  renderDayChecks();
+  $("#calText").value = calToText(getCal());
+  $("#edText").value  = calToText(getEd());
+  updateCalCount();
+  $("#schedModal").classList.add("open");
+}
+function findDay(wd){ return schedDays.filter(m => m.wd === wd)[0] || null; }
+function renderDayChecks(){
+  $("#dayChecks").innerHTML = [1,2,3,4,5].map(wd => {
+    const m = findDay(wd);
+    return "<div class='dayrow'>" +
+      "<button class='daychk" + (m ? " on" : "") + "' data-wd='" + wd + "'>" + WD_SHORT[wd] + "</button>" +
+      "<input type='text' data-period='" + wd + "' placeholder='period (e.g. 1st)' " +
+      "value='" + (m ? esc(m.period) : "") + "'" + (m ? "" : " disabled") + ">" +
+      "</div>";
+  }).join("");
+}
+$("#dayChecks").addEventListener("click", e => {
+  const b = e.target.closest("[data-wd]");
+  if (!b) return;
+  const wd = +b.dataset.wd;
+  const at = schedDays.findIndex(m => m.wd === wd);
+  if (at >= 0) schedDays.splice(at, 1);
+  else schedDays.push({ wd, period:"" });
+  schedDays.sort((a, b2) => a.wd - b2.wd);
+  renderDayChecks();
+});
+$("#dayChecks").addEventListener("input", e => {
+  const i = e.target.closest("[data-period]");
+  if (!i) return;
+  const m = findDay(+i.dataset.period);
+  if (m) m.period = i.value.trim();
+});
+function calToText(cal){
+  return Object.keys(cal).sort().map(k => k + "  " + cal[k]).join("\n");
+}
+/* accepts 2026-09-07, 9/7/2026, and ranges joined by "to", "..", en/em dash */
+function parseCalText(txt){
+  const map = {}; let bad = 0;
+  const D = "(\\d{4}-\\d{1,2}-\\d{1,2}|\\d{1,2}\\/\\d{1,2}\\/\\d{2,4})";
+  const rangeRe  = new RegExp("^" + D + "\\s*(?:\\.\\.|to|–|—)\\s*" + D + "\\b[\\s,:-]*(.*)$", "i");
+  const singleRe = new RegExp("^" + D + "\\b[\\s,:-]*(.*)$");
+  function toDate(s){
+    let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+    m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if (m){ let y = +m[3]; if (y < 100) y += 2000; return new Date(y, +m[1] - 1, +m[2]); }
+    return null;
+  }
+  txt.split("\n").forEach(line => {
+    const t = line.trim();
+    if (!t || t.charAt(0) === "#") return;
+    let m = t.match(rangeRe);
+    if (m){
+      const a = toDate(m[1]), b = toDate(m[2]);
+      if (!a || !b || isNaN(a) || isNaN(b)){ bad++; return; }
+      const label = (m[3] || "").trim() || "No school";
+      const cur = new Date(a.getTime());
+      let guard = 0;
+      while (cur <= b && guard++ < 400){ map[iso(cur)] = label; cur.setDate(cur.getDate() + 1); }
+      return;
+    }
+    m = t.match(singleRe);
+    if (m){
+      const a = toDate(m[1]);
+      if (!a || isNaN(a)){ bad++; return; }
+      map[iso(a)] = (m[2] || "").trim() || "No school";
+      return;
+    }
+    bad++;
+  });
+  return { map, bad };
+}
+function countLine(el, txt, noun){
+  const r = parseCalText(txt);
+  const n = Object.keys(r.map).length;
+  el.innerHTML = "<b>" + n + "</b> " + noun + (n === 1 ? "" : "s") + " recognised" +
+    (r.bad ? " &nbsp;·&nbsp; <b style='color:#a81f16'>" + r.bad + " line" + (r.bad === 1 ? "" : "s") +
+             " not understood</b> (check the date format)" : "");
+  return r;
+}
+function updateCalCount(){
+  countLine($("#calCount"), $("#calText").value, "no-school day");
+  countLine($("#edCount"),  $("#edText").value,  "early-dismissal day");
+}
+$("#calText").addEventListener("input", updateCalCount);
+$("#edText").addEventListener("input", updateCalCount);
+$("#schedReset").addEventListener("click", () => {
+  $("#calText").value = calToText(defaultCal());
+  $("#edText").value  = calToText(defaultEd());
+  updateCalCount();
+  toast("Restored the Saint Paul School " + SCHOOL_YEAR.label + " calendar. Tap Save to keep it.");
+});
+$("#schedCancel").addEventListener("click", () => $("#schedModal").classList.remove("open"));
+$("#schedModal").addEventListener("click", e => {
+  if (e.target === $("#schedModal")) $("#schedModal").classList.remove("open");
+});
+$("#btnSchedule").addEventListener("click", openSched);
+$("#schedSave").addEventListener("click", () => {
+  if (!schedDays.length){ toast("Pick at least one class day for this grade."); return; }
+  saveNow();
+  setMeet(grade, schedDays);
+  const r  = parseCalText($("#calText").value);
+  const re = parseCalText($("#edText").value);
+  setCal(r.map);
+  setEd(re.map);
+  loadWeek(); render(); saveNow();
+  $("#schedModal").classList.remove("open");
+  toast("Saved — Grade " + grade + " meets " +
+        schedDays.map(m => WD_SHORT[m.wd] + (m.period ? " " + m.period : "")).join(", ") +
+        ", " + Object.keys(r.map).length + " no-school days on file.");
+});
+
+/* ============================================================
+   Header controls
+   ============================================================ */
+$("#gradeTabs").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  saveNow();
+  grade = b.dataset.g;
+  loadWeek(); render(); saveNow();
+  window.scrollTo({ top: 0 });
+});
+$("#weekOf").addEventListener("change", e => {
+  saveNow();
+  weekKey = e.target.value ? mondayOf(fromIso(e.target.value)) : mondayOf(new Date());
+  loadWeek(); render(); saveNow();
+});
+$("#btnPrev").addEventListener("click", () => { saveNow(); weekKey = shiftWeek(-7); loadWeek(); render(); saveNow(); });
+$("#btnNext").addEventListener("click", () => { saveNow(); weekKey = shiftWeek(7);  loadWeek(); render(); saveNow(); });
+$("#trimester").addEventListener("change", e => { week.trimester = e.target.value; queueSave(); });
+$("#period").addEventListener("input",   e => { week.period    = e.target.value; queueSave(); });
+$("#btnPrint").addEventListener("click", () => { saveNow(); window.print(); });
+
+$("#btnClearWeek").addEventListener("click", () => {
+  if (!confirm("Clear every grade, bonus, note and handwriting for Grade " + grade +
+               ", week of " + prettyDate(weekKey) + "?\n\nThis cannot be undone.")) return;
+  week = { trimester: week.trimester, period: week.period, off: {}, rows: {} };
+  saveNow(); render();
+  toast("Week cleared.");
+});
+
+/* ---------- roster editor ---------- */
+$("#btnRoster").addEventListener("click", () => {
+  $("#rosterWho").textContent = "Edit roster — Grade " + grade;
+  $("#rosterText").value = getRoster(grade).join("\n");
+  $("#rosterModal").classList.add("open");
+});
+$("#rosterCancel").addEventListener("click", () => $("#rosterModal").classList.remove("open"));
+$("#rosterReset").addEventListener("click", () => { $("#rosterText").value = DEFAULT_ROSTERS[grade].join("\n"); });
+$("#rosterSave").addEventListener("click", () => {
+  const names = $("#rosterText").value.split("\n").map(s => s.trim()).filter(Boolean);
+  if (!names.length){ toast("A roster needs at least one student."); return; }
+  setRoster(grade, names);
+  $("#rosterModal").classList.remove("open");
+  render();
+  toast("Roster saved for Grade " + grade + ".");
+});
+$("#rosterModal").addEventListener("click", e => {
+  if (e.target === $("#rosterModal")) $("#rosterModal").classList.remove("open");
+});
+
+/* ---------- CSV ---------- */
+function csvCell(v){
+  v = v === null || v === undefined ? "" : String(v);
+  return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+}
+$("#btnCsv").addEventListener("click", () => {
+  const roster = getRoster(grade);
+  const dayHdr = slots.map(s => s.label + " " + s.sub + (s.off ? " (no class" + (s.holiday ? ": " + s.holiday : "") + ")" : ""));
+  const lines = [["Grade","Week of","Trimester","Period","#","Student"].concat(dayHdr)
+                 .concat(["Weekly grade","Points","Percent","Classes counted","Absences",
+                          "Bonus","Reflection sheet sent","Typed note","Handwritten note"])
+                 .map(csvCell).join(",")];
+  roster.forEach((name, i) => {
+    const row = week.rows[name] || blankRow();
+    const s   = scoreOf(row);
+    const tot = s.avg === null ? null : s.avg + row.bonus;
+    lines.push([grade, weekKey, week.trimester || "", week.period || "", i + 1, name]
+      .concat(slots.map(sl => sl.off ? "—" : (row.d[sl.wd] === "AB" ? "Absent" : (row.d[sl.wd] || ""))))
+      .concat([tot === null ? (s.allAbsent ? "Absent all week" : "") : bandFor(tot).letter,
+               tot === null ? "" : fmt(tot),
+               tot === null ? "" : pct(tot) + "%",
+               s.counted, s.absent, row.bonus || 0,
+               row.r ? "Yes" : "", row.note || "",
+               (row.ink && row.ink.s && row.ink.s.length) ? "handwritten — see printed sheet" : ""])
+      .map(csvCell).join(","));
+  });
+  download("participation-grade" + grade + "-" + weekKey + ".csv",
+           "﻿" + lines.join("\r\n"), "text/csv;charset=utf-8");
+  toast("CSV exported to your Downloads folder.");
+});
+
+$("#btnCopySummary").addEventListener("click", () => {
+  const roster = getRoster(grade);
+  const out = ["Spanish participation — Grade " + grade + ", week of " + prettyDate(weekKey),
+               "Classes: " + slots.map(s => s.label + " " + s.sub + (s.off ? " — no class" + (s.holiday ? " (" + s.holiday + ")" : "") : "")).join(", "), ""];
+  roster.forEach(name => {
+    const row = week.rows[name];
+    if (!row) return;
+    const s = scoreOf(row);
+    if (s.avg === null){
+      if (s.allAbsent) out.push(name + " — absent all week");
+      return;
+    }
+    const tot = s.avg + row.bonus;
+    out.push(name + " — " + bandFor(tot).letter + " (" + fmt(tot) + "/5, " + pct(tot) + "%)" +
+             (s.counted < s.held ? ", " + s.counted + " of " + s.held + " classes" : "") +
+             (s.absent ? ", " + s.absent + " absence" + (s.absent > 1 ? "s" : "") : "") +
+             (row.bonus ? ", incl. +" + fmt(row.bonus) + " bonus" : "") +
+             (row.r ? ", reflection sheet sent" : "") +
+             (row.note ? " — " + row.note : ""));
+  });
+  const text = out.join("\n");
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(() => toast("Summary copied."), () => fallbackCopy(text));
+  } else fallbackCopy(text);
+});
+function fallbackCopy(text){
+  const ta = document.createElement("textarea");
+  ta.value = text; document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); toast("Summary copied."); }
+  catch(e){ toast("Could not copy automatically."); }
+  document.body.removeChild(ta);
+}
+
+/* ---------- backup / restore ---------- */
+$("#btnBackup").addEventListener("click", async () => {
+  saveNow();
+  const dump = { app: NS, exported: new Date().toISOString(), data: {} };
+  for (let i = 0; i < localStorage.length; i++){
+    const k = localStorage.key(i);
+    if (k && k.indexOf(NS) === 0) dump.data[k] = localStorage.getItem(k);
+  }
+  const name = "participation-backup-" + iso(new Date()) + ".json";
+  const text = JSON.stringify(dump);
+  /* on the tablet, hand it straight to the Android share sheet so it can go to Drive */
+  try{
+    if (navigator.canShare && navigator.share){
+      const file = new File([text], name, { type:"application/json" });
+      if (navigator.canShare({ files:[file] })){
+        await navigator.share({ files:[file], title:"Participation backup" });
+        toast("Backup shared. Pick Drive to keep it with your school files.");
+        return;
+      }
+    }
+  }catch(err){
+    if (err && err.name === "AbortError") return;   /* she closed the share sheet */
+  }
+  download(name, text, "application/json");
+  toast("Backup saved to Downloads. Keep a copy in Google Drive.");
+});
+$("#btnRestore").addEventListener("click", () => $("#restoreFile").click());
+$("#restoreFile").addEventListener("change", e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const fr = new FileReader();
+  fr.onload = () => {
+    try{
+      const dump = JSON.parse(fr.result);
+      if (!dump || dump.app !== NS || !dump.data) throw new Error("not a backup");
+      if (!confirm("Restore this backup?\n\nAny week already on this tablet with the same grade and date will be replaced.")) return;
+      Object.keys(dump.data).forEach(k => localStorage.setItem(k, dump.data[k]));
+      loadWeek(); render();
+      toast("Backup restored.");
+    }catch(err){ toast("That file is not a tracker backup."); }
+  };
+  fr.readAsText(f);
+  e.target.value = "";
+});
+function download(filename, text, mime){
+  const blob = new Blob([text], { type: mime });
+  const url  = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+/* ============================================================
+   Floating chrome: sticky column header + horizontal scrollbar
+   ============================================================ */
+const hWrap = $("#tableWrap"), hBar = $("#hbar"), hTrack = $("#hbarTrack"),
+      hThumb = $("#hbarThumb"), fHead = $("#fhead");
+let hDragging = false, hGrabDX = 0, chromeRaf = 0;
+
+function scheduleChrome(){
+  if (chromeRaf) cancelAnimationFrame(chromeRaf);
+  chromeRaf = requestAnimationFrame(() => { chromeRaf = 0; updateChrome(); });
+}
+function updateChrome(){ updateFHead(); updateHBar(); }
+function hMax(){ return hWrap.scrollWidth - hWrap.clientWidth; }
+function modalOpen(){ return !!$(".modal.open"); }
+
+function updateFHead(){
+  const table = $("#rosterTable"), thead = $("#rosterHead");
+  const top = $("#topbar").offsetHeight;
+  const headR = thead.getBoundingClientRect(), tableR = table.getBoundingClientRect();
+  const wrapR = hWrap.getBoundingClientRect();
+  const show = !modalOpen() && headR.top < top && tableR.bottom > top + headR.height + 24;
+  if (!show){ fHead.classList.remove("show"); return; }
+  if (fHead.dataset.stamp !== headStamp()) buildFHead();
+  fHead.classList.add("show");
+  fHead.style.top    = top + "px";
+  fHead.style.left   = Math.round(wrapR.left) + "px";
+  fHead.style.width  = Math.round(wrapR.width) + "px";
+  fHead.style.height = Math.round(headR.height) + "px";
+  const inner = fHead.firstElementChild;
+  if (inner){
+    inner.style.width = table.offsetWidth + "px";
+    inner.style.transform = "translateX(" + (-Math.round(hWrap.scrollLeft)) + "px)";
+  }
+}
+function headStamp(){
+  const r = $("#rosterHead").rows[0];
+  const cells = r ? r.cells : [];
+  return grade + "|" + weekKey + "|" + slots.map(s => s.off ? 1 : 0).join("") + "|" +
+         Array.prototype.map.call(cells, c => Math.round(c.getBoundingClientRect().width)).join(",");
+}
+function buildFHead(){
+  const table = $("#rosterTable"), real = $("#rosterHead").rows[0];
+  if (!real) return;
+  const t = document.createElement("table");
+  const clone = $("#rosterHead").cloneNode(true);
+  clone.removeAttribute("id");
+  t.appendChild(clone);
+  fHead.innerHTML = "";
+  fHead.appendChild(t);
+  t.style.width = table.offsetWidth + "px";
+  const cells = clone.rows[0].cells;
+  for (let i = 0; i < real.cells.length; i++){
+    const w = real.cells[i].getBoundingClientRect().width + "px";
+    cells[i].style.width = w; cells[i].style.minWidth = w; cells[i].style.maxWidth = w;
+  }
+  fHead.dataset.stamp = headStamp();
+}
+function updateHBar(){
+  const max = hMax(), r = hWrap.getBoundingClientRect();
+  const inView = r.bottom > 96 && r.top < window.innerHeight - 34;
+  if (max <= 2 || !inView || modalOpen()){ hBar.classList.remove("show"); return; }
+  hBar.classList.add("show");
+  hBar.style.left  = Math.round(r.left) + "px";
+  hBar.style.width = Math.round(r.width) + "px";
+  const tw = hTrack.clientWidth;
+  const thumbW = Math.max(56, Math.round(tw * (hWrap.clientWidth / hWrap.scrollWidth)));
+  hThumb.style.width = thumbW + "px";
+  hThumb.style.transform = "translateX(" + Math.round((tw - thumbW) * (hWrap.scrollLeft / max)) + "px)";
+}
+function hScrollTo(clientX, grabDX, smooth){
+  const tr = hTrack.getBoundingClientRect();
+  const span = tr.width - hThumb.offsetWidth;
+  if (span <= 0) return;
+  const x = Math.max(0, Math.min(span, clientX - tr.left - grabDX));
+  const left = (x / span) * hMax();
+  if (smooth) hWrap.scrollTo({ left, behavior:"smooth" }); else hWrap.scrollLeft = left;
+}
+hThumb.addEventListener("pointerdown", e => {
+  e.preventDefault();
+  hThumb.setPointerCapture(e.pointerId);
+  hGrabDX = e.clientX - hThumb.getBoundingClientRect().left;
+  hDragging = true; hBar.classList.add("drag");
+});
+hThumb.addEventListener("pointermove", e => {
+  if (!hDragging) return;
+  e.preventDefault();
+  hScrollTo(e.clientX, hGrabDX, false);
+});
+function hEndDrag(){ hDragging = false; hBar.classList.remove("drag"); }
+hThumb.addEventListener("pointerup", hEndDrag);
+hThumb.addEventListener("pointercancel", hEndDrag);
+hThumb.addEventListener("lostpointercapture", hEndDrag);
+hTrack.addEventListener("pointerdown", e => {
+  if (e.target === hThumb) return;
+  e.preventDefault();
+  hScrollTo(e.clientX, hThumb.offsetWidth / 2, true);
+});
+hWrap.addEventListener("scroll", scheduleChrome, { passive:true });
+window.addEventListener("scroll", scheduleChrome, { passive:true });
+if (window.ResizeObserver) new ResizeObserver(scheduleChrome).observe(hWrap);
+if (window.MutationObserver){
+  const mo = new MutationObserver(scheduleChrome);
+  $$(".modal").forEach(m => mo.observe(m, { attributes:true, attributeFilter:["class"] }));
+}
+
+/* ---------- misc ---------- */
+window.addEventListener("resize", () => {
+  if (pad.el.classList.contains("open")){ sizePad(); redrawPad(); }
+  else { fHead.dataset.stamp = ""; render(); }
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape"){
+    closePad();
+    $("#rosterModal").classList.remove("open");
+    $("#schedModal").classList.remove("open");
+  }
+});
+window.addEventListener("pagehide", saveNow);
+window.addEventListener("beforeunload", saveNow);
+window.addEventListener("blur", saveNow);
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) saveNow();
+  else { chromeRaf = 0; updateChrome(); }
+});
+document.addEventListener("contextmenu", e => {
+  if (e.target.closest(".daybtn,.notebtn,.refbtn,.dayheadbtn,#padCanvas")) e.preventDefault();
+});
+
+weekKey = mondayOf(fromIso(weekKey));
+loadWeek();
+render();
+stamp("Ready");
+</script>
+</body>
+</html>
