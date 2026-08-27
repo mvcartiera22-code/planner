@@ -290,10 +290,10 @@ td.notes{padding:5px 8px 5px 5px;text-align:left}
     <summary>Weekly Scoring Guide &amp; How Grades Are Figured</summary>
     <div class="rubric-body">
       <div class="tier kA"><b><span class="lg">A</span>5 / 5 &mdash; &iexcl;Excelente!</b><span>Spanish only, active volunteer, positive team player. <b>100%</b></span></div>
-      <div class="tier kB"><b><span class="lg">B</span>4.5 / 5 &mdash; &iexcl;Buen Trabajo!</b><span>Good effort &amp; attitude, basic greetings only, less volunteering, minor distraction. <b>90%</b></span></div>
-      <div class="tier kC"><b><span class="lg">C</span>4 / 5 &mdash; &iexcl;Poco a Poco!</b><span>English default, speaks only when called on, frequently off-task. <b>80%</b></span></div>
-      <div class="tier kD"><b><span class="lg">D</span>3.25 / 5 &mdash; &iexcl;Cuidado!</b><span>English almost exclusively, constant redirection needed, low engagement. <b>65%</b></span></div>
-      <div class="tier kF"><b><span class="lg">F</span>2.5 / 5 &mdash; &iexcl;Ojo!</b><span>Avoids Spanish entirely, negative or disruptive, unprepared. <b>50%</b></span></div>
+      <div class="tier kB"><b><span class="lg">B</span>4 / 5 &mdash; &iexcl;Buen Trabajo!</b><span>Good effort &amp; attitude, basic greetings only, less volunteering, minor distraction. <b>80%</b></span></div>
+      <div class="tier kC"><b><span class="lg">C</span>3 / 5 &mdash; &iexcl;Poco a Poco!</b><span>English default, speaks only when called on, frequently off-task. <b>60%</b></span></div>
+      <div class="tier kD"><b><span class="lg">D</span>2 / 5 &mdash; &iexcl;Cuidado!</b><span>English almost exclusively, constant redirection needed, low engagement. <b>40%</b></span></div>
+      <div class="tier kF"><b><span class="lg">F</span>1 / 5 &mdash; &iexcl;Ojo!</b><span>Avoids Spanish entirely, negative or disruptive, unprepared. <b>20%</b></span></div>
     </div>
     <div class="legend">
       <b>Tap a day box to cycle:</b>
@@ -310,7 +310,7 @@ td.notes{padding:5px 8px 5px 5px;text-align:left}
       If Spanish did not meet that day, tap the heading to close it.<br>
       <b>Weekly grade</b> = the average of the classes that actually counted, so a one-class week is graded on that one class.<br>
       <b>Bonus</b> <code>+</code> initiated Spanish outside class (+0.5 to +1 per instance). &nbsp;
-      <b>Needs Reflection Sheet</b> lights up automatically at 4/5 (80%) or lower. &nbsp;
+      <b>Needs Reflection Sheet</b> lights up automatically at 3/5 (60%) or lower. &nbsp;
       <b>Notes</b> &mdash; tap the notes box for a full-size <b>S&nbsp;Pen writing pad</b>.
     </div>
   </details>
@@ -523,12 +523,12 @@ const WD_SHORT = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
 const CODES = ["", "A", "B", "C", "D", "F", "AB"];
 const CODE_INFO = {
-  "A": { pts:5,    cls:"gA" }, "B": { pts:4.5, cls:"gB" }, "C": { pts:4, cls:"gC" },
-  "D": { pts:3.25, cls:"gD" }, "F": { pts:2.5, cls:"gF" }
+  "A": { pts:5, cls:"gA" }, "B": { pts:4, cls:"gB" }, "C": { pts:3, cls:"gC" },
+  "D": { pts:2, cls:"gD" }, "F": { pts:1, cls:"gF" }
 };
 const BANDS = [
-  { min:4.75,  letter:"A", cls:"gA" }, { min:4.25, letter:"B", cls:"gB" },
-  { min:3.625, letter:"C", cls:"gC" }, { min:2.875, letter:"D", cls:"gD" },
+  { min:4.5, letter:"A", cls:"gA" }, { min:3.5, letter:"B", cls:"gB" },
+  { min:2.5, letter:"C", cls:"gC" }, { min:1.5, letter:"D", cls:"gD" },
   { min:-1,    letter:"F", cls:"gF" }
 ];
 const LEGACY = { "✓":"A", "B":"B", "E":"C", "D":"D", "O":"F" };
@@ -866,7 +866,7 @@ function render(){
     tr.dataset.name = name;
 
     const total = s.avg === null ? null : s.avg + row.bonus;
-    const needs = total !== null && total <= 4;
+    const needs = total !== null && total <= 3;
     if (needs) tr.classList.add("flagged");
 
     let html = "<td class='num'>" + (i + 1) + "</td><td class='nm'>" + esc(name) + "</td>";
@@ -945,8 +945,8 @@ function renderSummary(roster){
     const total = s.avg + row.bonus;
     sum += total; n++;
     counts[bandFor(total).letter]++;
-    if (total <= 4) watch.push({ name, total, r: row.r });
-    if (total >= 4.75) stars.push(name);
+    if (total <= 3) watch.push({ name, total, r: row.r });
+    if (total >= 4.5) stars.push(name);
   });
 
   const avg     = n ? sum / n : null;
@@ -957,15 +957,15 @@ function renderSummary(roster){
     stat("Class average", avg === null ? "—" : bandFor(avg).letter,
          avg === null ? n + " of " + roster.length + " scored" : fmt(avg) + " / 5 · " + pct(avg) + "%") +
     stat("A — ¡Excelente!", counts.A, "5 / 5") +
-    stat("B — ¡Buen Trabajo!", counts.B, "4.5 / 5") +
-    stat("C — ¡Poco a Poco!", counts.C, "4 / 5") +
-    stat("D / F — ¡Cuidado! ¡Ojo!", counts.D + counts.F, "3.25 or below") +
+    stat("B — ¡Buen Trabajo!", counts.B, "4 / 5") +
+    stat("C — ¡Poco a Poco!", counts.C, "3 / 5") +
+    stat("D / F — ¡Cuidado! ¡Ojo!", counts.D + counts.F, "2 / 5 or below") +
     stat("Classes this week", held, closed ? closed + " closed" : "all held") +
     stat("Absences logged", absences, "student-classes missed");
 
   let w = "";
   if (watch.length){
-    w += "<h4>Needs a reflection sheet (4/5 · 80% or lower)</h4>";
+    w += "<h4>Needs a reflection sheet (3/5 · 60% or lower)</h4>";
     watch.sort((a, b) => a.total - b.total).forEach(s => {
       w += "<span class='chip" + (s.r ? " ok" : "") + "'>" + esc(s.name) + " · " +
            bandFor(s.total).letter + " " + fmt(s.total) + (s.r ? " · sent" : "") + "</span>";

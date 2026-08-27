@@ -879,7 +879,14 @@
         .quick-link .ql-del:hover { color: #ef4444; }
         .home-sched-row { display: flex; gap: 10px; align-items: flex-start; padding: 7px 6px; border-radius: 8px; border-bottom: 1px solid #f1f4f9; }
         .home-sched-row:last-child { border-bottom: none; }
-        .home-sched-row.now { background: #fdf3dc; box-shadow: inset 0 0 0 2px var(--gold); }
+        .home-sched-row.now { background: linear-gradient(90deg, #fdf3dc, #fbe9c3); box-shadow: inset 4px 0 0 var(--gold), inset 0 0 0 2px var(--gold); animation: nowGlow 2.4s ease-in-out infinite; }
+        .home-sched-row.now .home-sched-time { color: #8a5a10; font-weight: 800; }
+        .home-sched-row.now .home-sched-label { color: #6b4a0a; }
+        .now-chip { display: inline-block; background: var(--gold); color: #3a2b07; font-size: 0.68em; font-weight: 800; padding: 2px 9px; border-radius: 999px; margin-left: 8px; letter-spacing: 0.04em; vertical-align: middle; }
+        @keyframes nowGlow {
+            0%, 100% { box-shadow: inset 4px 0 0 var(--gold), inset 0 0 0 2px var(--gold); }
+            50% { box-shadow: inset 4px 0 0 var(--gold), inset 0 0 0 2px var(--gold), 0 0 12px rgba(217, 164, 65, 0.5); }
+        }
         .home-sched-time { min-width: 118px; font-size: 0.74em; font-weight: 700; color: #94a0b4; padding-top: 2px; }
         .home-sched-label { font-weight: 700; font-size: 0.88em; color: #1a2130; }
         .home-sched-notes { font-size: 0.78em; color: #64748b; margin-top: 1px; }
@@ -964,7 +971,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.33</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.34</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana 🇲🇽</span>
         </div>
@@ -1551,7 +1558,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.08.33';
+        const PLANNER_VERSION = 'v2026.08.34';
         let currentViewId = 'home';
         let autoSaveTimeout = null;
         let currentMonthlyCurriculum = 'elementary';
@@ -3040,7 +3047,12 @@
             document.getElementById('home-date').innerText =
                 now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
         }
-        setInterval(() => { if (currentViewId === 'home') updateHomeClock(); }, 30000);
+        setInterval(() => {
+            if (currentViewId !== 'home') return;
+            updateHomeClock();
+            // keep the current-period highlight tracking the clock
+            if (homeDayOffset === 0) renderHomeToday();
+        }, 30000);
 
         // "8:25 - 9:06 AM" -> [start, end] minutes since midnight. The AM/PM
         // suffix belongs to the end time; the start flips to AM if it would
@@ -3160,9 +3172,9 @@
                 const notes = r.notes
                     ? `<div class="home-sched-notes">${escapeForPreview(r.notes.slice(0, 80))}${r.notes.length > 80 ? '...' : ''}</div>`
                     : '';
-                return `<div class="home-sched-row${isNow ? ' now' : ''}">
+                return `<div class="home-sched-row${isNow ? " now" : ""}">
                     <div class="home-sched-time">${escapeForPreview(r.period)}<br>${escapeForPreview(r.time)}</div>
-                    <div><div class="home-sched-label">${escapeForPreview(r.label)}</div>${notes}</div>
+                    <div><div class="home-sched-label">${escapeForPreview(r.label)}${isNow ? '<span class="now-chip">▶ AHORA</span>' : ''}</div>${notes}</div>
                 </div>`;
             }).join('');
         }
