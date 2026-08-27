@@ -936,6 +936,64 @@
         #print-area .pr-sign { flex: 1; font-size: 0.78em; color: #333; font-weight: 600; }
         #print-area .pr-sign-line { border-bottom: 1px solid #111; height: 0.35in; margin-bottom: 4px; }
         #print-area .pr-footer { margin-top: 14px; font-size: 0.7em; color: #888; text-align: right; }
+        /* ============ SEATING CHART ============ */
+        .tab-seats { background: linear-gradient(160deg, #8a6b46, #6b5133); }
+        .seat-pool { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 34px; background: #f8fafc; border: 1px dashed #cbd5e0; border-radius: 10px; padding: 8px 10px; }
+        .seat-pool-chip { border: 1px solid #d6dde8; background: white; border-radius: 999px; padding: 6px 14px; font-family: inherit; font-weight: 700; font-size: 0.84em; color: #334155; cursor: pointer; transition: all 0.15s var(--ease); }
+        .seat-pool-chip:hover { border-color: var(--gold); }
+        .seat-pool-chip.picked { background: var(--gold); border-color: var(--gold); color: #3a2b07; box-shadow: 0 0 0 3px rgba(217, 164, 65, 0.3); }
+        .seat-pool-empty { color: #94a0b4; font-weight: 600; font-size: 0.84em; }
+        .room { background: white; border: 1px solid var(--border-light); border-radius: 14px; box-shadow: var(--shadow-1); padding: 18px; }
+        .room-front { text-align: center; background: linear-gradient(180deg, #8f1e1e, #7a1717); color: white; font-weight: 700; font-size: 0.82em; border-radius: 8px; padding: 7px; margin: 0 auto 12px; width: 46%; min-width: 230px; letter-spacing: 0.04em; }
+        .room-main { display: flex; gap: 14px; align-items: stretch; }
+        .room-main .room-grid { flex: 1; }
+        .room-side { display: flex; flex-direction: column; align-items: stretch; width: 92px; flex-shrink: 0; gap: 8px; }
+        .room-whiteboard { flex: 1; width: 36px; align-self: flex-start; min-height: 160px; background: linear-gradient(180deg, #fdfdfd, #eef1f5); border: 2px solid #b9c2cf; border-radius: 8px; writing-mode: vertical-rl; display: flex; align-items: center; justify-content: center; font-weight: 800; letter-spacing: 0.2em; color: #64748b; font-size: 0.7em; text-transform: uppercase; }
+        .room-desk { margin: 0; background: linear-gradient(180deg, #f4ead9, #ecdfc8); border: 2px solid #d9c6a5; border-radius: 8px; padding: 9px 12px; font-weight: 800; font-size: 0.66em; color: #8a6b46; text-transform: uppercase; letter-spacing: 0.06em; text-align: center; line-height: 1.35; }
+        .room-door { background: #f8fafc; border: 2px dashed #b9c2cf; border-radius: 8px; padding: 7px 4px; text-align: center; font-weight: 800; font-size: 0.66em; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+        .room-counter { width: 36px; flex-shrink: 0; background: linear-gradient(180deg, #eef1f5, #e2e7ee); border: 2px solid #cbd5e0; border-radius: 8px; writing-mode: vertical-rl; display: flex; align-items: center; justify-content: center; font-weight: 800; letter-spacing: 0.18em; color: #64748b; font-size: 0.68em; text-transform: uppercase; }
+        .room-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .table-card { background: linear-gradient(180deg, #f4ead9, #ecdfc8); border: 2px solid #d9c6a5; border-radius: 12px; padding: 10px; }
+        .table-label { text-align: center; font-weight: 800; font-size: 0.72em; color: #8a6b46; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+        .table-seats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .seat.empty { background: rgba(255, 255, 255, 0.65); border: 2px dashed #c9b58a; }
+        .seat { min-height: 46px; border-radius: 8px; display: flex; align-items: center; justify-content: center; text-align: center; cursor: pointer; padding: 4px; transition: all 0.15s var(--ease); }
+        .seat.filled { background: white; border: 2px solid #d9c6a5; box-shadow: var(--shadow-1); }
+        .seat.picked { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(217, 164, 65, 0.35); }
+        .seat:hover { border-color: var(--gold); }
+        .seat-hint { color: #b9a98c; font-weight: 800; font-size: 1em; }
+        .seat-name { font-weight: 700; font-size: 0.78em; color: #1e2433; line-height: 1.2; word-break: break-word; }
+        .room-extra-label { margin: 16px 0 6px; font-weight: 700; font-size: 0.78em; color: #94a0b4; }
+        .room-extra { display: flex; gap: 10px; }
+        .room-extra .seat { width: 130px; background: #f4f6fa; border: 2px dashed #cbd5e0; }
+        .room-extra .seat.filled { background: white; border-style: solid; }
+        @media (max-width: 900px) { .room-grid { grid-template-columns: repeat(2, 1fr); } }
+
+        /* Seating chart print */
+        #print-area .sp-front { text-align: center; border: 1.5px solid #7f1d1d; color: #7f1d1d; font-weight: 700; border-radius: 6px; padding: 5px; margin-bottom: 14px; font-size: 0.9em; }
+        #print-area .sp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        #print-area .sp-room { display: flex; gap: 12px; align-items: stretch; }
+        #print-area .sp-room .sp-grid { flex: 1; }
+        #print-area .sp-side { display: flex; flex-direction: column; align-items: flex-start; width: 64px; flex-shrink: 0; }
+        #print-area .sp-wb { flex: 1; width: 30px; border: 1.5px solid #999; border-radius: 6px; writing-mode: vertical-rl; display: flex; align-items: center; justify-content: center; font-weight: 800; letter-spacing: 0.15em; font-size: 0.66em; color: #444; text-transform: uppercase; }
+        #print-area .sp-desk { margin-top: 6px; margin-left: -26px; border: 1.5px solid #999; border-radius: 6px; padding: 6px 8px; font-size: 0.6em; font-weight: 800; text-align: center; color: #444; text-transform: uppercase; line-height: 1.3; }
+        #print-area .sp-table { border: 1.5px solid #999; border-radius: 8px; padding: 8px; break-inside: avoid; }
+        #print-area .sp-table-label { text-align: center; font-weight: 800; font-size: 0.72em; letter-spacing: 0.06em; text-transform: uppercase; color: #7f1d1d; margin-bottom: 6px; }
+        #print-area .sp-seat { border: 1px solid #bbb; border-radius: 5px; padding: 7px 4px; margin-bottom: 5px; text-align: center; font-size: 0.82em; font-weight: 700; color: #111; }
+        #print-area .sp-seat.sp-empty { border-style: dashed; color: #bbb; }
+        #print-area .sp-extra { margin-top: 12px; font-size: 0.85em; color: #111; }
+
+        /* ============ RESOURCE LIBRARY ============ */
+        .res-list { display: flex; flex-direction: column; gap: 10px; max-height: 420px; overflow-y: auto; }
+        .res-card { position: relative; display: flex; gap: 12px; align-items: center; background: #f8fafc; border: 1px solid var(--border-light); border-radius: 10px; padding: 8px 10px; text-decoration: none; color: inherit; transition: all 0.15s var(--ease); }
+        .res-card:hover { background: white; box-shadow: var(--shadow-1); transform: translateY(-1px); }
+        .res-thumb { width: 92px; height: 52px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: #e5e9f0; }
+        .res-thumb-icon { display: flex; align-items: center; justify-content: center; font-size: 1.6em; }
+        .res-title { font-weight: 700; font-size: 0.88em; color: #1e2433; }
+        .res-meta { font-size: 0.74em; color: #94a0b4; font-weight: 600; margin-top: 2px; }
+        .res-del { position: absolute; top: 6px; right: 8px; border: none; background: none; color: #cbd5e0; font-weight: 800; cursor: pointer; font-size: 0.95em; }
+        .res-del:hover { color: #ef4444; }
+        .res-empty { color: #94a0b4; font-weight: 600; font-size: 0.86em; padding: 20px; text-align: center; border: 1px dashed #cbd5e0; border-radius: 10px; }
         /* ============ TABLET & SMALL SCREENS ============ */
         @media (max-width: 1024px) {
             body { height: auto; min-height: 100vh; overflow: auto; }
@@ -971,7 +1029,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.34</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.37</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana 🇲🇽</span>
         </div>
@@ -1038,6 +1096,7 @@
             <div class="tab tab-month" onclick="switchView('monthly')">📅 Month</div>
             <div class="tab tab-goals" onclick="switchView('todo')">🎯 Goals</div>
             <div class="tab tab-stickers" onclick="switchView('stickers')">🏷️ Stickers</div>
+            <div class="tab tab-seats" onclick="switchView('seats')">🪑 Seats</div>
             <div class="tab tab-ai" onclick="switchView('ai-studio')">✨ AI Studio</div>
         </div>
 
@@ -1225,6 +1284,48 @@
                         <button class="nav-btn" onclick="addTodoItem()" style="margin-top:20px; align-self:flex-start; background:var(--tab-goals); border:none;">+ Add New Goal</button>
                     </div>
 
+                    <!-- SEATING CHART VIEW -->
+                    <div id="view-seats" class="view">
+                        <div class="spread-header">
+                            <div class="spread-title">
+                                <h2>Seating Chart</h2>
+                                <span class="spread-subtitle">6 tables · 24 seats (+2 closet chairs)</span>
+                            </div>
+                            <div class="spread-controls" style="flex-wrap:wrap;">
+                                <select id="seats-class" onchange="switchSeatClass(this.value)" style="padding:7px 10px; border:1px solid #cbd5e0; border-radius:8px; font-family:inherit; font-weight:600; color:#334155; background:white;"></select>
+                                <select id="seats-tri" onchange="switchSeatTri(this.value)" style="padding:7px 10px; border:1px solid #cbd5e0; border-radius:8px; font-family:inherit; font-weight:600; color:#334155; background:white;">
+                                    <option value="T1">Trimester 1</option>
+                                    <option value="T2">Trimester 2</option>
+                                    <option value="T3">Trimester 3</option>
+                                </select>
+                                <button class="nav-btn btn-brand" onclick="openRosterModal()">👥 Roster</button>
+                                <button class="nav-btn btn-light" onclick="randomSeats()">🎲 Shuffle</button>
+                                <button class="nav-btn btn-light" onclick="clearSeats()">Clear seats</button>
+                                <button class="nav-btn btn-light" onclick="printSeatingChart()">🖨️ Print</button>
+                            </div>
+                        </div>
+
+                        <div id="seats-unassigned-wrap" style="margin-bottom:14px;">
+                            <div style="font-weight:700; color:#475569; font-size:0.85em; margin-bottom:6px;">Waiting for a seat <span style="font-weight:600; color:#94a0b4;">(tap a name, then tap a seat; tap two seated students to swap them)</span>:</div>
+                            <div id="seats-unassigned" class="seat-pool"></div>
+                        </div>
+
+                        <div class="room">
+                            <div class="room-front">📺 Front of Room · TV</div>
+                            <div class="room-main">
+                                <div class="room-counter">Back Counter</div>
+                                <div class="room-grid" id="room-grid"></div>
+                                <div class="room-side">
+                                    <div class="room-door">🚪 Door</div>
+                                    <div class="room-whiteboard">Whiteboard</div>
+                                    <div class="room-desk">Teacher<br>Desk</div>
+                                </div>
+                            </div>
+                            <div class="room-extra-label">Closet chairs (just in case):</div>
+                            <div class="room-extra" id="room-extra"></div>
+                        </div>
+                    </div>
+
                     <!-- STICKERS VIEW -->
                     <div id="view-stickers" class="view">
                         <h2 style="font-family:'Playfair Display', serif; color:#1a2130; border-bottom: 2px solid #e5e9f0; padding-bottom: 10px; margin-top:0;">Digital Stickers & Highlighters</h2>
@@ -1299,6 +1400,7 @@
                                 <button class="ai-tab-btn active" onclick="switchAITab('plan', this)">📝 Lesson Plans</button>
                                 <button class="ai-tab-btn" onclick="switchAITab('activity', this)">🎲 Games & Activities</button>
                                 <button class="ai-tab-btn" onclick="switchAITab('audio', this)">🔊 Pronunciation</button>
+                                <button class="ai-tab-btn" onclick="switchAITab('library', this)">📎 Resource Library</button>
                             </div>
 
                             <!-- Lesson Plan Gen -->
@@ -1347,6 +1449,43 @@
                                         <button class="btn-generate" onclick="generateAIActivity()">✨ Generate Activity Idea</button>
                                     </div>
                                     <div id="act-output" class="ai-output-box">Your generated activity will appear here...</div>
+                                </div>
+                            </div>
+
+                            <!-- Resource Library -->
+                            <div id="ai-sub-library" class="ai-sub-view" style="display:none;">
+                                <div class="ai-grid" style="grid-template-columns: 1fr 1.4fr;">
+                                    <div>
+                                        <div class="ai-input-group">
+                                            <label>Link (Google Drive file, YouTube video, or any website)</label>
+                                            <input type="text" id="res-url" placeholder="Paste the link here">
+                                        </div>
+                                        <div class="ai-input-group">
+                                            <label>Name</label>
+                                            <input type="text" id="res-title" placeholder="e.g. Ser vs Estar worksheet">
+                                        </div>
+                                        <div class="ai-input-group" style="display:flex; gap:10px;">
+                                            <span style="flex:1;"><label>Grade</label>
+                                                <select id="res-grade">
+                                                    <option>All</option><option>Gr 1</option><option>Gr 2</option><option>Gr 3</option><option>Gr 4</option>
+                                                    <option>Gr 5</option><option>Gr 6</option><option>Gr 7</option><option>Gr 8</option>
+                                                </select></span>
+                                            <span style="flex:1.4;"><label>Topic (optional)</label>
+                                                <input type="text" id="res-topic" placeholder="e.g. preterite, greetings"></span>
+                                        </div>
+                                        <button class="btn-generate" onclick="addResource()">➕ Add to Library</button>
+                                        <p style="font-size:0.76em; color:#94a0b4; margin-top:10px; line-height:1.5;">For files on the computer: upload them to Google Drive first (drive.google.com → New → File upload), then Share → Copy link, and paste the link here. The library stores links, so it stays fast and syncs to every device.</p>
+                                    </div>
+                                    <div>
+                                        <div style="display:flex; gap:8px; margin-bottom:10px;">
+                                            <input type="text" id="res-search" placeholder="🔎 Search the library..." oninput="renderResources()" style="flex:1; padding:8px 10px; border:1px solid #cbd5e0; border-radius:8px; font-family:inherit; font-size:0.88em;">
+                                            <select id="res-filter" onchange="renderResources()" style="padding:8px; border:1px solid #cbd5e0; border-radius:8px; font-family:inherit; font-size:0.88em;">
+                                                <option>All grades</option><option>Gr 1</option><option>Gr 2</option><option>Gr 3</option><option>Gr 4</option>
+                                                <option>Gr 5</option><option>Gr 6</option><option>Gr 7</option><option>Gr 8</option>
+                                            </select>
+                                        </div>
+                                        <div id="res-list" class="res-list"></div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -1550,6 +1689,21 @@
         </div>
     </div>
 
+    <!-- ROSTER MODAL -->
+    <div id="roster-modal-backdrop" class="modal-backdrop" style="display:none;" onclick="if (event.target === this) closeRosterModal()">
+        <div class="import-modal" style="max-width:440px;">
+            <h3>👥 Class Roster · <span id="roster-class-name"></span></h3>
+            <p>One student per line. Names already seated keep their seats when you save.</p>
+            <textarea id="roster-text" style="min-height:180px;"></textarea>
+            <div class="import-actions" style="flex-wrap:wrap;">
+                <button class="nav-btn btn-light" id="roster-import-btn" onclick="importRosterFromTracker()" style="display:none;">⬇ From Participation Tracker</button>
+                <button class="nav-btn btn-light" onclick="closeRosterModal()">Cancel</button>
+                <button class="nav-btn btn-brand" onclick="saveRoster()">Save Roster</button>
+            </div>
+            <div id="roster-status" style="font-size:0.82em; font-weight:700; margin-top:6px; min-height:1.2em;"></div>
+        </div>
+    </div>
+
     <!-- DAILY BACKUP REMINDER -->
     <div id="backup-banner" class="backup-banner" style="display:none;">
         <span>💾 Save today's backup to your tablet or Drive</span>
@@ -1558,7 +1712,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.08.34';
+        const PLANNER_VERSION = 'v2026.08.37';
         let currentViewId = 'home';
         let autoSaveTimeout = null;
         let currentMonthlyCurriculum = 'elementary';
@@ -1696,6 +1850,8 @@
 
             if (viewId === 'todo') loadTodoData();
             if (viewId === 'home') renderHome();
+            if (viewId === 'seats') renderSeats();
+            if (viewId === 'ai-studio') renderResources();
             if (viewId === 'tracker') {
                 const f = document.getElementById('tracker-frame');
                 if (f && !f.src) f.src = 'participation.html';
@@ -3585,6 +3741,8 @@
                     if (mergeJsonList(key, local, value, i => (i.text || '').trim())) merged++;
                 } else if (key === 'home_links') {
                     if (mergeJsonList(key, local, value, i => i.url)) merged++;
+                } else if (key === 'resources') {
+                    if (mergeJsonList(key, local, value, i => i.url)) merged++;
                 }
                 // Anything else that differs (participation grades, settings):
                 // the copy on this device wins; nothing is overwritten.
@@ -3749,6 +3907,303 @@
         // Tracker edits happen in the embedded frame (a separate document writing
         // the same storage); the storage event is how the planner hears about them.
         window.addEventListener('storage', () => schedulePush());
+
+        /* ============ SEATING CHART ============ */
+        // Room: 2 rows of 3 long tables, 4 seats per table (24), plus 2 closet chairs.
+
+        const SEAT_CLASSES = ['Spanish 1', 'Spanish 2', 'Spanish 3', 'Spanish 4', 'Spanish 5', 'Spanish 6', 'Spanish 7', 'Spanish 8'];
+        const SEAT_IDS = [];
+        for (let t = 1; t <= 6; t++) for (let s = 1; s <= 4; s++) SEAT_IDS.push('t' + t + 's' + s);
+        const EXTRA_SEAT_IDS = ['x1', 'x2'];
+
+        let seatClass = localStorage.getItem('seats_lastclass') || 'Spanish 5';
+        let seatPickName = null;   // a student picked from the waiting pool
+        let seatPickSeat = null;   // a seat picked for swapping
+
+        function seatStoreKey(cls) { return 'seating_' + cls.replace(/\s+/g, ''); }
+
+        function defaultTri() {
+            const now = new Date();
+            const i = TRIMESTERS.findIndex(t => now <= t.end);
+            return 'T' + ((i === -1 ? 2 : i) + 1);
+        }
+        let seatTri = defaultTri();
+
+        function switchSeatTri(v) {
+            seatTri = v;
+            seatPickName = null; seatPickSeat = null;
+            renderSeats();
+        }
+
+        function seatsNow(st) { return st.seatsByTri[seatTri]; }
+
+        function getSeating() {
+            let st;
+            try { st = JSON.parse(localStorage.getItem(seatStoreKey(seatClass)) || 'null') || {}; } catch (e) { st = {}; }
+            if (!st.roster) st.roster = [];
+            if (!st.seatsByTri) st.seatsByTri = {};
+            if (st.seats) {
+                // one-time upgrade of pre-trimester charts into the current trimester
+                st.seatsByTri[seatTri] = Object.assign({}, st.seats, st.seatsByTri[seatTri] || {});
+                delete st.seats;
+                localStorage.setItem(seatStoreKey(seatClass), JSON.stringify(st));
+            }
+            ['T1', 'T2', 'T3'].forEach(t => { if (!st.seatsByTri[t]) st.seatsByTri[t] = {}; });
+            return st;
+        }
+
+        function saveSeating(s) {
+            localStorage.setItem(seatStoreKey(seatClass), JSON.stringify(s));
+            if (typeof schedulePush === 'function') schedulePush();
+        }
+
+        function switchSeatClass(cls) {
+            seatClass = cls;
+            localStorage.setItem('seats_lastclass', cls);
+            seatPickName = null; seatPickSeat = null;
+            renderSeats();
+        }
+
+        function seatChipHtml(name, seatId) {
+            const picked = seatId ? seatPickSeat === seatId : seatPickName === name;
+            return `<span class="seat-name${picked ? ' picked' : ''}">${escapeForPreview(name)}</span>`;
+        }
+
+        function renderSeats() {
+            const sel = document.getElementById('seats-class');
+            if (!sel) return;
+            if (!sel.options.length) sel.innerHTML = SEAT_CLASSES.map(c => `<option>${c}</option>`).join('');
+            sel.value = seatClass;
+            const triSel = document.getElementById('seats-tri');
+            if (triSel) triSel.value = seatTri;
+
+            const st = getSeating();
+            const seated = new Set(Object.values(seatsNow(st)));
+            const waiting = st.roster.filter(n => !seated.has(n));
+
+            const pool = document.getElementById('seats-unassigned');
+            pool.innerHTML = waiting.length
+                ? waiting.map(n => `<button class="seat-pool-chip${seatPickName === n ? ' picked' : ''}" onclick="pickStudent('${escapeForPreview(n).replace(/'/g, "\\'")}')">${escapeForPreview(n)}</button>`).join('')
+                : (st.roster.length ? '<span class="seat-pool-empty">Everyone has a seat ✓</span>' : '<span class="seat-pool-empty">No roster yet. Tap 👥 Roster to add the class list.</span>');
+            const over = st.roster.length - (SEAT_IDS.length + EXTRA_SEAT_IDS.length);
+            if (over > 0) pool.innerHTML += `<span class="seat-pool-empty" style="color:#b91c1c;">⚠ ${over} more student${over === 1 ? '' : 's'} than chairs!</span>`;
+
+            const grid = document.getElementById('room-grid');
+            let html = '';
+            for (let t = 1; t <= 6; t++) {
+                html += `<div class="table-card"><div class="table-label">Table ${t}</div><div class="table-seats">`;
+                for (let s = 1; s <= 4; s++) {
+                    const id = 't' + t + 's' + s;
+                    const name = seatsNow(st)[id];
+                    html += `<div class="seat${name ? ' filled' : ' empty'}${seatPickSeat === id ? ' picked' : ''}" onclick="tapSeat('${id}')">${name ? seatChipHtml(name, id) : '<span class="seat-hint">＋</span>'}</div>`;
+                }
+                html += '</div></div>';
+            }
+            grid.innerHTML = html;
+
+            document.getElementById('room-extra').innerHTML = EXTRA_SEAT_IDS.map((id, i) => {
+                const name = seatsNow(st)[id];
+                return `<div class="seat extra${name ? ' filled' : ' empty'}${seatPickSeat === id ? ' picked' : ''}" onclick="tapSeat('${id}')">${name ? seatChipHtml(name, id) : '<span class="seat-hint">Chair ' + (i + 1) + '</span>'}</div>`;
+            }).join('');
+        }
+
+        function pickStudent(name) {
+            seatPickName = (seatPickName === name) ? null : name;
+            seatPickSeat = null;
+            renderSeats();
+        }
+
+        function tapSeat(id) {
+            const st = getSeating();
+            const occupant = seatsNow(st)[id];
+            if (seatPickName) {
+                if (occupant) delete seatsNow(st)[id];       // occupant returns to the pool
+                seatsNow(st)[id] = seatPickName;
+                seatPickName = null;
+                saveSeating(st);
+            } else if (seatPickSeat) {
+                if (seatPickSeat === id) {               // second tap on the same seat: unseat
+                    delete seatsNow(st)[id];
+                } else {                                  // swap the two seats
+                    const a = seatsNow(st)[seatPickSeat], b = seatsNow(st)[id];
+                    if (a) seatsNow(st)[id] = a; else delete seatsNow(st)[id];
+                    if (b) seatsNow(st)[seatPickSeat] = b; else delete seatsNow(st)[seatPickSeat];
+                }
+                seatPickSeat = null;
+                saveSeating(st);
+            } else if (occupant) {
+                seatPickSeat = id;                        // start a swap / unseat
+            }
+            renderSeats();
+        }
+
+        function randomSeats() {
+            const st = getSeating();
+            if (!st.roster.length) { showBackupToast('Add a roster first (👥 Roster).'); return; }
+            const shuffled = st.roster.slice();
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            st.seatsByTri[seatTri] = {};
+            const allSeats = SEAT_IDS.concat(EXTRA_SEAT_IDS);
+            shuffled.slice(0, allSeats.length).forEach((n, i) => { seatsNow(st)[allSeats[i]] = n; });
+            seatPickName = null; seatPickSeat = null;
+            saveSeating(st);
+            renderSeats();
+        }
+
+        function clearSeats() {
+            if (!confirm('Clear every seat for ' + seatClass + '? (The roster is kept.)')) return;
+            const st = getSeating();
+            st.seatsByTri[seatTri] = {};
+            seatPickName = null; seatPickSeat = null;
+            saveSeating(st);
+            renderSeats();
+        }
+
+        /* ---- Roster ---- */
+
+        function openRosterModal() {
+            document.getElementById('roster-class-name').innerText = seatClass;
+            document.getElementById('roster-text').value = getSeating().roster.join('\n');
+            document.getElementById('roster-status').innerText = '';
+            const g = seatClass.match(/\d/)[0];
+            // Tracker holds rosters for grades 5-8
+            document.getElementById('roster-import-btn').style.display = ['5', '6', '7', '8'].includes(g) ? 'inline-flex' : 'none';
+            document.getElementById('roster-modal-backdrop').style.display = 'flex';
+        }
+
+        function closeRosterModal() {
+            document.getElementById('roster-modal-backdrop').style.display = 'none';
+        }
+
+        function importRosterFromTracker() {
+            const g = seatClass.match(/\d/)[0];
+            const status = document.getElementById('roster-status');
+            try {
+                const roster = JSON.parse(localStorage.getItem('spTracker.v1.roster.' + g) || 'null');
+                if (!Array.isArray(roster) || !roster.length) throw new Error('empty');
+                const names = roster.map(r => typeof r === 'string' ? r : (r && r.name) || '').filter(Boolean);
+                if (!names.length) throw new Error('empty');
+                document.getElementById('roster-text').value = names.join('\n');
+                status.style.color = '#047857';
+                status.innerText = names.length + ' students imported from the tracker. Tap Save Roster to keep them.';
+            } catch (e) {
+                status.style.color = '#b91c1c';
+                status.innerText = 'No Grade ' + g + ' roster found in the Participation Tracker on this device.';
+            }
+        }
+
+        function saveRoster() {
+            const names = document.getElementById('roster-text').value
+                .split('\n').map(n => n.trim()).filter(Boolean);
+            const st = getSeating();
+            st.roster = names;
+            const keep = new Set(names);
+            Object.keys(seatsNow(st)).forEach(id => { if (!keep.has(seatsNow(st)[id])) delete seatsNow(st)[id]; });
+            saveSeating(st);
+            closeRosterModal();
+            renderSeats();
+        }
+
+        /* ---- Printable chart ---- */
+
+        function printSeatingChart() {
+            const st = getSeating();
+            const seatBox = id => {
+                const n = seatsNow(st)[id];
+                return `<div class="sp-seat${n ? '' : ' sp-empty'}">${n ? escapeForPreview(n) : '&nbsp;'}</div>`;
+            };
+            let tables = '';
+            for (let t = 1; t <= 6; t++) {
+                tables += `<div class="sp-table"><div class="sp-table-label">Table ${t}</div>` +
+                    [1, 2, 3, 4].map(s => seatBox('t' + t + 's' + s)).join('') + '</div>';
+            }
+            const extras = EXTRA_SEAT_IDS.filter(id => seatsNow(st)[id]);
+            document.getElementById('print-area').innerHTML = `
+                <div class="pr-header">
+                    <div class="pr-school">St. Paul School</div>
+                    <div class="pr-title">Seating Chart · ${escapeForPreview(seatClass)} · Trimester ${seatTri[1]}</div>
+                    <div class="pr-meta">Mrs. Maria Cartiera · ${new Date().toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' })}</div>
+                </div>
+                <div class="sp-front">Front of Room · TV</div>
+                <div class="sp-room">
+                    <div class="sp-grid">${tables}</div>
+                    <div class="sp-side"><div class="sp-wb">Whiteboard</div><div class="sp-desk">Teacher Desk</div></div>
+                </div>
+                ${extras.length ? `<div class="sp-extra"><b>Extra chairs:</b> ${extras.map(id => escapeForPreview(seatsNow(st)[id])).join(' · ')}</div>` : ''}`;
+            setTimeout(() => window.print(), 150);
+        }
+
+        /* ============ RESOURCE LIBRARY (AI Studio) ============ */
+        // A link library: Drive worksheets, YouTube videos, websites. Links only
+        // (small data), so it rides the existing sync to every device.
+
+        function getResources() {
+            try { return JSON.parse(localStorage.getItem('resources') || '[]'); } catch (e) { return []; }
+        }
+
+        function classifyResource(url) {
+            let m = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/i);
+            if (m) return { type: 'youtube', ytid: m[1] };
+            if (/(?:drive|docs)\.google\.com\//i.test(url)) return { type: 'drive' };
+            return { type: 'web' };
+        }
+
+        function addResource() {
+            let url = document.getElementById('res-url').value.trim();
+            const title = document.getElementById('res-title').value.trim();
+            if (!url || !title) { showBackupToast('Please fill in both the link and the name.'); return; }
+            if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+            const info = classifyResource(url);
+            const list = getResources();
+            list.unshift({ url, title, grade: document.getElementById('res-grade').value, topic: document.getElementById('res-topic').value.trim(), type: info.type, ytid: info.ytid || '' });
+            localStorage.setItem('resources', JSON.stringify(list));
+            if (typeof schedulePush === 'function') schedulePush();
+            document.getElementById('res-url').value = '';
+            document.getElementById('res-title').value = '';
+            document.getElementById('res-topic').value = '';
+            renderResources();
+            showBackupToast('Added to the library ✓');
+        }
+
+        function removeResource(i) {
+            const list = getResources();
+            if (!confirm('Remove "' + list[i].title + '" from the library? (The file itself is not touched.)')) return;
+            list.splice(i, 1);
+            localStorage.setItem('resources', JSON.stringify(list));
+            if (typeof schedulePush === 'function') schedulePush();
+            renderResources();
+        }
+
+        const RES_ICON = { youtube: '▶️', drive: '📄', web: '🌐' };
+
+        function renderResources() {
+            const box = document.getElementById('res-list');
+            if (!box) return;
+            const q = (document.getElementById('res-search').value || '').toLowerCase();
+            const gf = document.getElementById('res-filter').value;
+            const list = getResources();
+            const shown = list.map((r, i) => ({ r, i })).filter(({ r }) =>
+                (gf === 'All grades' || r.grade === gf || r.grade === 'All') &&
+                (!q || (r.title + ' ' + (r.topic || '')).toLowerCase().includes(q)));
+            if (!shown.length) {
+                box.innerHTML = `<div class="res-empty">${list.length ? 'Nothing matches that search.' : 'The library is empty. Add a worksheet link or a YouTube video on the left.'}</div>`;
+                return;
+            }
+            box.innerHTML = shown.map(({ r, i }) => `
+                <a class="res-card" href="${escapeForPreview(r.url)}" target="_blank" rel="noopener">
+                    <button class="res-del" title="Remove" onclick="event.preventDefault(); removeResource(${i});">✕</button>
+                    ${r.type === 'youtube'
+                        ? `<img class="res-thumb" src="https://img.youtube.com/vi/${escapeForPreview(r.ytid)}/mqdefault.jpg" alt="" loading="lazy">`
+                        : `<div class="res-thumb res-thumb-icon">${RES_ICON[r.type] || '🌐'}</div>`}
+                    <div class="res-body">
+                        <div class="res-title">${escapeForPreview(r.title)}</div>
+                        <div class="res-meta">${r.grade}${r.topic ? ' · ' + escapeForPreview(r.topic) : ''} · ${r.type === 'youtube' ? 'YouTube' : r.type === 'drive' ? 'Google Drive' : 'Website'}</div>
+                    </div>
+                </a>`).join('');
+        }
     </script>
 </body>
 </html>
