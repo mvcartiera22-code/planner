@@ -964,7 +964,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.31</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.32</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana 🇲🇽</span>
         </div>
@@ -1504,6 +1504,21 @@
     <div id="print-area"></div>
 
 
+    <!-- RESTORE CHOICE MODAL -->
+    <div id="restore-modal-backdrop" class="modal-backdrop" style="display:none;" onclick="if (event.target === this) closeRestoreModal()">
+        <div class="import-modal" style="max-width:480px;">
+            <h3>📂 Restore Backup</h3>
+            <p id="restore-info"></p>
+            <p><b>Merge</b> adds this backup's content to what is already on this device: missing weeks are added, overlapping days are combined, and nothing here gets deleted. Use it to carry work between the tablet and a computer.</p>
+            <p style="font-size:0.82em; color:#94a0b4;"><b>Replace everything</b> wipes this device first and makes it exactly match the backup. Only use it on a new or reset device.</p>
+            <div class="import-actions" style="flex-wrap:wrap;">
+                <button class="nav-btn btn-light" onclick="closeRestoreModal()">Cancel</button>
+                <button class="nav-btn btn-light" style="color:#b91c1c;" onclick="applyBackup('replace')">Replace everything</button>
+                <button class="nav-btn btn-brand" onclick="applyBackup('merge')">Merge (recommended)</button>
+            </div>
+        </div>
+    </div>
+
     <!-- DAILY BACKUP REMINDER -->
     <div id="backup-banner" class="backup-banner" style="display:none;">
         <span>💾 Save today's backup to your tablet or Drive</span>
@@ -1512,7 +1527,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.08.31';
+        const PLANNER_VERSION = 'v2026.08.32';
         let currentViewId = 'home';
         let autoSaveTimeout = null;
         let currentMonthlyCurriculum = 'elementary';
@@ -2402,6 +2417,8 @@
             setActiveTab('home');
             renderHome();
             checkBackupReminder();
+            const restoreSummary = localStorage.getItem('planner_restore_summary');
+            if (restoreSummary) { localStorage.removeItem('planner_restore_summary'); showBackupToast(restoreSummary, 8000); }
             refreshLastBackupLabel();
             updateWeeklyHeaders();
 
@@ -2606,19 +2623,14 @@
                         return;
                     }
                     const when = backup.exportedAt ? new Date(backup.exportedAt).toLocaleString() : 'unknown date';
-                    if (!confirm(`Restore backup from ${when}?\n\nThis will replace everything currently in the planner.`)) return;
-                    // If the backup predates the participation tracker it has no
-                    // spTracker keys; keep the tracker's grades in that case
-                    // instead of wiping them along with everything else.
-                    const backupHasTracker = Object.keys(backup.data).some(k => k.startsWith('spTracker.'));
-                    for (let i = localStorage.length - 1; i >= 0; i--) {
-                        const k = localStorage.key(i);
-                        if (backupHasTracker || !k.startsWith('spTracker.')) localStorage.removeItem(k);
-                    }
-                    for (const [key, value] of Object.entries(backup.data)) {
-                        localStorage.setItem(key, value);
-                    }
-                    location.reload();
+                    const keys = Object.keys(backup.data);
+                    const weekCount = keys.filter(k => k.startsWith('week_')).length;
+                    const hasTracker = keys.some(k => k.startsWith('spTracker.'));
+                    pendingBackup = backup;
+                    document.getElementById('restore-info').innerHTML =
+                        `Backup from <b>${when}</b>: ${weekCount} week${weekCount === 1 ? '' : 's'} of plans` +
+                        (hasTracker ? ', participation grades included.' : '.');
+                    document.getElementById('restore-modal-backdrop').style.display = 'flex';
                 } catch (e) {
                     alert('Could not read that backup file. Please make sure you picked a planner backup file.');
                 } finally {
@@ -3459,6 +3471,113 @@
             closeExportModal();
             // Give the browser a beat to lay out the print content first
             setTimeout(() => window.print(), 150);
+        }
+
+        /* ============ MERGE RESTORE ============ */
+
+        let pendingBackup = null;
+
+        function stripTagsToText(html) {
+            const d = document.createElement('div');
+            d.innerHTML = html || '';
+            return d.textContent || '';
+        }
+
+        // Combine one week's saved grid with the same week from a backup:
+        // fill empty note cells from the backup; where both sides have
+        // different notes, keep the device's text and append the backup's.
+        // Re-merging the same backup changes nothing (containment check).
+        function mergeWeekHtml(localHtml, backupHtml) {
+            const parse = h => new DOMParser().parseFromString('<table><tbody>' + h + '</tbody></table>', 'text/html');
+            const ld = parse(localHtml), bd = parse(backupHtml);
+            const lRows = ld.querySelectorAll('tbody > tr');
+            const bRows = bd.querySelectorAll('tbody > tr');
+            let changed = false;
+            lRows.forEach((lr, ri) => {
+                const br = bRows[ri];
+                if (!br) return;
+                const lCells = lr.querySelectorAll('td');
+                const bCells = br.querySelectorAll('td');
+                for (let ci = 1; ci < lCells.length; ci++) {
+                    const ln = lCells[ci] && lCells[ci].querySelector('.cell-notes');
+                    const bn = bCells[ci] && bCells[ci].querySelector('.cell-notes');
+                    if (!ln || !bn) continue;
+                    const lTxt = ln.textContent.trim();
+                    const bTxt = bn.textContent.trim();
+                    if (!bTxt) continue;
+                    if (!lTxt) { ln.innerHTML = bn.innerHTML; changed = true; }
+                    else if (!lTxt.includes(bTxt)) { ln.innerHTML = ln.innerHTML + '<br>' + bn.innerHTML; changed = true; }
+                }
+            });
+            return changed ? ld.querySelector('tbody').innerHTML : localHtml;
+        }
+
+        function mergeJsonList(key, localVal, backupVal, idOf) {
+            try {
+                const a = JSON.parse(localVal), b = JSON.parse(backupVal);
+                if (!Array.isArray(a) || !Array.isArray(b)) return false;
+                const have = new Set(a.map(idOf));
+                let n = 0;
+                b.forEach(item => { const id = idOf(item); if (id && !have.has(id)) { a.push(item); have.add(id); n++; } });
+                if (n) { localStorage.setItem(key, JSON.stringify(a)); return true; }
+            } catch (e) { /* unreadable: keep the device's copy */ }
+            return false;
+        }
+
+        function mergeBackupData(data) {
+            let added = 0, merged = 0;
+            for (const [key, value] of Object.entries(data)) {
+                const local = localStorage.getItem(key);
+                if (local === null) { localStorage.setItem(key, value); added++; continue; }
+                if (local === value) continue;
+                if (key.startsWith('week_')) {
+                    const m = mergeWeekHtml(local, value);
+                    if (m !== local) { localStorage.setItem(key, m); merged++; }
+                } else if (key.startsWith('month_') || key.startsWith('year_')) {
+                    const lTxt = stripTagsToText(local).trim();
+                    const bTxt = stripTagsToText(value).trim();
+                    if (!lTxt && bTxt) { localStorage.setItem(key, value); merged++; }
+                    else if (bTxt && !lTxt.includes(bTxt)) { localStorage.setItem(key, local + '<br>' + value); merged++; }
+                } else if (key === 'weekly_todos_elementary' || key === 'weekly_todos_middle') {
+                    if (mergeJsonList(key, local, value, i => (i.text || '').trim())) merged++;
+                } else if (key === 'home_stickies') {
+                    if (mergeJsonList(key, local, value, i => (i.text || '').trim())) merged++;
+                } else if (key === 'home_links') {
+                    if (mergeJsonList(key, local, value, i => i.url)) merged++;
+                }
+                // Anything else that differs (participation grades, settings):
+                // the copy on this device wins; nothing is overwritten.
+            }
+            return { added, merged };
+        }
+
+        function applyBackup(mode) {
+            const backup = pendingBackup;
+            if (!backup) return;
+            closeRestoreModal();
+            if (mode === 'replace') {
+                // If the backup predates the participation tracker it has no
+                // spTracker keys; keep the tracker's grades in that case.
+                const backupHasTracker = Object.keys(backup.data).some(k => k.startsWith('spTracker.'));
+                for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const k = localStorage.key(i);
+                    if (backupHasTracker || !k.startsWith('spTracker.')) localStorage.removeItem(k);
+                }
+                for (const [key, value] of Object.entries(backup.data)) {
+                    localStorage.setItem(key, value);
+                }
+                localStorage.setItem('planner_restore_summary', 'Backup restored (everything replaced) ✓');
+            } else {
+                const r = mergeBackupData(backup.data);
+                localStorage.setItem('planner_restore_summary',
+                    `Backup merged ✓ ${r.added} item${r.added === 1 ? '' : 's'} added, ${r.merged} combined, nothing on this device was lost.`);
+            }
+            pendingBackup = null;
+            location.reload();
+        }
+
+        function closeRestoreModal() {
+            document.getElementById('restore-modal-backdrop').style.display = 'none';
         }
     </script>
 </body>
