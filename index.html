@@ -964,7 +964,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.32</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.33</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana 🇲🇽</span>
         </div>
@@ -987,10 +987,11 @@
             </button>
             <button class="nav-btn btn-backup" onclick="exportBackup()">☁️ Backup</button>
             <button class="nav-btn btn-restore" onclick="document.getElementById('backup-file-input').click()">📂 Restore</button>
+            <button class="nav-btn" style="background:#1e4d8f;" onclick="openSyncModal()">🔄 Sync</button>
             <input type="file" id="backup-file-input" accept=".txt,.json,text/plain,application/json" style="display:none;" onchange="importBackup(event)">
             <button class="nav-btn" onclick="navigatePage(-1)">&lt; Prev Page</button>
             <button class="nav-btn" onclick="navigatePage(1)">Next Page &gt;</button>
-            <span id="autosave-status" title="Everything saves automatically on this tablet"><span class="dot"></span> <span id="autosave-text">All changes saved</span><span id="last-backup-text" style="opacity:0.75; font-weight:600; margin-left:6px;"></span></span>
+            <span id="autosave-status" title="Everything saves automatically on this tablet"><span class="dot"></span> <span id="autosave-text">All changes saved</span><span id="last-backup-text" style="opacity:0.75; font-weight:600; margin-left:6px;"></span><span id="sync-status" style="opacity:0.85; font-weight:600;"></span></span>
 
 
         </div>
@@ -1519,6 +1520,29 @@
         </div>
     </div>
 
+    <!-- SYNC SETTINGS MODAL -->
+    <div id="sync-modal-backdrop" class="modal-backdrop" style="display:none;" onclick="if (event.target === this) closeSyncModal()">
+        <div class="import-modal" style="max-width:470px;">
+            <h3>🔄 Automatic Sync</h3>
+            <p>Keeps every device showing the same planner, through a small helper that lives in Maria's own Google account. Set it up once per device by pasting the same two things (see <b>GOOGLE-SYNC-SETUP</b> for the one-time Google setup):</p>
+            <div class="import-row" style="flex-direction:column;">
+                <label style="width:100%;">Sync web address (from the Google script)
+                    <input type="text" id="sync-url" placeholder="https://script.google.com/macros/s/.../exec" style="padding:9px; border:1px solid #cbd5e0; border-radius:8px; font-family:inherit; font-size:0.9em;">
+                </label>
+                <label style="width:100%;">Sync password (the one typed into the script)
+                    <input type="text" id="sync-token" placeholder="the long made-up password" style="padding:9px; border:1px solid #cbd5e0; border-radius:8px; font-family:inherit; font-size:0.9em;">
+                </label>
+            </div>
+            <div class="import-actions" style="flex-wrap:wrap;">
+                <button class="nav-btn btn-light" onclick="closeSyncModal()">Close</button>
+                <button class="nav-btn btn-light" onclick="disableSync()">Turn off</button>
+                <button class="nav-btn btn-light" onclick="pullAndMerge(true)">Sync now</button>
+                <button class="nav-btn btn-brand" onclick="saveSyncCfg()">Save &amp; Test</button>
+            </div>
+            <div id="sync-modal-status" style="font-size:0.82em; font-weight:700; margin-top:8px; min-height:1.2em;"></div>
+        </div>
+    </div>
+
     <!-- DAILY BACKUP REMINDER -->
     <div id="backup-banner" class="backup-banner" style="display:none;">
         <span>💾 Save today's backup to your tablet or Drive</span>
@@ -1527,7 +1551,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.08.32';
+        const PLANNER_VERSION = 'v2026.08.33';
         let currentViewId = 'home';
         let autoSaveTimeout = null;
         let currentMonthlyCurriculum = 'elementary';
@@ -1614,6 +1638,7 @@
                 try {
                     saveCurrentView();
                     setSaveStatus('saved');
+                    schedulePush();
                 } catch (e) {
                     setSaveStatus('error');
                 }
@@ -2419,6 +2444,7 @@
             checkBackupReminder();
             const restoreSummary = localStorage.getItem('planner_restore_summary');
             if (restoreSummary) { localStorage.removeItem('planner_restore_summary'); showBackupToast(restoreSummary, 8000); }
+            setTimeout(() => pullAndMerge(false), 800);
             refreshLastBackupLabel();
             updateWeeklyHeaders();
 
@@ -3217,6 +3243,7 @@
             const links = getCustomLinks();
             links.push({ name, url });
             localStorage.setItem('home_links', JSON.stringify(links));
+            schedulePush();
             renderQuickLinks();
             closeLinkModal();
         }
@@ -3225,6 +3252,7 @@
             const links = getCustomLinks();
             links.splice(i, 1);
             localStorage.setItem('home_links', JSON.stringify(links));
+            schedulePush();
             renderQuickLinks();
         }
 
@@ -3235,7 +3263,7 @@
             return saved || [{ text: '¡Bienvenida! Tap a note to write on it, or add a new one.', color: 0 }];
         }
 
-        function saveStickiesFromDom() {
+        function saveStickiesFromDom() { schedulePush();
             const notes = [];
             document.querySelectorAll('#sticky-board .sticky-note').forEach(n => {
                 notes.push({ text: n.querySelector('.sticky-text').innerText, color: parseInt(n.dataset.color) || 0 });
@@ -3260,6 +3288,7 @@
             notes.push({ text: '', color: notes.length % STICKY_COLORS.length });
             localStorage.setItem('home_stickies', JSON.stringify(notes));
             renderStickies();
+            schedulePush();
             const last = document.querySelector('#sticky-board .sticky-note:last-child .sticky-text');
             if (last) last.focus();
         }
@@ -3579,6 +3608,135 @@
         function closeRestoreModal() {
             document.getElementById('restore-modal-backdrop').style.display = 'none';
         }
+
+        /* ============ MULTI-DEVICE SYNC (via a Google Apps Script in Maria's account) ============ */
+
+        function getSyncCfg() {
+            try { return JSON.parse(localStorage.getItem('sync_cfg') || 'null'); } catch (e) { return null; }
+        }
+
+        function setSyncStatus(text, ok) {
+            const el = document.getElementById('sync-status');
+            if (!el) return;
+            el.innerText = text ? ' · ' + text : '';
+            el.style.color = ok ? '' : '#fca5a5';
+        }
+
+        let syncPushTimer = null;
+        let syncInFlight = false;
+
+        // Called whenever anything changes; waits for typing to settle, then pushes.
+        function schedulePush() {
+            if (!getSyncCfg()) return;
+            clearTimeout(syncPushTimer);
+            syncPushTimer = setTimeout(() => pushSnapshot(), 6000);
+        }
+
+        async function pushSnapshot() {
+            const cfg = getSyncCfg();
+            if (!cfg) return false;
+            if (syncInFlight) { schedulePush(); return false; }
+            syncInFlight = true;
+            let ok = false;
+            try {
+                const body = JSON.stringify({ token: cfg.token, data: collectAllPlannerData().data });
+                const resp = await fetch(cfg.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body });
+                const j = await resp.json();
+                if (!j.ok) throw new Error(j.error || 'rejected');
+                localStorage.setItem('sync_last', String(Date.now()));
+                setSyncStatus('Sync ✓ ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }), true);
+                ok = true;
+            } catch (e) {
+                setSyncStatus('Sync offline', false);
+            }
+            syncInFlight = false;
+            return ok;
+        }
+
+        // Pull the shared snapshot, merge it in (device always wins conflicts,
+        // nothing local is deleted), push the combined result back, and reload
+        // once if anything new arrived.
+        async function pullAndMerge(interactive) {
+            const cfg = getSyncCfg();
+            if (!cfg) return;
+            try {
+                const resp = await fetch(cfg.url + (cfg.url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(cfg.token));
+                const j = await resp.json();
+                if (!j.ok) throw new Error(j.error || 'rejected');
+                let changed = { added: 0, merged: 0 };
+                if (j.snapshot && j.snapshot.data) {
+                    const incoming = Object.assign({}, j.snapshot.data);
+                    // bookkeeping that must never travel between devices
+                    delete incoming.planner_restore_summary;
+                    delete incoming.sync_last;
+                    delete incoming.planner_backup_snooze;
+                    changed = mergeBackupData(incoming);
+                }
+                await pushSnapshot();
+                if (changed.added + changed.merged > 0) {
+                    localStorage.setItem('planner_restore_summary',
+                        `Sync ✓ ${changed.added + changed.merged} item${changed.added + changed.merged === 1 ? '' : 's'} arrived from your other devices.`);
+                    location.reload();
+                } else if (interactive) {
+                    showBackupToast('Everything is already in sync ✓');
+                }
+            } catch (e) {
+                setSyncStatus('Sync offline', false);
+                if (interactive) showBackupToast('Could not reach sync. Check the internet connection or the sync settings.', 6000);
+            }
+        }
+
+        /* ---- Sync settings modal ---- */
+
+        function openSyncModal() {
+            const cfg = getSyncCfg();
+            document.getElementById('sync-url').value = cfg ? cfg.url : '';
+            document.getElementById('sync-token').value = cfg ? cfg.token : '';
+            document.getElementById('sync-modal-status').innerText = cfg
+                ? 'Sync is ON for this device.' : 'Sync is not set up on this device yet.';
+            document.getElementById('sync-modal-backdrop').style.display = 'flex';
+        }
+
+        function closeSyncModal() {
+            document.getElementById('sync-modal-backdrop').style.display = 'none';
+        }
+
+        async function saveSyncCfg() {
+            const url = document.getElementById('sync-url').value.trim();
+            const token = document.getElementById('sync-token').value.trim();
+            const status = document.getElementById('sync-modal-status');
+            if (!url || !token) {
+                status.style.color = '#b91c1c';
+                status.innerText = 'Please paste both the web address and the password.';
+                return;
+            }
+            if (!/^https:\/\/script\.google(?:usercontent)?\.com\//.test(url) && !/^http:\/\/localhost/.test(url)) {
+                status.style.color = '#b91c1c';
+                status.innerText = 'That does not look like a Google Apps Script web app address (it should start with https://script.google.com/).';
+                return;
+            }
+            localStorage.setItem('sync_cfg', JSON.stringify({ url, token }));
+            status.style.color = '#047857';
+            status.innerText = 'Saved. Testing the connection...';
+            const ok = await pushSnapshot();
+            if (ok) {
+                status.innerText = 'Connected ✓ This device now syncs automatically.';
+                pullAndMerge(false);
+            } else {
+                status.style.color = '#b91c1c';
+                status.innerText = 'Saved, but the connection failed. Check the address, the password, and that the script is deployed to "Anyone".';
+            }
+        }
+
+        function disableSync() {
+            localStorage.removeItem('sync_cfg');
+            setSyncStatus('', true);
+            document.getElementById('sync-modal-status').innerText = 'Sync is OFF for this device. (Data on this device and in Drive is untouched.)';
+        }
+
+        // Tracker edits happen in the embedded frame (a separate document writing
+        // the same storage); the storage event is how the planner hears about them.
+        window.addEventListener('storage', () => schedulePush());
     </script>
 </body>
 </html>
