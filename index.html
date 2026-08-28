@@ -1029,7 +1029,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.37</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.38</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana 🇲🇽</span>
         </div>
@@ -1712,7 +1712,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.08.37';
+        const PLANNER_VERSION = 'v2026.08.38';
         let currentViewId = 'home';
         let autoSaveTimeout = null;
         let currentMonthlyCurriculum = 'elementary';
@@ -3805,6 +3805,8 @@
         async function pushSnapshot() {
             const cfg = getSyncCfg();
             if (!cfg) return false;
+            clearTimeout(syncPushTimer);
+            syncPushTimer = null;
             if (syncInFlight) { schedulePush(); return false; }
             syncInFlight = true;
             let ok = false;
@@ -3888,11 +3890,15 @@
             localStorage.setItem('sync_cfg', JSON.stringify({ url, token }));
             status.style.color = '#047857';
             status.innerText = 'Saved. Testing the connection...';
-            const ok = await pushSnapshot();
-            if (ok) {
+            // Test by READING, never by writing: a connect test must not
+            // overwrite the shared copy before this device has merged it in.
+            try {
+                const resp = await fetch(url + (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token));
+                const j = await resp.json();
+                if (!j.ok) throw new Error(j.error || 'rejected');
                 status.innerText = 'Connected ✓ This device now syncs automatically.';
                 pullAndMerge(false);
-            } else {
+            } catch (e) {
                 status.style.color = '#b91c1c';
                 status.innerText = 'Saved, but the connection failed. Check the address, the password, and that the script is deployed to "Anyone".';
             }
@@ -3907,6 +3913,26 @@
         // Tracker edits happen in the embedded frame (a separate document writing
         // the same storage); the storage event is how the planner hears about them.
         window.addEventListener('storage', () => schedulePush());
+
+        // If the planner is closed or backgrounded while an upload is still
+        // waiting for the typing pause, send it immediately so quick edits
+        // never miss the sync.
+        window.addEventListener('pagehide', flushPendingPush);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') flushPendingPush();
+        });
+
+        function flushPendingPush() {
+            const cfg = getSyncCfg();
+            if (!cfg || syncPushTimer === null) return;
+            clearTimeout(syncPushTimer);
+            syncPushTimer = null;
+            try {
+                const body = new Blob([JSON.stringify({ token: cfg.token, data: collectAllPlannerData().data })], { type: 'text/plain;charset=utf-8' });
+                navigator.sendBeacon(cfg.url, body);
+                localStorage.setItem('sync_last', String(Date.now()));
+            } catch (e) { /* next open will push anyway */ }
+        }
 
         /* ============ SEATING CHART ============ */
         // Room: 2 rows of 3 long tables, 4 seats per table (24), plus 2 closet chairs.
