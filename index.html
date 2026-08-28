@@ -1029,7 +1029,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.38</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.39</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana 🇲🇽</span>
         </div>
@@ -1712,7 +1712,54 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.08.38';
+        const PLANNER_VERSION = 'v2026.08.39';
+
+        /* ---- Change-time tracking for sync (newest edit wins on conflicts) ----
+           Every write to storage stamps when that item last changed on this
+           device. The stamps travel inside the sync snapshot (as the ordinary
+           'sync_meta' key), so no server change is needed. */
+        const _rawSet = Storage.prototype.setItem.bind(localStorage);
+        const SYNC_META_SKIP = /^(sync_meta|sync_meta_seeded|sync_cfg|sync_last|planner_restore_summary|planner_backup_snooze|planner_last_backup|seats_lastclass)$/;
+        let syncMetaCache = null;
+
+        function getSyncMeta() {
+            if (!syncMetaCache) {
+                try { syncMetaCache = JSON.parse(localStorage.getItem('sync_meta') || '{}'); }
+                catch (e) { syncMetaCache = {}; }
+            }
+            return syncMetaCache;
+        }
+
+        function noteLocalChange(k) {
+            if (!k || SYNC_META_SKIP.test(k)) return;
+            const m = getSyncMeta();
+            m[k] = Date.now();
+            _rawSet('sync_meta', JSON.stringify(m));
+        }
+
+        localStorage.setItem = function (k, v) {
+            _rawSet(k, v);
+            noteLocalChange(String(k));
+        };
+
+        // One-time: devices that already HOLD seated charts claim authorship of
+        // them, so a chart made before stamps existed beats an empty copy elsewhere.
+        function seedSyncMeta() {
+            if (localStorage.getItem('sync_meta_seeded')) return;
+            const m = getSyncMeta();
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (!k || !k.startsWith('seating_') || m[k]) continue;
+                try {
+                    const st = JSON.parse(localStorage.getItem(k));
+                    const occupied = st && st.seatsByTri && Object.values(st.seatsByTri).some(s => s && Object.keys(s).length);
+                    if (occupied) m[k] = Date.now();
+                } catch (e) { }
+            }
+            _rawSet('sync_meta', JSON.stringify(m));
+            _rawSet('sync_meta_seeded', '1');
+        }
+
         let currentViewId = 'home';
         let autoSaveTimeout = null;
         let currentMonthlyCurriculum = 'elementary';
@@ -2602,6 +2649,7 @@
             migrateSavedWeeks();
             loadWeeklyData();
             attachDropListeners();
+            seedSyncMeta();
             setActiveTab('home');
             renderHome();
             checkBackupReminder();
@@ -3152,7 +3200,10 @@
             const lastBackup = localStorage.getItem('planner_last_backup');
             const snoozedOn = localStorage.getItem('planner_backup_snooze');
             const hasData = localStorage.length > 2;
-            if (hasData && lastBackup !== today && snoozedOn !== today) {
+            // Weekly, not daily: sync keeps a live copy in Drive, so the backup
+            // file is the long-term safety net (and fewer files pile up).
+            const stale = !lastBackup || (new Date(today) - new Date(lastBackup)) / 86400000 >= 7;
+            if (hasData && stale && snoozedOn !== today) {
                 document.getElementById('backup-banner').style.display = 'flex';
             }
         }
@@ -3723,7 +3774,11 @@
 
         function mergeBackupData(data) {
             let added = 0, merged = 0;
+            let remoteMeta = {};
+            try { remoteMeta = JSON.parse(data.sync_meta || '{}'); } catch (e) { remoteMeta = {}; }
+            const localMeta = getSyncMeta();
             for (const [key, value] of Object.entries(data)) {
+                if (key === 'sync_meta' || key === 'sync_meta_seeded') continue;
                 const local = localStorage.getItem(key);
                 if (local === null) { localStorage.setItem(key, value); added++; continue; }
                 if (local === value) continue;
@@ -3743,9 +3798,14 @@
                     if (mergeJsonList(key, local, value, i => i.url)) merged++;
                 } else if (key === 'resources') {
                     if (mergeJsonList(key, local, value, i => i.url)) merged++;
+                } else {
+                    // Whole-object items (seating charts, participation grades,
+                    // settings): the copy with the newer change-stamp wins. With
+                    // no stamps on either side, the device's copy is kept.
+                    const r = remoteMeta[key] || 0;
+                    const l = localMeta[key] || 0;
+                    if (r > l) { localStorage.setItem(key, value); merged++; }
                 }
-                // Anything else that differs (participation grades, settings):
-                // the copy on this device wins; nothing is overwritten.
             }
             return { added, merged };
         }
@@ -3912,7 +3972,10 @@
 
         // Tracker edits happen in the embedded frame (a separate document writing
         // the same storage); the storage event is how the planner hears about them.
-        window.addEventListener('storage', () => schedulePush());
+        window.addEventListener('storage', (e) => {
+            if (e && e.key) noteLocalChange(e.key);   // tracker edits in the embedded frame
+            schedulePush();
+        });
 
         // If the planner is closed or backgrounded while an upload is still
         // waiting for the typing pause, send it immediately so quick edits
