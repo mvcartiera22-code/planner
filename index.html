@@ -487,6 +487,13 @@
             transition: background 0.2s var(--ease), box-shadow 0.2s var(--ease);
         }
         .cell-notes:focus { background: #f6f9fd; box-shadow: inset 0 0 0 2px var(--tab-month); }
+        /* Bullet lists in note cells: tight spacing, • then ◦ then ▪ per level */
+        .cell-notes ul, [contenteditable="true"] ul { margin: 2px 0; padding-left: 20px; list-style-type: disc; }
+        .cell-notes ul ul, [contenteditable="true"] ul ul { list-style-type: circle; }
+        .cell-notes ul ul ul, [contenteditable="true"] ul ul ul { list-style-type: square; }
+        .cell-notes li, [contenteditable="true"] li { margin: 1px 0; }
+        /* Indent applied outside a list: plain indent, not a quote block */
+        .cell-notes blockquote, [contenteditable="true"] blockquote { margin: 2px 0 2px 20px; border: none; padding: 0; }
         .cell-notes:empty::before {
             content: attr(data-placeholder);
             color: #aeb7c6;
@@ -890,6 +897,12 @@
         .home-sched-time { min-width: 118px; font-size: 0.74em; font-weight: 700; color: #94a0b4; padding-top: 2px; }
         .home-sched-label { font-weight: 700; font-size: 0.88em; color: #1a2130; }
         .home-sched-notes { font-size: 0.78em; color: #64748b; margin-top: 1px; }
+        .copy-item { display: flex; align-items: center; gap: 8px; padding: 6px 4px; border-bottom: 1px solid #f1f4f9; font-size: 0.84em; color: #334155; cursor: pointer; }
+        .copy-item:last-child { border-bottom: none; }
+        .copy-item input { width: 17px; height: 17px; accent-color: #0f766e; flex-shrink: 0; }
+        .copy-item.done .copy-text { text-decoration: line-through; opacity: 0.5; }
+        .copy-when { flex-shrink: 0; background: #e6f4f0; color: #0f766e; font-weight: 800; font-size: 0.76em; padding: 2px 8px; border-radius: 999px; }
+        .copy-text { line-height: 1.35; }
         .sticky-board { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
         .sticky-note { position: relative; border-radius: 4px; padding: 14px 12px 16px; min-height: 110px; box-shadow: 2px 4px 10px rgba(15, 23, 42, 0.12); font-family: 'Nunito', sans-serif; font-weight: 600; font-size: 0.9em; color: #4a4423; line-height: 1.45; }
         .sticky-note:nth-child(odd) { transform: rotate(-1.2deg); }
@@ -936,6 +949,8 @@
         #print-area .pr-sign { flex: 1; font-size: 0.78em; color: #333; font-weight: 600; }
         #print-area .pr-sign-line { border-bottom: 1px solid #111; height: 0.35in; margin-bottom: 4px; }
         #print-area .pr-footer { margin-top: 14px; font-size: 0.7em; color: #888; text-align: right; }
+        #print-area .pr-copies { margin-top: 4px; font-size: 0.78em; font-weight: 700; color: #0f766e; background: #eef7f4; border-radius: 5px; padding: 4px 8px; }
+        .copy-count { display: inline-block; background: #eef7f4; color: #0f766e; font-weight: 800; font-size: 0.82em; border-radius: 999px; padding: 1px 8px; margin-left: 4px; white-space: nowrap; }
         /* ============ SEATING CHART ============ */
         .tab-seats { background: linear-gradient(160deg, #8a6b46, #6b5133); }
         .seat-pool { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 34px; background: #f8fafc; border: 1px dashed #cbd5e0; border-radius: 10px; padding: 8px 10px; }
@@ -955,6 +970,9 @@
         .room-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
         .table-card { background: linear-gradient(180deg, #f4ead9, #ecdfc8); border: 2px solid #d9c6a5; border-radius: 12px; padding: 10px; }
         .table-label { text-align: center; font-weight: 800; font-size: 0.72em; color: #8a6b46; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+        .table-label { cursor: pointer; }
+        .table-label:hover { color: var(--gold); }
+        .table-card.picked-table { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(217, 164, 65, 0.35); }
         .table-seats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
         .seat.empty { background: rgba(255, 255, 255, 0.65); border: 2px dashed #c9b58a; }
         .seat { min-height: 46px; border-radius: 8px; display: flex; align-items: center; justify-content: center; text-align: center; cursor: pointer; padding: 4px; transition: all 0.15s var(--ease); }
@@ -979,7 +997,8 @@
         #print-area .sp-desk { margin-top: 6px; margin-left: -26px; border: 1.5px solid #999; border-radius: 6px; padding: 6px 8px; font-size: 0.6em; font-weight: 800; text-align: center; color: #444; text-transform: uppercase; line-height: 1.3; }
         #print-area .sp-table { border: 1.5px solid #999; border-radius: 8px; padding: 8px; break-inside: avoid; }
         #print-area .sp-table-label { text-align: center; font-weight: 800; font-size: 0.72em; letter-spacing: 0.06em; text-transform: uppercase; color: #7f1d1d; margin-bottom: 6px; }
-        #print-area .sp-seat { border: 1px solid #bbb; border-radius: 5px; padding: 7px 4px; margin-bottom: 5px; text-align: center; font-size: 0.82em; font-weight: 700; color: #111; }
+        #print-area .sp-table-seats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; }
+        #print-area .sp-seat { border: 1px solid #bbb; border-radius: 5px; padding: 10px 4px; min-height: 0.45in; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 0.82em; font-weight: 700; color: #111; }
         #print-area .sp-seat.sp-empty { border-style: dashed; color: #bbb; }
         #print-area .sp-extra { margin-top: 12px; font-size: 0.85em; color: #111; }
 
@@ -1029,27 +1048,11 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.39</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.42</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana 🇲🇽</span>
         </div>
         <div class="nav-controls">
-            <button class="nav-btn btn-classroom" onclick="window.open('https://classroom.google.com', '_blank')">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #10b981;"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
-                Classroom
-            </button>
-            <button class="nav-btn btn-classroom" onclick="window.open('https://mail.google.com', '_blank')">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #ea4335;"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
-                Gmail
-            </button>
-            <button class="nav-btn btn-classroom" onclick="window.open('https://drive.google.com', '_blank')">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #4285f4;"><path d="M12 2 2 19h20L12 2z"></path></svg>
-                Drive
-            </button>
-            <button class="nav-btn btn-classroom" onclick="window.open('https://accounts.renweb.com', '_blank')" title="FACTS SIS (RenWeb) Gradebook">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #7f1d1d;"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18"></path><path d="M9 3v18"></path></svg>
-                Gradebook
-            </button>
             <button class="nav-btn btn-backup" onclick="exportBackup()">☁️ Backup</button>
             <button class="nav-btn btn-restore" onclick="document.getElementById('backup-file-input').click()">📂 Restore</button>
             <button class="nav-btn" style="background:#1e4d8f;" onclick="openSyncModal()">🔄 Sync</button>
@@ -1075,11 +1078,13 @@
             <option value="4">Large</option>
             <option value="5">Heading</option>
         </select>
-        <button style="font-weight:bold;" onclick="execCmd('bold')">B</button>
-        <button style="font-style:italic;" onclick="execCmd('italic')">I</button>
-        <button style="text-decoration:underline;" onclick="execCmd('underline')">U</button>
-        <button style="color:#d9a441;" onclick="execCmd('insertUnorderedList')">≡ Bullet</button>
-        <button style="background: #fef08a; color: #854d0e; border-color: #fde047; font-weight: bold;" onclick="execCmd('hiliteColor', '#fef08a')">🖍️ Highlight</button>
+        <button style="font-weight:bold;" onmousedown="event.preventDefault()" onclick="execCmd('bold')">B</button>
+        <button style="font-style:italic;" onmousedown="event.preventDefault()" onclick="execCmd('italic')">I</button>
+        <button style="text-decoration:underline;" onmousedown="event.preventDefault()" onclick="execCmd('underline')">U</button>
+        <button style="color:#d9a441;" onmousedown="event.preventDefault()" onclick="execCmd('insertUnorderedList')">≡ Bullet</button>
+        <button onmousedown="event.preventDefault()" onclick="execCmd('indent')" title="Make a sub-bullet (or press Tab)">⇥ Sub</button>
+        <button onmousedown="event.preventDefault()" onclick="execCmd('outdent')" title="Back out one level (or Shift+Tab)">⇤ Back</button>
+        <button style="background: #fef08a; color: #854d0e; border-color: #fde047; font-weight: bold;" onmousedown="event.preventDefault()" onclick="execCmd('hiliteColor', '#fef08a')">🖍️ Highlight</button>
         <button onclick="undoAction()">↩️ Undo</button>
         <span style="margin-left: auto; color: #8b93a7; font-size: 0.8em; white-space: nowrap;">Select text in any cell to apply formatting</span>
     </div>
@@ -1160,6 +1165,10 @@
                                         <div class="progress-track trimester"><div class="progress-fill" id="tri-progress-fill"></div></div>
                                         <p class="progress-text" id="tri-progress-text"></p>
                                     </div>
+                                </div>
+                                <div class="home-card" id="home-copies-card" style="display:none;">
+                                    <h3>📄 Copies to Make</h3>
+                                    <div id="home-copies-list"></div>
                                 </div>
                                 <div class="home-card">
                                     <h3 style="display:flex; justify-content:space-between; align-items:center;">🔗 Quick Links
@@ -1333,10 +1342,10 @@
 
                         <div class="highlight-tool">
                             <strong style="color:#334155; font-size:0.88em;">Quick Highlighters:</strong>
-                            <div class="color-btn" style="background: #fef08a;" onclick="execCmd('hiliteColor', '#fef08a')" title="Yellow"></div>
-                            <div class="color-btn" style="background: #bbf7d0;" onclick="execCmd('hiliteColor', '#bbf7d0')" title="Green"></div>
-                            <div class="color-btn" style="background: #fbcfe8;" onclick="execCmd('hiliteColor', '#fbcfe8')" title="Pink"></div>
-                            <div class="color-btn" style="background: #bfdbfe;" onclick="execCmd('hiliteColor', '#bfdbfe')" title="Blue"></div>
+                            <div class="color-btn" style="background: #fef08a;" onmousedown="event.preventDefault()" onclick="execCmd('hiliteColor', '#fef08a')" title="Yellow"></div>
+                            <div class="color-btn" style="background: #bbf7d0;" onmousedown="event.preventDefault()" onclick="execCmd('hiliteColor', '#bbf7d0')" title="Green"></div>
+                            <div class="color-btn" style="background: #fbcfe8;" onmousedown="event.preventDefault()" onclick="execCmd('hiliteColor', '#fbcfe8')" title="Pink"></div>
+                            <div class="color-btn" style="background: #bfdbfe;" onmousedown="event.preventDefault()" onclick="execCmd('hiliteColor', '#bfdbfe')" title="Blue"></div>
                             <button class="nav-btn btn-light" style="padding: 4px 10px; font-size: 0.78em;" onclick="execCmd('hiliteColor', 'transparent')">Clear Highlight</button>
                         </div>
 
@@ -1712,7 +1721,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.08.39';
+        const PLANNER_VERSION = 'v2026.08.42';
 
         /* ---- Change-time tracking for sync (newest edit wins on conflicts) ----
            Every write to storage stamps when that item last changed on this
@@ -2411,7 +2420,10 @@
             if (currentViewId === 'weekly') {
                 const input = document.getElementById('weekDate');
                 if (input.value) {
-                    const current = new Date(input.value);
+                    // Parse as LOCAL date (new Date('YYYY-MM-DD') is UTC and can
+                    // land a day early, silently showing the wrong week)
+                    const p = input.value.split('-');
+                    const current = new Date(p[0], p[1] - 1, p[2]);
                     current.setDate(current.getDate() + (direction * 7));
                     input.value = formatDateForInput(current);
                     handleDateChange();
@@ -2450,6 +2462,18 @@
             if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
                 e.preventDefault();
                 undoAction();
+            }
+
+            // Tab / Shift+Tab inside a bullet list = sub-bullet in / out
+            if (e.key === 'Tab') {
+                const sel = window.getSelection();
+                let node = sel && sel.anchorNode;
+                if (node && node.nodeType === 3) node = node.parentElement;
+                if (node && node.closest && node.closest('li')) {
+                    e.preventDefault();
+                    document.execCommand(e.shiftKey ? 'outdent' : 'indent', false, null);
+                    triggerAutoSave();
+                }
             }
         }
 
@@ -2508,16 +2532,25 @@
             attachInputAutoSaveListeners();
         }
 
-        function addTodoItem(text = '', isChecked = false) {
+        function addTodoItem(text = '', isChecked = false, indent = 0) {
             const list = document.getElementById('todo-list');
             const itemDiv = document.createElement('div');
-            itemDiv.style.cssText = 'display:flex; align-items:center; gap:10px; background:white; padding:10px 14px; border-radius:10px; border:1px solid #e5e9f0;';
+            itemDiv.dataset.indent = indent;
+            const applyIndent = () => {
+                const ind = parseInt(itemDiv.dataset.indent) || 0;
+                itemDiv.style.cssText = 'display:flex; align-items:center; gap:10px; background:white; padding:10px 14px; border-radius:10px; border:1px solid #e5e9f0;'
+                    + (ind ? ' margin-left:34px; border-left:3px solid #d5c4ee; background:#fbfaff;' : '');
+                bullet.innerText = ind ? '◦' : '•';
+                indentBtn.style.opacity = ind ? '1' : '0.45';
+            };
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.checked = isChecked;
-            checkbox.style.cssText = 'width:18px; height:18px; cursor:pointer; accent-color:#6d28d9;';
-            checkbox.onchange = triggerAutoSave;
+            checkbox.style.cssText = 'width:18px; height:18px; cursor:pointer; accent-color:#6d28d9; flex-shrink:0;';
+
+            const bullet = document.createElement('span');
+            bullet.style.cssText = 'color:#6d28d9; font-weight:800; flex-shrink:0;';
 
             const input = document.createElement('input');
             input.type = 'text';
@@ -2531,18 +2564,40 @@
                 triggerAutoSave();
             };
             input.oninput = triggerAutoSave;
+            // Tab indents into a sub-bullet, Shift+Tab moves it back out
+            input.onkeydown = (e) => {
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    itemDiv.dataset.indent = e.shiftKey ? 0 : 1;
+                    applyIndent();
+                    triggerAutoSave();
+                }
+            };
+
+            const indentBtn = document.createElement('button');
+            indentBtn.innerHTML = '↳';
+            indentBtn.title = 'Make this a sub-bullet (tap again to undo)';
+            indentBtn.style.cssText = 'background:none; border:none; color:#6d28d9; cursor:pointer; font-weight:bold; font-size:1.05em; flex-shrink:0;';
+            indentBtn.onclick = () => {
+                itemDiv.dataset.indent = (parseInt(itemDiv.dataset.indent) || 0) ? 0 : 1;
+                applyIndent();
+                triggerAutoSave();
+            };
 
             const delBtn = document.createElement('button');
             delBtn.innerHTML = '✕';
-            delBtn.style.cssText = 'background:none; border:none; color:#ef4444; cursor:pointer; font-weight:bold; font-size:1.1em;';
+            delBtn.style.cssText = 'background:none; border:none; color:#ef4444; cursor:pointer; font-weight:bold; font-size:1.1em; flex-shrink:0;';
             delBtn.onclick = () => {
                 itemDiv.remove();
                 triggerAutoSave();
             };
 
             itemDiv.appendChild(checkbox);
+            itemDiv.appendChild(bullet);
             itemDiv.appendChild(input);
+            itemDiv.appendChild(indentBtn);
             itemDiv.appendChild(delBtn);
+            applyIndent();
             list.appendChild(itemDiv);
         }
 
@@ -2552,7 +2607,7 @@
                 const checkbox = div.querySelector('input[type="checkbox"]');
                 const input = div.querySelector('input[type="text"]');
                 if (input && checkbox) {
-                    items.push({ text: input.value, isChecked: checkbox.checked });
+                    items.push({ text: input.value, isChecked: checkbox.checked, indent: parseInt(div.dataset.indent) || 0 });
                 }
             });
             localStorage.setItem(`weekly_todos_${currentTodoCurriculum}`, JSON.stringify(items));
@@ -2563,7 +2618,7 @@
             list.innerHTML = '';
             const saved = JSON.parse(localStorage.getItem(`weekly_todos_${currentTodoCurriculum}`) || '[]');
             if (saved.length > 0) {
-                saved.forEach(item => addTodoItem(item.text, item.isChecked));
+                saved.forEach(item => addTodoItem(item.text, item.isChecked, item.indent || 0));
             } else {
                 if (currentTodoCurriculum === 'elementary') {
                     addTodoItem("Grade 5th Grade TPR Activity Sheets", false);
@@ -2650,6 +2705,7 @@
             loadWeeklyData();
             attachDropListeners();
             seedSyncMeta();
+            autoAdvanceHomeDay();
             setActiveTab('home');
             renderHome();
             checkBackupReminder();
@@ -3228,19 +3284,109 @@
             { name: 'Trimester 3', start: new Date(2027, 2, 8), end: new Date(2027, 5, 15) }
         ];
         const STICKY_COLORS = ['#fef08a', '#fbcfe8', '#bbf7d0', '#bfdbfe', '#fde68a'];
-        const DEFAULT_LINKS = [
-            { name: 'Classroom', url: 'https://classroom.google.com', emoji: '📚' },
-            { name: 'Gmail', url: 'https://mail.google.com', emoji: '✉️' },
-            { name: 'Drive', url: 'https://drive.google.com', emoji: '📁' },
-            { name: 'Gradebook', url: 'https://accounts.renweb.com', emoji: '📊' }
-        ];
+        const DEFAULT_LINKS = [];
 
         function renderHome() {
             updateHomeClock();
             renderHomeToday();
             renderHomeStats();
+            renderHomeCopies();
             renderQuickLinks();
             renderStickies();
+        }
+
+        /* ---- Copies to Make: any note line starting with "Copies:" becomes a
+           reminder here for the next school days, checkable when done ---- */
+
+        function getCopiesDone() {
+            try { return JSON.parse(localStorage.getItem('copies_done') || '{}'); } catch (e) { return {}; }
+        }
+
+        function toggleCopyDone(id) {
+            const done = getCopiesDone();
+            if (done[id]) delete done[id]; else done[id] = true;
+            localStorage.setItem('copies_done', JSON.stringify(done));
+            if (typeof schedulePush === 'function') schedulePush();
+            renderHomeCopies();
+        }
+
+        // How many students in the class a cell label names ("Spanish 7" -> 22).
+        // Seating-chart roster first (all grades), then the Participation
+        // Tracker's roster (grades 5-8). Null when neither has been entered.
+        function classSizeFor(label) {
+            const m = (label || '').match(/spanish\s*([1-8])/i);
+            if (!m) return null;
+            const g = m[1];
+            try {
+                const st = JSON.parse(localStorage.getItem('seating_Spanish' + g) || 'null');
+                if (st && Array.isArray(st.roster) && st.roster.length) return st.roster.length;
+            } catch (e) {}
+            try {
+                const tr = JSON.parse(localStorage.getItem('spTracker.v1.roster.' + g) || 'null');
+                if (Array.isArray(tr) && tr.length) return tr.length;
+            } catch (e) {}
+            return null;
+        }
+
+        function renderHomeCopies() {
+            const card = document.getElementById('home-copies-card');
+            const list = document.getElementById('home-copies-list');
+            if (!card || !list) return;
+            const done = getCopiesDone();
+            const items = [];
+            const now = new Date();
+            for (let i = 0; i < 8; i++) {
+                const d = new Date(now);
+                d.setDate(now.getDate() + i);
+                if (d.getDay() < 1 || d.getDay() > 4) continue;
+                const k = `${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`;
+                if (dayEntries(k).some(e => e.type === 'noschool')) continue;
+                (columnTextsFor(d) || []).forEach(r => {
+                    const sec = parseLessonSections(r.notes);
+                    sec.copies.forEach((c, ci) => {
+                        const id = formatDateForInput(d) + '_' + r.period.replace(/\W/g, '') + '_' + ci;
+                        items.push({
+                            id, text: c, label: r.label, period: r.period, size: classSizeFor(r.label),
+                            when: i === 0 ? 'Today' : (i === 1 ? 'Tomorrow' : d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })),
+                            checked: !!done[id]
+                        });
+                    });
+                });
+            }
+            if (!items.length) { card.style.display = 'none'; return; }
+            card.style.display = 'block';
+            list.innerHTML = items.map(it => `
+                <label class="copy-item${it.checked ? ' done' : ''}">
+                    <input type="checkbox" ${it.checked ? 'checked' : ''} onchange="toggleCopyDone('${it.id}')">
+                    <span class="copy-when">${it.when}</span>
+                    <span class="copy-text"><b>${escapeForPreview(it.label)}</b> · ${escapeForPreview(it.text)}${it.size ? ` <span class="copy-count" title="Students in ${escapeForPreview(it.label)} (from the roster)">👤 ${it.size}</span>` : ''}</span>
+                </label>`).join('');
+        }
+
+        /* ---- After 6th period (or on a day off), Home looks ahead to the
+           next school day automatically ---- */
+        function autoAdvanceHomeDay() {
+            const now = new Date();
+            const key = `${now.getFullYear()}_${now.getMonth()}_${now.getDate()}`;
+            const dow = now.getDay();
+            const isSchoolDay = dow >= 1 && dow <= 4 && !dayEntries(key).some(e => e.type === 'noschool');
+            let lookAhead = !isSchoolDay;
+            if (isSchoolDay) {
+                const bell = BELL_SCHEDULES[computeBellType(key)];
+                const p6 = (bell.rows.find(r => r.k === 'p6') || {}).t;
+                const range = p6 ? parseTimeRange(p6) : null;
+                lookAhead = range ? (now.getHours() * 60 + now.getMinutes()) >= range[1] : false;
+            }
+            if (!lookAhead) return;
+            for (let i = 1; i <= 14; i++) {
+                const d = new Date(now);
+                d.setDate(now.getDate() + i);
+                const k = `${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`;
+                if (d.getDay() >= 1 && d.getDay() <= 4 && !dayEntries(k).some(e => e.type === 'noschool')) {
+                    homeDayOffset = i;
+                    break;
+                }
+            }
         }
 
         function updateHomeClock() {
@@ -3276,6 +3422,27 @@
 
         // One day's column of the weekly grid: from that week's saved data if
         // there is any, otherwise the default template. Null on Fri-Sun.
+        // Read a cell's notes with LINE BREAKS intact. Detached documents (from
+        // DOMParser) lose newlines when read via innerText, which silently
+        // breaks Obj:/Act:/Close:/Copies: line parsing.
+        function notesTextFrom(el) {
+            if (!el) return '';
+            // Keep sub-bullet indentation: mark each list item with a depth-based prefix
+            const clone = el.cloneNode(true);
+            clone.querySelectorAll('li').forEach(li => {
+                let depth = 0, p = li.parentElement;
+                while (p && p !== clone) { if (p.tagName === 'UL' || p.tagName === 'OL') depth++; p = p.parentElement; }
+                if (depth > 1) li.insertBefore(document.createTextNode('↳ '.repeat(depth - 1)), li.firstChild);
+            });
+            const html = clone.innerHTML
+                .replace(/<br\s*\/?>/gi, '\n')
+                .replace(/<\/(div|p|li)>/gi, '\n')
+                .replace(/<[^>]+>/g, '');
+            const ta = document.createElement('textarea');
+            ta.innerHTML = html;
+            return ta.value.replace(/ /g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+        }
+
         function columnTextsFor(date) {
             const dow = date.getDay();
             if (dow < 1 || dow > 4) return null;
@@ -3296,7 +3463,7 @@
                         period: periodEl ? periodEl.innerText.trim() : '',
                         time: timeEl ? timeEl.innerText.replace('🕒', '').trim() : '',
                         label: (labelEl ? labelEl.innerText : cell.innerText).trim().split('\n')[0],
-                        notes: notesEl ? notesEl.innerText.trim() : ''
+                        notes: notesTextFrom(notesEl)
                     });
                 });
             } else {
@@ -3625,7 +3792,7 @@
         // start with Obj:/Act:/Close: (or the full words) label a section; text
         // with no label counts as Activities.
         function parseLessonSections(notes) {
-            const sec = { objective: [], activities: [], closure: [] };
+            const sec = { objective: [], activities: [], closure: [], copies: [] };
             let cur = null;
             const unlabeled = [];
             (notes || '').split('\n').forEach(line => {
@@ -3635,6 +3802,7 @@
                 if ((m = t.match(/^obj(?:ective)?s?\s*[:\-]\s*(.*)$/i))) { cur = 'objective'; if (m[1]) sec.objective.push(m[1]); }
                 else if ((m = t.match(/^act(?:ivit(?:y|ies))?\s*[:\-]\s*(.*)$/i))) { cur = 'activities'; if (m[1]) sec.activities.push(m[1]); }
                 else if ((m = t.match(/^clos(?:e|ure|ing)?\s*[:\-]\s*(.*)$/i))) { cur = 'closure'; if (m[1]) sec.closure.push(m[1]); }
+                else if ((m = t.match(/^cop(?:y|ies)\s*[:\-]\s*(.*)$/i))) { cur = 'copies'; if (m[1]) sec.copies.push(m[1]); }
                 else if (cur) sec[cur].push(t);
                 else unlabeled.push(t);
             });
@@ -3650,6 +3818,7 @@
         }
 
         function exportAndPrint() {
+            setPrintOrientation('portrait');
             const startVal = document.getElementById('export-start').value;
             if (!startVal) return;
             const weeks = parseInt(document.getElementById('export-weeks').value);
@@ -3701,6 +3870,7 @@
                                 ${printSectionHtml('Objective', sec.objective)}
                                 ${printSectionHtml('Activities', sec.activities)}
                                 ${printSectionHtml('Closure', sec.closure)}
+                                ${sec.copies.length ? `<div class="pr-copies">📄 Copies: ${sec.copies.map(c => escapeForPreview(c)).join(' · ')}${(cs => cs ? ` (${cs} students)` : '')(classSizeFor(r.label))}</div>` : ''}
                             </div>`;
                     });
                     html += `</div>`;
@@ -4008,6 +4178,31 @@
         let seatClass = localStorage.getItem('seats_lastclass') || 'Spanish 5';
         let seatPickName = null;   // a student picked from the waiting pool
         let seatPickSeat = null;   // a seat picked for swapping
+        let seatPickTable = null;  // a table picked for switching whole tables
+
+        // Tap one table's name, then another: the two tables trade all their
+        // students (within the current trimester's chart).
+        function tapTable(t) {
+            if (seatPickTable === t) { seatPickTable = null; renderSeats(); return; }
+            if (seatPickTable === null) {
+                seatPickTable = t;
+                seatPickName = null; seatPickSeat = null;
+                renderSeats();
+                return;
+            }
+            const st = getSeating();
+            const seats = seatsNow(st);
+            for (let s = 1; s <= 4; s++) {
+                const a = 't' + seatPickTable + 's' + s;
+                const b = 't' + t + 's' + s;
+                const va = seats[a], vb = seats[b];
+                if (vb !== undefined) seats[a] = vb; else delete seats[a];
+                if (va !== undefined) seats[b] = va; else delete seats[b];
+            }
+            seatPickTable = null;
+            saveSeating(st);
+            renderSeats();
+        }
 
         function seatStoreKey(cls) { return 'seating_' + cls.replace(/\s+/g, ''); }
 
@@ -4049,7 +4244,7 @@
         function switchSeatClass(cls) {
             seatClass = cls;
             localStorage.setItem('seats_lastclass', cls);
-            seatPickName = null; seatPickSeat = null;
+            seatPickName = null; seatPickSeat = null; seatPickTable = null;
             renderSeats();
         }
 
@@ -4080,7 +4275,7 @@
             const grid = document.getElementById('room-grid');
             let html = '';
             for (let t = 1; t <= 6; t++) {
-                html += `<div class="table-card"><div class="table-label">Table ${t}</div><div class="table-seats">`;
+                html += `<div class="table-card${seatPickTable === t ? ' picked-table' : ''}"><div class="table-label" onclick="tapTable(${t})" title="Tap two table names to switch their students">Table ${t}${seatPickTable === t ? ' ⇄' : ''}</div><div class="table-seats">`;
                 for (let s = 1; s <= 4; s++) {
                     const id = 't' + t + 's' + s;
                     const name = seatsNow(st)[id];
@@ -4198,7 +4393,20 @@
 
         /* ---- Printable chart ---- */
 
+        // Print pages default to portrait (lesson plans); the seating chart
+        // switches the page to landscape so it prints exactly like the screen.
+        function setPrintOrientation(o) {
+            let s = document.getElementById('page-orient');
+            if (!s) {
+                s = document.createElement('style');
+                s.id = 'page-orient';
+                document.head.appendChild(s);
+            }
+            s.textContent = '@media print { @page { size: letter ' + o + '; } }';
+        }
+
         function printSeatingChart() {
+            setPrintOrientation('landscape');
             const st = getSeating();
             const seatBox = id => {
                 const n = seatsNow(st)[id];
@@ -4206,8 +4414,8 @@
             };
             let tables = '';
             for (let t = 1; t <= 6; t++) {
-                tables += `<div class="sp-table"><div class="sp-table-label">Table ${t}</div>` +
-                    [1, 2, 3, 4].map(s => seatBox('t' + t + 's' + s)).join('') + '</div>';
+                tables += `<div class="sp-table"><div class="sp-table-label">Table ${t}</div><div class="sp-table-seats">` +
+                    [1, 2, 3, 4].map(s => seatBox('t' + t + 's' + s)).join('') + '</div></div>';
             }
             const extras = EXTRA_SEAT_IDS.filter(id => seatsNow(st)[id]);
             document.getElementById('print-area').innerHTML = `
