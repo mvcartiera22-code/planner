@@ -1048,7 +1048,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.08.42</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.09.02</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana 🇲🇽</span>
         </div>
@@ -1721,7 +1721,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.08.42';
+        const PLANNER_VERSION = 'v2026.09.02';
 
         /* ---- Change-time tracking for sync (newest edit wins on conflicts) ----
            Every write to storage stamps when that item last changed on this
@@ -2336,9 +2336,12 @@
 
         function saveCurrentView() {
             if (currentViewId === 'weekly') {
-                const weekKey = 'week_' + document.getElementById('weekDate').value;
+                const weekKey = 'week_' + mondayKeyOf(document.getElementById('weekDate').value);
                 const tbody = document.getElementById('weekly-tbody');
-                if (tbody) localStorage.setItem(weekKey, tbody.innerHTML);
+                if (tbody) {
+                    stampChangedWeekCells(weekKey, tbody);
+                    localStorage.setItem(weekKey, tbody.innerHTML);
+                }
             } else if (currentViewId === 'monthly') {
                 const monthInfo = academicMonths[currentMonthIdx];
                 for (let day = 1; day <= monthInfo.days; day++) {
@@ -2364,8 +2367,34 @@
             }
         }
 
+        // Stamp each weekly cell that changed since the last save with the time
+        // it changed (a data-ts attribute on the cell). Sync compares stamps so
+        // the NEWEST version of a cell wins on every device, instead of the old
+        // text piling up under the new.
+        function stampChangedWeekCells(weekKey, tbody) {
+            const now = Date.now();
+            const prev = localStorage.getItem(weekKey);
+            let prevRows = null;
+            if (prev) {
+                try {
+                    prevRows = new DOMParser().parseFromString('<table><tbody>' + prev + '</tbody></table>', 'text/html').querySelectorAll('tbody > tr');
+                } catch (e) { prevRows = null; }
+            }
+            tbody.querySelectorAll(':scope > tr').forEach((tr, ri) => {
+                const pr = prevRows ? prevRows[ri] : null;
+                const tds = tr.querySelectorAll('td');
+                const ptds = pr ? pr.querySelectorAll('td') : [];
+                for (let ci = 0; ci < tds.length; ci++) {
+                    const ln = tds[ci].querySelector('.cell-notes');
+                    if (!ln) continue;
+                    const pn = ptds[ci] ? ptds[ci].querySelector('.cell-notes') : null;
+                    if (pn ? ln.innerHTML !== pn.innerHTML : ln.textContent.trim() !== '') ln.dataset.ts = now;
+                }
+            });
+        }
+
         function loadWeeklyData() {
-            const dateVal = document.getElementById('weekDate').value;
+            const dateVal = mondayKeyOf(document.getElementById('weekDate').value);
             const savedData = localStorage.getItem('week_' + dateVal);
             if (savedData) {
                 document.getElementById('weekly-tbody').innerHTML = savedData;
@@ -2376,7 +2405,14 @@
         }
 
         function handleDateChange() {
-            const val = document.getElementById('weekDate').value;
+            const input = document.getElementById('weekDate');
+            // Snap any picked day to its week's Monday — the weekly grid is one
+            // page per week, and headers, storage and Prev/Next all key off it.
+            if (input.value) {
+                const mv = mondayKeyOf(input.value);
+                if (mv !== input.value) input.value = mv;
+            }
+            const val = input.value;
             if (val) {
                 const parts = val.split('-');
                 const selectedDate = new Date(parts[0], parts[1] - 1, parts[2]);
@@ -2489,6 +2525,18 @@
             const mm = String(date.getMonth() + 1).padStart(2, '0');
             const dd = String(date.getDate()).padStart(2, '0');
             return `${yyyy}-${mm}-${dd}`;
+        }
+
+        // 'YYYY-MM-DD' -> the Monday of that week. Every saved week is filed
+        // under its Monday, so the same week always lands in the same slot no
+        // matter which day of the week was picked in the date box.
+        function mondayKeyOf(dateStr) {
+            if (!dateStr) return dateStr;
+            const p = String(dateStr).split('-');
+            if (p.length !== 3) return dateStr;
+            const d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+            if (isNaN(d.getTime())) return dateStr;
+            return formatDateForInput(getStartOfWeek(d));
         }
 
         function allowDrop(ev) {
@@ -2701,6 +2749,7 @@
             renderBlankWeeklyGrid();
             renderMonthlyCalendar(0);
             renderYearlyView();
+            normalizeWeekKeys();
             migrateSavedWeeks();
             loadWeeklyData();
             attachDropListeners();
@@ -2772,6 +2821,32 @@
         // every load and quietly fixes known old labels in saved weeks without
         // touching any notes or stickers. It is safe to run repeatedly: once a
         // week is fixed, nothing matches anymore.
+        // One-time cleanup: weeks used to be filed under whichever day was
+        // picked in the date box (a Wednesday pick saved under the Wednesday
+        // date, invisible when the same week was opened from its Monday).
+        // File every saved week under its Monday, merging any duplicates.
+        function normalizeWeekKeys() {
+            const keys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith('week_')) keys.push(k);
+            }
+            keys.forEach(k => {
+                const nk = 'week_' + mondayKeyOf(k.slice(5));
+                if (nk === k) return;
+                const val = localStorage.getItem(k);
+                const existing = localStorage.getItem(nk);
+                localStorage.setItem(nk, existing && val ? mergeWeekHtml(existing, val) : (val || existing || ''));
+                localStorage.removeItem(k);
+                const meta = getSyncMeta();
+                if (meta[k]) {
+                    meta[nk] = Math.max(meta[nk] || 0, meta[k]);
+                    delete meta[k];
+                    _rawSet('sync_meta', JSON.stringify(meta));
+                }
+            });
+        }
+
         function migrateSavedWeeks() {
             const keys = [];
             for (let i = 0; i < localStorage.length; i++) {
@@ -3901,10 +3976,14 @@
             return d.textContent || '';
         }
 
-        // Combine one week's saved grid with the same week from a backup:
-        // fill empty note cells from the backup; where both sides have
-        // different notes, keep the device's text and append the backup's.
-        // Re-merging the same backup changes nothing (containment check).
+        // Combine one week's saved grid with the same week from a backup or
+        // sync, cell by cell. Cells carry a change-time (data-ts, stamped on
+        // every edit): when both sides have a stamp, the NEWER version of the
+        // cell wins outright — so rewriting or clearing a cell on one device
+        // really replaces it everywhere. Cells from older saves (no stamp yet)
+        // keep the old careful behavior: fill empty cells from the backup, and
+        // where both sides differ keep the device's text and append the
+        // backup's. Re-merging the same backup changes nothing.
         function mergeWeekHtml(localHtml, backupHtml) {
             const parse = h => new DOMParser().parseFromString('<table><tbody>' + h + '</tbody></table>', 'text/html');
             const ld = parse(localHtml), bd = parse(backupHtml);
@@ -3920,11 +3999,30 @@
                     const ln = lCells[ci] && lCells[ci].querySelector('.cell-notes');
                     const bn = bCells[ci] && bCells[ci].querySelector('.cell-notes');
                     if (!ln || !bn) continue;
+                    if (ln.innerHTML === bn.innerHTML) continue;
+                    const lTs = Number(ln.dataset.ts || 0);
+                    const bTs = Number(bn.dataset.ts || 0);
+                    if (lTs && bTs) {
+                        // Both sides know when this cell last changed: newest wins,
+                        // even when the newest version is an emptied cell.
+                        if (bTs > lTs) {
+                            ln.innerHTML = bn.innerHTML;
+                            ln.dataset.ts = bn.dataset.ts;
+                            changed = true;
+                        }
+                        continue;
+                    }
                     const lTxt = ln.textContent.trim();
                     const bTxt = bn.textContent.trim();
                     if (!bTxt) continue;
-                    if (!lTxt) { ln.innerHTML = bn.innerHTML; changed = true; }
-                    else if (!lTxt.includes(bTxt)) { ln.innerHTML = ln.innerHTML + '<br>' + bn.innerHTML; changed = true; }
+                    if (!lTxt) {
+                        ln.innerHTML = bn.innerHTML;
+                        if (bn.dataset.ts) ln.dataset.ts = bn.dataset.ts;
+                        changed = true;
+                    } else if (!lTxt.includes(bTxt)) {
+                        ln.innerHTML = ln.innerHTML + '<br>' + bn.innerHTML;
+                        changed = true;
+                    }
                 }
             });
             return changed ? ld.querySelector('tbody').innerHTML : localHtml;
@@ -3947,6 +4045,17 @@
             let remoteMeta = {};
             try { remoteMeta = JSON.parse(data.sync_meta || '{}'); } catch (e) { remoteMeta = {}; }
             const localMeta = getSyncMeta();
+            // File incoming weeks under their Monday (older versions filed a
+            // week under whichever day was picked), folding duplicates together
+            // — so a stray "Wednesday" copy can never come back through sync.
+            Object.keys(data).forEach(key => {
+                if (!key.startsWith('week_')) return;
+                const nk = 'week_' + mondayKeyOf(key.slice(5));
+                if (nk === key) return;
+                data[nk] = data[nk] !== undefined ? mergeWeekHtml(data[nk], data[key]) : data[key];
+                remoteMeta[nk] = Math.max(remoteMeta[nk] || 0, remoteMeta[key] || 0);
+                delete data[key];
+            });
             for (const [key, value] of Object.entries(data)) {
                 if (key === 'sync_meta' || key === 'sync_meta_seeded') continue;
                 const local = localStorage.getItem(key);
@@ -3956,10 +4065,17 @@
                     const m = mergeWeekHtml(local, value);
                     if (m !== local) { localStorage.setItem(key, m); merged++; }
                 } else if (key.startsWith('month_') || key.startsWith('year_')) {
-                    const lTxt = stripTagsToText(local).trim();
-                    const bTxt = stripTagsToText(value).trim();
-                    if (!lTxt && bTxt) { localStorage.setItem(key, value); merged++; }
-                    else if (bTxt && !lTxt.includes(bTxt)) { localStorage.setItem(key, local + '<br>' + value); merged++; }
+                    const rStamp = remoteMeta[key] || 0;
+                    const lStamp = localMeta[key] || 0;
+                    if (rStamp && lStamp) {
+                        // Both sides know when this box last changed: newest wins.
+                        if (rStamp > lStamp) { localStorage.setItem(key, value); merged++; }
+                    } else {
+                        const lTxt = stripTagsToText(local).trim();
+                        const bTxt = stripTagsToText(value).trim();
+                        if (!lTxt && bTxt) { localStorage.setItem(key, value); merged++; }
+                        else if (bTxt && !lTxt.includes(bTxt)) { localStorage.setItem(key, local + '<br>' + value); merged++; }
+                    }
                 } else if (key === 'weekly_todos_elementary' || key === 'weekly_todos_middle') {
                     if (mergeJsonList(key, local, value, i => (i.text || '').trim())) merged++;
                 } else if (key === 'home_stickies') {
@@ -4024,6 +4140,7 @@
 
         let syncPushTimer = null;
         let syncInFlight = false;
+        let lastPullAt = 0;
 
         // Called whenever anything changes; waits for typing to settle, then pushes.
         function schedulePush() {
@@ -4061,6 +4178,7 @@
         async function pullAndMerge(interactive) {
             const cfg = getSyncCfg();
             if (!cfg) return;
+            lastPullAt = Date.now();
             try {
                 const resp = await fetch(cfg.url + (cfg.url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(cfg.token));
                 const j = await resp.json();
@@ -4153,6 +4271,10 @@
         window.addEventListener('pagehide', flushPendingPush);
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'hidden') flushPendingPush();
+            // Coming BACK to a planner that sat open (the work-desktop pattern):
+            // check for changes from the other devices before anything is typed
+            // here, instead of only checking when the page first opened.
+            else if (getSyncCfg() && Date.now() - lastPullAt > 5 * 60 * 1000) pullAndMerge(false);
         });
 
         function flushPendingPush() {
