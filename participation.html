@@ -170,6 +170,67 @@ td.notes{padding:5px 8px 5px 5px;text-align:left}
   thead th{font-size:12px}
 }
 
+/* ---------- inline notes: type first, S Pen one tap away ---------- */
+.notecell{display:flex;align-items:stretch;gap:6px;min-height:52px}
+.notecell canvas{display:block;flex-shrink:0;align-self:center;border-radius:6px}
+.noteinput{flex:1;min-width:0;min-height:52px;border:1.5px dashed #d3dae4;border-radius:11px;background:#fff;
+  padding:7px 9px;font-size:13.5px;line-height:1.3;resize:none;font-family:inherit;color:var(--ink)}
+.noteinput:focus{outline:none;border-style:solid;border-color:#c9a3a3;box-shadow:0 0 0 3px rgba(127,29,29,.08)}
+.noteinput.has{border-style:solid;border-color:#cfd8e4}
+.noteinput::placeholder{color:#aeb7c3;font-style:italic;font-size:12.5px}
+.penbtn{width:40px;flex-shrink:0;border:1.5px solid var(--line);border-radius:11px;background:#fff;font-size:18px;
+  display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.penbtn.has{background:var(--accent-soft);border-color:#e0c4be;color:var(--accent)}
+.weekNav{display:inline-flex;gap:6px}
+.moreBtn{display:none}
+.embedded .brand{display:none}
+
+/* ---------- compact header: narrow windows (split screen) and short ones ----------
+   The full header wraps into six rows below ~1000px and leaves room for two
+   students. Here it collapses to two short rows: grade tabs + week arrows + More,
+   then the date / trimester / saved line. Rows tighten too. */
+@media (max-width:1000px), (max-height:700px){
+  .brand{display:none}
+  .topbar .row1{gap:8px;padding:7px 10px 6px;flex-wrap:nowrap;position:relative}
+  .grades{gap:3px;padding:3px}
+  .grades button{padding:6px 10px;min-height:38px;font-size:14px}
+  .grades button small{display:none}
+  .btn{height:38px;padding:0 11px;font-size:13px;border-radius:9px}
+  .moreBtn{display:inline-flex}
+  .tools{display:none;position:absolute;right:10px;top:100%;z-index:60;flex-direction:column;align-items:stretch;
+    background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px;gap:6px;
+    box-shadow:0 10px 30px rgba(16,24,40,.18);min-width:190px}
+  .tools.open{display:flex}
+  .tools .btn{justify-content:flex-start;height:42px}
+  .metabar{gap:8px;padding:0 10px 7px;align-items:center;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .metabar::-webkit-scrollbar{display:none}
+  .field label{display:none}
+  .field input,.field select{height:38px;min-width:0;padding:0 9px;font-size:13px}
+  .field.wk input{min-width:140px}
+  .weekspan{display:none}
+  .saved{padding-bottom:0;min-width:0;white-space:nowrap;font-size:11.5px}
+  .banner{padding:8px 11px;font-size:12.5px;margin-bottom:8px}
+  main{padding:8px 10px}
+  td.nm{font-size:13.5px;min-width:150px;padding:5px 8px 5px 10px}
+  .daycell{width:56px;padding:3px}
+  .daybtn{height:40px;font-size:17px;border-radius:8px}
+  thead th{height:46px}
+  .dayheadbtn{height:42px}
+  td.score{width:82px}
+  .scorepill{font-size:19px;min-width:66px;padding:4px 7px}
+  .scorepill small{font-size:9.5px}
+  td.bonus{width:100px}
+  .stepper button{width:30px;height:34px;font-size:16px}
+  .stepper .val{min-width:38px;height:34px;font-size:13px}
+  td.refcol{width:140px;padding:4px}
+  .refbtn{min-height:38px;font-size:11.5px;padding:4px 6px}
+  .notecell,.noteinput{min-height:42px}
+  .noteinput{padding:5px 8px;font-size:13px}
+  .penbtn{width:36px;font-size:16px}
+  .sumgrid{gap:8px;padding:10px}
+  .stat .v{font-size:20px}
+}
+
 /* ---------- floating header + scrollbar ---------- */
 .fhead{position:fixed;z-index:35;display:none;overflow:hidden;background:#f7f9fc;
   border-bottom:2px solid var(--line);box-shadow:0 4px 12px rgba(16,24,40,.10)}
@@ -253,6 +314,9 @@ td.notes{padding:5px 8px 5px 5px;text-align:left}
   .stepper button{display:none}
   .stepper .val{border-radius:8px;border:1px solid #ccc}
   .notebtn .ph{display:none}
+  .penbtn,.moreBtn{display:none !important}
+  .noteinput{border:1px solid #ccc;border-radius:6px;min-height:34px}
+  .brand{display:block !important}
   .daybtn{font-size:15px;height:34px}
   .printhead{display:block !important}
   tbody tr{break-inside:avoid}
@@ -274,9 +338,12 @@ td.notes{padding:5px 8px 5px 5px;text-align:left}
     </div>
     <div class="grades" id="gradeTabs"></div>
     <div class="spacer"></div>
-    <div class="tools">
+    <span class="weekNav">
       <button class="btn" id="btnPrev" title="Previous week">&#8592; Week</button>
       <button class="btn" id="btnNext" title="Next week">Week &#8594;</button>
+    </span>
+    <button class="btn moreBtn" id="btnMore" title="More">More &#9662;</button>
+    <div class="tools" id="tools">
       <button class="btn" id="btnSchedule">Days &amp; Calendar</button>
       <button class="btn" id="btnRoster">Roster</button>
       <button class="btn" id="btnCsv">Export CSV</button>
@@ -920,15 +987,17 @@ function render(){
     const refLabel = row.r ? "&#10003; Sheet sent" : (needs ? "Needs Reflection Sheet" : "&mdash;");
     html += "<td class='refcol'><button class='refbtn " + refCls + "' data-r='1'>" + refLabel + "</button></td>";
 
-    const hasNote = !!(row.note || (row.ink && row.ink.s && row.ink.s.length));
-    html += "<td class='notes'><button class='notebtn" + (hasNote ? " has" : "") + "' data-note='1'>" +
-            (hasNote ? "" : "<span class='ph'>Tap to type or write a note…</span>") +
-            (row.note ? "<span class='txt'>" + esc(row.note) + "</span>" : "") +
-            "</button></td>";
+    const hasInk  = !!(row.ink && row.ink.s && row.ink.s.length);
+    const hasText = !!(row.note && row.note.trim());
+    html += "<td class='notes'><div class='notecell'>" +
+            "<textarea class='noteinput" + (hasText ? " has" : "") + "' data-noteinput='1' rows='2' " +
+            "placeholder='Type a note… or tap ✎ to write with the S Pen'>" + esc(row.note || "") + "</textarea>" +
+            "<button class='penbtn" + (hasInk || hasText ? " has" : "") + "' data-note='1' title='Write with the S Pen'>&#9998;</button>" +
+            "</div></td>";
 
     tr.innerHTML = html;
     body.appendChild(tr);
-    if (row.ink && row.ink.s && row.ink.s.length) drawThumb($(".notebtn", tr), row.ink);
+    if (hasInk) drawThumb($(".notecell", tr), row.ink);
   });
 
   renderSummary(roster);
@@ -1026,7 +1095,8 @@ function strokePath(ctx, st, scale){
   }
 }
 function drawThumb(btn, ink){
-  const maxH = 50, avail = Math.max(120, btn.clientWidth - 18);
+  /* thumbnail sits beside the typing box, so it may take at most ~45% of the cell */
+  const maxH = 50, avail = Math.max(80, Math.min(btn.clientWidth * 0.45, 260));
   const scale = Math.min(avail / ink.w, maxH / Math.max(1, ink.h), 1);
   const cv = document.createElement("canvas");
   const dpr = Math.min(window.devicePixelRatio || 1, 3);
@@ -1086,6 +1156,24 @@ $("#rosterBody").addEventListener("click", e => {
   }
   if (e.target.closest("[data-r]")){ row.r = !row.r; queueSave(); render(); return; }
   if (e.target.closest("[data-note]")) openPad(tr.dataset.name, row);
+});
+
+/* Typing straight into the Notes cell — no pad needed. Saves as you type,
+   without re-rendering the row, so the caret and the keyboard stay put.
+   (On the tablet the S Pen can also handwrite into this box: Samsung turns
+   the strokes into text.) */
+$("#rosterBody").addEventListener("input", e => {
+  const ta = e.target.closest("[data-noteinput]");
+  if (!ta) return;
+  const tr = ta.closest("tr");
+  if (!tr) return;
+  const row = rowFor(tr.dataset.name);
+  row.note = ta.value;
+  const has = !!ta.value.trim();
+  ta.classList.toggle("has", has);
+  const pen = tr.querySelector(".penbtn");
+  if (pen) pen.classList.toggle("has", has || !!(row.ink && row.ink.s && row.ink.s.length));
+  queueSave();
 });
 
 /* ============================================================
@@ -1364,6 +1452,11 @@ $("#trimester").addEventListener("change", e => { week.trimester = e.target.valu
 $("#period").addEventListener("input",   e => { week.period    = e.target.value; queueSave(); });
 $("#btnPrint").addEventListener("click", () => { saveNow(); window.print(); });
 
+/* "More ▾" — in the compact header the six less-used buttons live in a menu */
+$("#btnMore").addEventListener("click", e => { e.stopPropagation(); $("#tools").classList.toggle("open"); });
+$("#tools").addEventListener("click", e => { if (e.target.closest(".btn")) $("#tools").classList.remove("open"); });
+document.addEventListener("click", e => { if (!e.target.closest("#tools,#btnMore")) $("#tools").classList.remove("open"); });
+
 $("#btnClearWeek").addEventListener("click", () => {
   if (!confirm("Clear every grade, bonus, note and handwriting for Grade " + grade +
                ", week of " + prettyDate(weekKey) + "?\n\nThis cannot be undone.")) return;
@@ -1526,7 +1619,8 @@ function modalOpen(){ return !!$(".modal.open"); }
 
 function updateFHead(){
   const table = $("#rosterTable"), thead = $("#rosterHead");
-  const top = $("#topbar").offsetHeight;
+  /* where the top bar actually ends on screen (works whether it is stuck or has scrolled away) */
+  const top = Math.max(0, Math.round($("#topbar").getBoundingClientRect().bottom));
   const headR = thead.getBoundingClientRect(), tableR = table.getBoundingClientRect();
   const wrapR = hWrap.getBoundingClientRect();
   const show = !modalOpen() && headR.top < top && tableR.bottom > top + headR.height + 24;
@@ -1634,7 +1728,7 @@ document.addEventListener("visibilitychange", () => {
   else { chromeRaf = 0; updateChrome(); }
 });
 document.addEventListener("contextmenu", e => {
-  if (e.target.closest(".daybtn,.notebtn,.refbtn,.dayheadbtn,#padCanvas")) e.preventDefault();
+  if (e.target.closest(".daybtn,.penbtn,.refbtn,.dayheadbtn,#padCanvas")) e.preventDefault();
 });
 
 weekKey = mondayOf(fromIso(weekKey));
