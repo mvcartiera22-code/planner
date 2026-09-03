@@ -1692,6 +1692,7 @@
                 <button class="nav-btn btn-light" onclick="closeSyncModal()">Close</button>
                 <button class="nav-btn btn-light" onclick="disableSync()">Turn off</button>
                 <button class="nav-btn btn-light" onclick="pullAndMerge(true)">Sync now</button>
+                <button class="nav-btn btn-light" onclick="repairDuplicatesNow()" title="Collapse plan text that an older sync repeated">Clean up duplicates</button>
                 <button class="nav-btn btn-brand" onclick="saveSyncCfg()">Save &amp; Test</button>
             </div>
             <div id="sync-modal-status" style="font-size:0.82em; font-weight:700; margin-top:8px; min-height:1.2em;"></div>
@@ -1721,7 +1722,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.09.02';
+        const PLANNER_VERSION = 'v2026.09.03';
 
         /* ---- Change-time tracking for sync (newest edit wins on conflicts) ----
            Every write to storage stamps when that item last changed on this
@@ -2751,6 +2752,7 @@
             renderYearlyView();
             normalizeWeekKeys();
             migrateSavedWeeks();
+            runDuplicateRepairOnce();
             loadWeeklyData();
             attachDropListeners();
             seedSyncMeta();
@@ -2847,6 +2849,73 @@
             });
         }
 
+        /* ---- Repair of piled-up duplicates (v2026.09.03) ----
+           Older syncs could re-append a plan under itself every time two devices
+           disagreed about a cell. Collapse every repeated line and bullet in every
+           saved week and monthly/yearly box, keep a pre-repair copy of anything
+           changed (prerepair_… keys, never synced), and date every cell that has
+           text so the newest-wins rule covers it from now on. */
+        function repairDuplicateWeeks() {
+            const meta = getSyncMeta();
+            let cellsFixed = 0, linesRemoved = 0, weeksTouched = 0, boxesFixed = 0, stamped = 0;
+            const keys = [];
+            for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k) keys.push(k); }
+            keys.forEach(key => {
+                if (key.startsWith('week_')) {
+                    const html = localStorage.getItem(key);
+                    if (!html) return;
+                    const doc = new DOMParser().parseFromString('<table><tbody>' + html + '</tbody></table>', 'text/html');
+                    // Seed with when THIS device last saved the week, so the device
+                    // that touched a week most recently wins its undated cells.
+                    const seedTs = meta[key] || 1;
+                    let changed = false;
+                    doc.querySelectorAll('.cell-notes').forEach(cell => {
+                        const r = dedupeFragment(cell.innerHTML);
+                        if (r.removed) { cell.innerHTML = r.html; cellsFixed++; linesRemoved += r.removed; changed = true; }
+                        if (!cell.dataset.ts && normUnitText(cell.textContent)) { cell.dataset.ts = String(seedTs); stamped++; changed = true; }
+                    });
+                    if (changed) {
+                        if (localStorage.getItem('prerepair_' + key) === null) _rawSet('prerepair_' + key, html);
+                        localStorage.setItem(key, doc.querySelector('tbody').innerHTML);
+                        weeksTouched++;
+                    }
+                } else if (key.startsWith('month_') || key.startsWith('year_')) {
+                    const html = localStorage.getItem(key);
+                    if (!html) return;
+                    const r = dedupeFragment(html);
+                    if (r.removed) {
+                        if (localStorage.getItem('prerepair_' + key) === null) _rawSet('prerepair_' + key, html);
+                        localStorage.setItem(key, r.html);
+                        boxesFixed++; linesRemoved += r.removed;
+                    }
+                }
+            });
+            return { cellsFixed, linesRemoved, weeksTouched, boxesFixed, stamped };
+        }
+        function repairSummaryText(r) {
+            const n = r.cellsFixed + r.boxesFixed;
+            return `Cleaned up ${r.linesRemoved} repeated line${r.linesRemoved === 1 ? '' : 's'} in ${n} cell${n === 1 ? '' : 's'}` +
+                   (r.weeksTouched ? ` across ${r.weeksTouched} week${r.weeksTouched === 1 ? '' : 's'}` : '') + ' ✓';
+        }
+        function runDuplicateRepairOnce() {
+            if (localStorage.getItem('dup_repair_v1')) return;
+            const r = repairDuplicateWeeks();
+            _rawSet('dup_repair_v1', String(Date.now()));
+            if (r.cellsFixed || r.boxesFixed) _rawSet('planner_restore_summary', repairSummaryText(r));
+        }
+        function repairDuplicatesNow() {
+            saveCurrentView();
+            const r = repairDuplicateWeeks();
+            const n = r.cellsFixed + r.boxesFixed;
+            showBackupToast(n ? repairSummaryText(r) : 'No repeated lines found ✓', 6000);
+            if (n) {
+                loadWeeklyData();
+                renderMonthlyCalendar(currentMonthIdx);
+                renderYearlyView();
+                schedulePush();
+            }
+        }
+
         function migrateSavedWeeks() {
             const keys = [];
             for (let i = 0; i < localStorage.length; i++) {
@@ -2918,6 +2987,8 @@
             const data = {};
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
+                // pre-repair safety copies are this device's business only
+                if (!key || key.startsWith('prerepair_') || key === 'dup_repair_v1') continue;
                 data[key] = localStorage.getItem(key);
             }
             return {
@@ -3976,14 +4047,83 @@
             return d.textContent || '';
         }
 
+        /* ---- Duplicate-safe text merging (v2026.09.03) ----
+           A cell or box is a list of units: lines, paragraphs, bullets. Merging
+           is done as a UNION of units, which is idempotent — merging the same
+           text a second time changes nothing, and merging A+B with B gives A+B.
+           The old rule appended the other copy whenever the two differed, and
+           once two devices disagreed, each sync made both longer forever. */
+        function normUnitText(s) {
+            return (s || '').replace(/ /g, ' ').replace(/\s+/g, ' ').trim();
+        }
+        function dedupeFragment(html) {
+            const box = document.createElement('div');
+            box.innerHTML = html || '';
+            let removed = 0;
+            const seen = new Set();
+            const BLOCK = /^(DIV|P|UL|OL|BLOCKQUOTE|LI|H[1-6]|PRE|BR)$/;
+            const hasImg = n => n.nodeType === 1 && (n.tagName === 'IMG' || !!n.querySelector('img'));
+            const isSep = n => !hasImg(n) && (
+                (n.nodeType === 3 && !n.textContent.trim()) ||
+                (n.nodeType === 1 && (n.tagName === 'BR' || !n.textContent.trim())));
+            const hasBlockChildren = el => Array.from(el.childNodes).some(c => c.nodeType === 1 && BLOCK.test(c.tagName));
+            const ownText = li => {               // a bullet's own words, not its sub-bullets
+                const c = li.cloneNode(true);
+                c.querySelectorAll('ul, ol').forEach(x => x.remove());
+                return normUnitText(c.textContent);
+            };
+            const claim = (node, text) => {
+                if (!text) return;                    // stickers / images: always keep
+                if (seen.has(text)) { node.remove(); removed++; } else seen.add(text);
+            };
+            const collapseSeps = container => {
+                let prevSep = true;
+                Array.from(container.childNodes).forEach(n => {
+                    if (isSep(n)) { if (prevSep) n.remove(); else prevSep = true; }
+                    else prevSep = false;
+                });
+                while (container.lastChild && isSep(container.lastChild)) container.lastChild.remove();
+            };
+            const dedupeList = list => {
+                Array.from(list.children).forEach(li => {
+                    if (li.tagName !== 'LI') return;
+                    li.querySelectorAll(':scope > ul, :scope > ol').forEach(dedupeList);
+                    const t = ownText(li);
+                    if (!t && !hasImg(li) && !li.querySelector('li')) { li.remove(); return; }
+                    claim(li, t);
+                });
+                if (!list.children.length) list.remove();
+            };
+            const walk = container => {
+                Array.from(container.childNodes).forEach(n => {
+                    if (isSep(n)) return;
+                    if (n.nodeType === 3) { claim(n, normUnitText(n.textContent)); return; }
+                    if (n.tagName === 'UL' || n.tagName === 'OL') { dedupeList(n); return; }
+                    if (hasBlockChildren(n)) {
+                        walk(n);
+                        if (!normUnitText(n.textContent) && !hasImg(n)) n.remove();
+                        return;
+                    }
+                    claim(n, normUnitText(n.textContent));
+                });
+                collapseSeps(container);
+            };
+            walk(box);
+            return { html: box.innerHTML, removed };
+        }
+        function unionFragments(a, b) {
+            const at = normUnitText(stripTagsToText(a)), bt = normUnitText(stripTagsToText(b));
+            if (!bt) return a || '';
+            if (!at) return b || '';
+            return dedupeFragment((a || '') + '<br>' + (b || '')).html;
+        }
+
         // Combine one week's saved grid with the same week from a backup or
-        // sync, cell by cell. Cells carry a change-time (data-ts, stamped on
-        // every edit): when both sides have a stamp, the NEWER version of the
-        // cell wins outright — so rewriting or clearing a cell on one device
-        // really replaces it everywhere. Cells from older saves (no stamp yet)
-        // keep the old careful behavior: fill empty cells from the backup, and
-        // where both sides differ keep the device's text and append the
-        // backup's. Re-merging the same backup changes nothing.
+        // sync, cell by cell. Cells carry a change-time (data-ts):
+        //   both dated  → the newer one wins outright, even if it is an emptied cell;
+        //   one dated   → the dated one wins (the other is from before stamps existed);
+        //   neither     → union of lines (never a blind append), then dated, so the
+        //                 cell can never take this path again.
         function mergeWeekHtml(localHtml, backupHtml) {
             const parse = h => new DOMParser().parseFromString('<table><tbody>' + h + '</tbody></table>', 'text/html');
             const ld = parse(localHtml), bd = parse(backupHtml);
@@ -4003,26 +4143,14 @@
                     const lTs = Number(ln.dataset.ts || 0);
                     const bTs = Number(bn.dataset.ts || 0);
                     if (lTs && bTs) {
-                        // Both sides know when this cell last changed: newest wins,
-                        // even when the newest version is an emptied cell.
-                        if (bTs > lTs) {
-                            ln.innerHTML = bn.innerHTML;
-                            ln.dataset.ts = bn.dataset.ts;
-                            changed = true;
-                        }
+                        if (bTs > lTs) { ln.innerHTML = bn.innerHTML; ln.dataset.ts = bn.dataset.ts; changed = true; }
                         continue;
                     }
-                    const lTxt = ln.textContent.trim();
-                    const bTxt = bn.textContent.trim();
-                    if (!bTxt) continue;
-                    if (!lTxt) {
-                        ln.innerHTML = bn.innerHTML;
-                        if (bn.dataset.ts) ln.dataset.ts = bn.dataset.ts;
-                        changed = true;
-                    } else if (!lTxt.includes(bTxt)) {
-                        ln.innerHTML = ln.innerHTML + '<br>' + bn.innerHTML;
-                        changed = true;
-                    }
+                    if (lTs) continue;
+                    if (bTs) { ln.innerHTML = bn.innerHTML; ln.dataset.ts = bn.dataset.ts; changed = true; continue; }
+                    const u = unionFragments(ln.innerHTML, bn.innerHTML);
+                    if (u !== ln.innerHTML) { ln.innerHTML = u; changed = true; }
+                    if (normUnitText(ln.textContent)) { ln.dataset.ts = String(Date.now()); changed = true; }
                 }
             });
             return changed ? ld.querySelector('tbody').innerHTML : localHtml;
@@ -4070,11 +4198,15 @@
                     if (rStamp && lStamp) {
                         // Both sides know when this box last changed: newest wins.
                         if (rStamp > lStamp) { localStorage.setItem(key, value); merged++; }
+                    } else if (lStamp) {
+                        // Ours is dated; theirs is from before stamps existed. Keep ours.
+                    } else if (rStamp) {
+                        localStorage.setItem(key, value); merged++;
                     } else {
-                        const lTxt = stripTagsToText(local).trim();
-                        const bTxt = stripTagsToText(value).trim();
-                        if (!lTxt && bTxt) { localStorage.setItem(key, value); merged++; }
-                        else if (bTxt && !lTxt.includes(bTxt)) { localStorage.setItem(key, local + '<br>' + value); merged++; }
+                        // Neither dated: union of lines, never a blind append. Writing
+                        // it dates the box here, so it never takes this path again.
+                        const u = unionFragments(local, value);
+                        if (u !== local) { localStorage.setItem(key, u); merged++; }
                     }
                 } else if (key === 'weekly_todos_elementary' || key === 'weekly_todos_middle') {
                     if (mergeJsonList(key, local, value, i => (i.text || '').trim())) merged++;
