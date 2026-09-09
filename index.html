@@ -1048,7 +1048,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.09.11</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.09.12</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana 🇲🇽</span>
         </div>
@@ -1732,7 +1732,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.09.11';
+        const PLANNER_VERSION = 'v2026.09.12';
 
         /* ---- Change-time tracking for sync (newest edit wins on conflicts) ----
            Every write to storage stamps when that item last changed on this
@@ -1740,6 +1740,20 @@
            'sync_meta' key), so no server change is needed. */
         const _rawSet = Storage.prototype.setItem.bind(localStorage);
         const SYNC_META_SKIP = /^(sync_meta|sync_meta_seeded|sync_cfg|sync_last|planner_restore_summary|planner_backup_snooze|planner_last_backup|seats_lastclass)$/;
+
+        /* ---- Which stored items belong to THIS app ----
+           Several of Maria's/the family's single-file apps are served from the
+           same web address, and browsers scope saved data per address, not per
+           page — so they all share one store. Backup, sync, merge and restore
+           must therefore touch ONLY the planner's own items. Without this, one
+           app's data rides into another's backups and cloud (452 PCC Adjusting
+           claims leaked into Maria's Drive and Firestore this way on
+           2026-09-09), and a "replace everything" restore would delete a
+           sibling app outright.
+           ⚠ ANY NEW PLANNER STORAGE KEY MUST BE LISTED HERE, or it will not be
+           backed up and will not sync. */
+        const PLANNER_KEY = /^(week_|month_|year_|spTracker\.v1\.|seating_|weekly_todos_|home_stickies$|home_links$|resources$|copies_done$|sync_meta$|sync_meta_seeded$|sync_cfg$|sync_last$|seats_lastclass$|planner_|fb_device_id$|dup_repair_v1$|prerepair_)/;
+        function isPlannerKey(k) { return !!k && PLANNER_KEY.test(k); }
         let syncMetaCache = null;
 
         function getSyncMeta() {
@@ -1752,6 +1766,7 @@
 
         function noteLocalChange(k) {
             if (!k || SYNC_META_SKIP.test(k)) return;
+            if (!isPlannerKey(k)) return;   // another app's item, sharing this address
             const m = getSyncMeta();
             m[k] = Date.now();
             _rawSet('sync_meta', JSON.stringify(m));
@@ -3029,6 +3044,8 @@
                 const key = localStorage.key(i);
                 // pre-repair safety copies are this device's business only
                 if (!key || key.startsWith('prerepair_') || key === 'dup_repair_v1') continue;
+                // never copy a sibling app's data into a planner backup
+                if (!isPlannerKey(key)) continue;
                 data[key] = localStorage.getItem(key);
             }
             return {
@@ -4285,6 +4302,8 @@
             });
             for (const [key, value] of Object.entries(data)) {
                 if (key === 'sync_meta' || key === 'sync_meta_seeded') continue;
+                // ignore anything belonging to another app (older backups carry it)
+                if (!isPlannerKey(key)) continue;
                 const local = localStorage.getItem(key);
                 if (local === null) { localStorage.setItem(key, value); added++; continue; }
                 if (local === value) continue;
@@ -4358,6 +4377,9 @@
                 const backupHasTracker = Object.keys(backup.data).some(k => k.startsWith('spTracker.'));
                 for (let i = localStorage.length - 1; i >= 0; i--) {
                     const k = localStorage.key(i);
+                    // Only ever clear the planner's own items: a sibling app
+                    // shares this address, and wiping its data is not ours to do.
+                    if (!isPlannerKey(k)) continue;
                     if (backupHasTracker || !k.startsWith('spTracker.')) localStorage.removeItem(k);
                 }
                 for (const [key, value] of Object.entries(backup.data)) {
@@ -4646,6 +4668,10 @@
                 if (ch.type === 'removed') return;
                 const doc = ch.doc, d = doc.data() || {};
                 let key; try { key = decodeURIComponent(doc.id); } catch (e) { return; }
+                // Data belonging to another app that shares this web address
+                // should never have been uploaded. Remove it from the cloud
+                // and never apply it locally.
+                if (!isPlannerKey(key)) { fbPurgeForeign(doc.ref, key); return; }
                 if (typeof d.v !== 'string') return;
                 // Our own writes echo back through the listener; remember them
                 // as the cloud's copy but do not re-apply or re-push them.
@@ -4675,12 +4701,24 @@
             fbUpdateUi();
         }
 
+        /* Delete a sibling app's record from the planner's cloud store. Runs
+           whenever one is seen, so a leak cleans itself up on every device
+           that opens the planner — no console work needed. */
+        let fbPurged = 0;
+        function fbPurgeForeign(ref, key) {
+            ref.delete().then(() => {
+                fbPurged++;
+                showBackupToast('🧹 Removed ' + fbPurged + ' item' + (fbPurged === 1 ? '' : 's') +
+                    ' from another app out of the planner’s cloud storage.', 6000);
+            }).catch(() => { /* rules or offline: it will be retried next open */ });
+        }
+
         // First connection on a device: offer everything local to the cloud.
         // fbPushDirty skips any key whose cloud copy is already identical.
         function fbSeedPush() {
             for (let i = 0; i < localStorage.length; i++) {
                 const k = localStorage.key(i);
-                if (k && !FB_SKIP.test(k) && !k.startsWith('prerepair_')) fbDirty.add(k);
+                if (k && isPlannerKey(k) && !FB_SKIP.test(k) && !k.startsWith('prerepair_')) fbDirty.add(k);
             }
             clearTimeout(fbPushTimer);
             fbPushTimer = setTimeout(fbPushDirty, 800);
@@ -4688,6 +4726,7 @@
 
         function fbMarkDirty(k) {
             if (!fbActive() || FB_SKIP.test(k)) return;
+            if (!isPlannerKey(k)) return;   // never upload a sibling app's data
             fbDirty.add(k);
             clearTimeout(fbPushTimer);
             fbPushTimer = setTimeout(fbPushDirty, 2500);
