@@ -1722,7 +1722,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.09.03';
+        const PLANNER_VERSION = 'v2026.09.08';
 
         /* ---- Change-time tracking for sync (newest edit wins on conflicts) ----
            Every write to storage stamps when that item last changed on this
@@ -1768,6 +1768,26 @@
             }
             _rawSet('sync_meta', JSON.stringify(m));
             _rawSet('sync_meta_seeded', '1');
+        }
+
+        /* The Participation Tracker runs in its own iframe with its OWN
+           localStorage object, so the stamped setItem above never sees its
+           writes: grades got no change-stamp and scheduled no push, and the
+           newest-stamp merge then kept discarding them on other devices.
+           Same origin, same underlying store — so patch the frame's setItem
+           the same way the moment it loads. */
+        function hookTrackerFrame(f) {
+            try {
+                const w = f.contentWindow;
+                if (!w || w.__plannerSyncHooked) return;
+                const raw = w.Storage.prototype.setItem.bind(w.localStorage);
+                w.localStorage.setItem = function (k, v) {
+                    raw(k, v);
+                    noteLocalChange(String(k));
+                    if (typeof schedulePush === 'function') schedulePush();
+                };
+                w.__plannerSyncHooked = true;
+            } catch (e) { }
         }
 
         let currentViewId = 'home';
@@ -1911,7 +1931,10 @@
             if (viewId === 'ai-studio') renderResources();
             if (viewId === 'tracker') {
                 const f = document.getElementById('tracker-frame');
-                if (f && !f.src) f.src = 'participation.html';
+                if (f && !f.src) {
+                    f.addEventListener('load', () => hookTrackerFrame(f));
+                    f.src = 'participation.html';
+                }
             }
             currentViewId = viewId;
         }
@@ -2849,7 +2872,7 @@
             });
         }
 
-        /* ---- Repair of piled-up duplicates (v2026.09.03) ----
+        /* ---- Repair of piled-up duplicates (v2026.09.08) ----
            Older syncs could re-append a plan under itself every time two devices
            disagreed about a cell. Collapse every repeated line and bullet in every
            saved week and monthly/yearly box, keep a pre-repair copy of anything
@@ -4047,7 +4070,7 @@
             return d.textContent || '';
         }
 
-        /* ---- Duplicate-safe text merging (v2026.09.03) ----
+        /* ---- Duplicate-safe text merging (v2026.09.08) ----
            A cell or box is a list of units: lines, paragraphs, bullets. Merging
            is done as a UNION of units, which is idempotent — merging the same
            text a second time changes nothing, and merging A+B with B gives A+B.
@@ -4168,6 +4191,65 @@
             return false;
         }
 
+        /* Merge two tracker week records {trimester, period, off, rows}.
+           preferB: b's value wins where both sides marked the same field.
+           Marks/notes/ink present on only one side are always kept.
+           Returns the merged JSON string, or null if either side is not a
+           parseable record. Deterministic, so re-merging is a no-op. */
+        function mergeTrackerWeekJson(aStr, bStr, preferB) {
+            let a, b;
+            try { a = JSON.parse(aStr); b = JSON.parse(bStr); } catch (e) { return null; }
+            if (!a || !b || typeof a !== 'object' || typeof b !== 'object' ||
+                Array.isArray(a) || Array.isArray(b)) return null;
+            const win = preferB ? b : a, lose = preferB ? a : b;
+            const out = {
+                trimester: win.trimester || lose.trimester || '',
+                period: win.period || lose.period || '',
+                off: {}, rows: {}
+            };
+            [lose.off, win.off].forEach(o => {
+                if (o && typeof o === 'object' && !Array.isArray(o))
+                    Object.keys(o).forEach(k => { if (o[k]) out.off[k] = true; });
+            });
+            const names = Object.keys(a.rows || {});
+            Object.keys(b.rows || {}).forEach(n => { if (!(n in (a.rows || {}))) names.push(n); });
+            names.forEach(n => {
+                const rw = (win.rows || {})[n], rl = (lose.rows || {})[n];
+                if (!rw || !rl) { out.rows[n] = rw || rl; return; }
+                const d = {};
+                [rl.d, rw.d].forEach(o => {
+                    if (o && typeof o === 'object' && !Array.isArray(o))
+                        Object.keys(o).forEach(k => { if (o[k]) d[k] = o[k]; });
+                });
+                out.rows[n] = {
+                    d: d,
+                    bonus: rw.bonus || rl.bonus || 0,
+                    r: !!(rw.r || rl.r),
+                    note: rw.note || rl.note || '',
+                    ink: rw.ink || rl.ink || null
+                };
+            });
+            return JSON.stringify(out);
+        }
+
+        /* Union two roster arrays by student name (case-insensitive), local
+           order first. Returns the merged JSON string, or null when nothing
+           new / unparseable. */
+        function mergeTrackerRoster(localStr, remoteStr) {
+            try {
+                const a = JSON.parse(localStr), b = JSON.parse(remoteStr);
+                if (!Array.isArray(a) || !Array.isArray(b)) return null;
+                const nameOf = x => (typeof x === 'string' ? x : (x && x.name) || '').trim().toLowerCase();
+                const seen = new Set(a.map(nameOf));
+                const out = a.slice();
+                b.forEach(x => {
+                    const n = nameOf(x);
+                    if (n && !seen.has(n)) { seen.add(n); out.push(x); }
+                });
+                return out.length !== a.length ? JSON.stringify(out) : null;
+            } catch (e) { return null; }
+        }
+
         function mergeBackupData(data) {
             let added = 0, merged = 0;
             let remoteMeta = {};
@@ -4216,9 +4298,30 @@
                     if (mergeJsonList(key, local, value, i => i.url)) merged++;
                 } else if (key === 'resources') {
                     if (mergeJsonList(key, local, value, i => i.url)) merged++;
+                } else if (key.startsWith('spTracker.v1.week.')) {
+                    // Participation grades: never drop a mark. Marks present on
+                    // only one side are kept; where both sides marked the same
+                    // student+day differently, the newer-stamped copy wins
+                    // (the device's copy when neither is stamped). Writing the
+                    // merge stamps it here, so legacy unstamped weeks heal.
+                    const r = remoteMeta[key] || 0;
+                    const l = localMeta[key] || 0;
+                    if (l && !r) continue; // ours is dated, theirs is legacy
+                    const m = mergeTrackerWeekJson(local, value, r > l);
+                    if (m === null) { // unparseable: plain newest-wins
+                        if (r > l) { localStorage.setItem(key, value); merged++; }
+                    } else if (m !== local) { localStorage.setItem(key, m); merged++; }
+                } else if (key.startsWith('spTracker.v1.roster.')) {
+                    const r = remoteMeta[key] || 0;
+                    const l = localMeta[key] || 0;
+                    if (r && r > l) { localStorage.setItem(key, value); merged++; }
+                    else if (!r && !l) {
+                        const m = mergeTrackerRoster(local, value);
+                        if (m !== null) { localStorage.setItem(key, m); merged++; }
+                    }
                 } else {
-                    // Whole-object items (seating charts, participation grades,
-                    // settings): the copy with the newer change-stamp wins. With
+                    // Whole-object items (seating charts, tracker settings,
+                    // etc.): the copy with the newer change-stamp wins. With
                     // no stamps on either side, the device's copy is kept.
                     const r = remoteMeta[key] || 0;
                     const l = localMeta[key] || 0;
