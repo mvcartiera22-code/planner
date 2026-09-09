@@ -1048,7 +1048,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.09.09</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.09.11</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana 🇲🇽</span>
         </div>
@@ -1679,6 +1679,16 @@
     <div id="sync-modal-backdrop" class="modal-backdrop" style="display:none;" onclick="if (event.target === this) closeSyncModal()">
         <div class="import-modal" style="max-width:470px;">
             <h3>🔄 Automatic Sync</h3>
+            <div id="fb-section" style="display:none; background:#f0f7ff; border:1px solid #bcd7f5; border-radius:10px; padding:12px 14px; margin-bottom:14px;">
+                <div style="font-weight:800; margin-bottom:4px;">⚡ Live Sync</div>
+                <p style="margin:0 0 8px; font-size:0.86em;">The new way: sign in once with Maria's Google account and every device stays matched by itself — changes appear on the other screens within seconds.</p>
+                <div class="import-actions" style="flex-wrap:wrap; margin:0;">
+                    <button class="nav-btn btn-brand" id="fb-signin-btn" onclick="fbSignIn()">Sign in with Google</button>
+                    <button class="nav-btn btn-light" id="fb-signout-btn" onclick="fbSignOut()" style="display:none;">Sign out</button>
+                </div>
+                <div id="fb-status" style="font-size:0.82em; font-weight:700; margin-top:8px; min-height:1.2em;"></div>
+            </div>
+            <div id="old-sync-section-note" style="display:none; font-size:0.8em; color:#64748b; font-weight:600; margin-bottom:6px;">The boxes below are the old sync — off automatically while Live Sync is signed in. No need to touch them.</div>
             <p>Keeps every device showing the same planner, through a small helper that lives in Maria's own Google account. Set it up once per device by pasting the same two things (see <b>GOOGLE-SYNC-SETUP</b> for the one-time Google setup):</p>
             <div class="import-row" style="flex-direction:column;">
                 <label style="width:100%;">Sync web address (from the Google script)
@@ -1722,7 +1732,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.09.09';
+        const PLANNER_VERSION = 'v2026.09.11';
 
         /* ---- Change-time tracking for sync (newest edit wins on conflicts) ----
            Every write to storage stamps when that item last changed on this
@@ -1745,6 +1755,8 @@
             const m = getSyncMeta();
             m[k] = Date.now();
             _rawSet('sync_meta', JSON.stringify(m));
+            // Live Sync rides the same stamp: queue this key for Firestore.
+            try { fbMarkDirty(k); } catch (e) { /* fb layer not loaded yet */ }
         }
 
         localStorage.setItem = function (k, v) {
@@ -2768,6 +2780,7 @@
             // can never drift apart again (they did through v2026.09.08).
             const vEl = document.getElementById('planner-version');
             if (vEl) vEl.innerText = PLANNER_VERSION;
+            fbInit();
             const today = new Date();
             const startOfWeek = getStartOfWeek(today);
             const dateInput = document.getElementById('weekDate');
@@ -4383,6 +4396,7 @@
 
         // Called whenever anything changes; waits for typing to settle, then pushes.
         function schedulePush() {
+            try { if (fbActive()) return; } catch (e) { }   // Live Sync replaces the snapshot push
             if (!getSyncCfg()) return;
             clearTimeout(syncPushTimer);
             syncPushTimer = setTimeout(() => pushSnapshot(), 6000);
@@ -4415,6 +4429,7 @@
         // nothing local is deleted), push the combined result back, and reload
         // once if anything new arrived.
         async function pullAndMerge(interactive) {
+            try { if (fbActive()) { if (interactive) showBackupToast('⚡ Live Sync is on — everything syncs by itself.'); return; } } catch (e) { }
             const cfg = getSyncCfg();
             if (!cfg) return;
             lastPullAt = Date.now();
@@ -4453,6 +4468,7 @@
             document.getElementById('sync-token').value = cfg ? cfg.token : '';
             document.getElementById('sync-modal-status').innerText = cfg
                 ? 'Sync is ON for this device.' : 'Sync is not set up on this device yet.';
+            fbUpdateUi();
             document.getElementById('sync-modal-backdrop').style.display = 'flex';
         }
 
@@ -4513,10 +4529,11 @@
             // Coming BACK to a planner that sat open (the work-desktop pattern):
             // check for changes from the other devices before anything is typed
             // here, instead of only checking when the page first opened.
-            else if (getSyncCfg() && Date.now() - lastPullAt > 5 * 60 * 1000) pullAndMerge(false);
+            else if (!fbActive() && getSyncCfg() && Date.now() - lastPullAt > 5 * 60 * 1000) pullAndMerge(false);
         });
 
         function flushPendingPush() {
+            try { if (fbActive()) return; } catch (e) { }   // Firestore queues its own pending writes
             const cfg = getSyncCfg();
             if (!cfg || syncPushTimer === null) return;
             clearTimeout(syncPushTimer);
@@ -4526,6 +4543,205 @@
                 navigator.sendBeacon(cfg.url, body);
                 localStorage.setItem('sync_last', String(Date.now()));
             } catch (e) { /* next open will push anyway */ }
+        }
+
+        /* ============ FIREBASE LIVE SYNC ============
+           Real-time per-key sync through Firestore. Dormant until
+           FIREBASE_CONFIG is filled in (it is the project's public app id,
+           not a secret — security comes from Google sign-in + the database
+           rules restricting data to Maria's own account). While a user is
+           signed in, the old Apps Script sync stands down automatically.
+           Remote changes are applied through the SAME mergeBackupData used
+           by the old sync and Restore, so every merge rule (week cells,
+           tracker marks, unions, newest-wins) carries over unchanged. */
+
+        const FIREBASE_CONFIG = {
+            apiKey: "AIzaSyCshdZ2Y2faPrjJiQRy1OS0oga-HPs9OXM",
+            authDomain: "maria-planner.firebaseapp.com",
+            projectId: "maria-planner",
+            storageBucket: "maria-planner.firebasestorage.app",
+            messagingSenderId: "223845927148",
+            appId: "1:223845927148:web:353c4d0a672afc5c757dc9"
+        }; // Maria's Firebase project (public app config, not a secret)
+
+        const FB_SDK_BASE = 'https://www.gstatic.com/firebasejs/10.14.1/';
+        // Per-device bookkeeping and cloud config must not travel between devices.
+        const FB_SKIP = /^(sync_meta$|sync_meta_seeded$|sync_cfg$|sync_last$|planner_restore_summary$|planner_backup_snooze$|planner_last_backup$|seats_lastclass$|prerepair_|dup_repair_v1$|fb_device_id$|firebase:)/;
+
+        let fbAuth = null, fbCol = null, fbUser = null, fbUnsub = null;
+        let fbDirty = new Set(), fbPushTimer = null, fbLastCloud = {};
+        let fbGotFirstSnapshot = false;
+
+        function fbDeviceId() {
+            let id = localStorage.getItem('fb_device_id');
+            if (!id) { id = 'd' + Math.random().toString(36).slice(2, 10); _rawSet('fb_device_id', id); }
+            return id;
+        }
+
+        function fbActive() { return !!(FIREBASE_CONFIG && fbUser && fbCol); }
+
+        function fbLoadScript(name) {
+            return new Promise((res, rej) => {
+                const s = document.createElement('script');
+                s.src = FB_SDK_BASE + name;
+                s.onload = res; s.onerror = rej;
+                document.head.appendChild(s);
+            });
+        }
+
+        async function fbInit() {
+            if (!FIREBASE_CONFIG) return;
+            try {
+                await fbLoadScript('firebase-app-compat.js');
+                await Promise.all([fbLoadScript('firebase-auth-compat.js'), fbLoadScript('firebase-firestore-compat.js')]);
+                firebase.initializeApp(FIREBASE_CONFIG);
+                fbAuth = firebase.auth();
+                // Offline cache: edits made without internet queue up and send later.
+                try { await firebase.firestore().enablePersistence({ synchronizeTabs: true }); } catch (e) { }
+                fbAuth.onAuthStateChanged(u => {
+                    fbUser = u;
+                    if (u) fbStart(); else fbStop();
+                    fbUpdateUi();
+                });
+            } catch (e) {
+                const st = document.getElementById('fb-status');
+                if (st) { st.style.color = '#b91c1c'; st.innerText = 'Live Sync could not load (no internet?). The old sync still works.'; }
+            }
+        }
+
+        function fbSignIn() {
+            if (!fbAuth) return;
+            const p = new firebase.auth.GoogleAuthProvider();
+            fbAuth.signInWithPopup(p).catch(e => {
+                // Tablets often block popups; the redirect flow signs in via a full-page trip instead.
+                if (e && /popup/i.test(e.code || '')) fbAuth.signInWithRedirect(p);
+                else {
+                    const st = document.getElementById('fb-status');
+                    if (st) { st.style.color = '#b91c1c'; st.innerText = 'Sign-in did not finish: ' + (e && e.message || e); }
+                }
+            });
+        }
+
+        function fbSignOut() {
+            if (fbAuth) fbAuth.signOut();
+        }
+
+        function fbStart() {
+            if (!fbUser) return;
+            fbCol = firebase.firestore().collection('planners').doc(fbUser.uid).collection('kv');
+            fbGotFirstSnapshot = false;
+            fbUnsub = fbCol.onSnapshot(fbOnSnapshot, () => setSyncStatus('⚡ sync error', false));
+        }
+
+        function fbStop() {
+            if (fbUnsub) { fbUnsub(); fbUnsub = null; }
+            fbCol = null; fbLastCloud = {}; fbDirty.clear();
+            setSyncStatus('', true);
+        }
+
+        function fbOnSnapshot(snap) {
+            const incoming = {}, meta = {};
+            let got = 0;
+            snap.docChanges().forEach(ch => {
+                if (ch.type === 'removed') return;
+                const doc = ch.doc, d = doc.data() || {};
+                let key; try { key = decodeURIComponent(doc.id); } catch (e) { return; }
+                if (typeof d.v !== 'string') return;
+                // Our own writes echo back through the listener; remember them
+                // as the cloud's copy but do not re-apply or re-push them.
+                if (doc.metadata.hasPendingWrites || d.d === fbDeviceId()) { fbLastCloud[key] = d.v; return; }
+                fbLastCloud[key] = d.v;
+                incoming[key] = d.v;
+                meta[key] = d.t || 0;
+                got++;
+            });
+            if (got) {
+                const payload = Object.assign({}, incoming);
+                payload.sync_meta = JSON.stringify(meta);
+                // mergeBackupData writes only when content really differs, so
+                // identical copies bouncing between devices go quiet on their own.
+                const changed = mergeBackupData(payload);
+                if (changed.added + changed.merged > 0) {
+                    if (document.hidden) { location.reload(); return; }
+                    showBackupToast('⚡ ' + (changed.added + changed.merged) + ' update' + (changed.added + changed.merged === 1 ? '' : 's') + ' arrived from another device');
+                    if (typeof renderHome === 'function' && currentViewId === 'home') renderHome();
+                }
+            }
+            if (!fbGotFirstSnapshot) {
+                fbGotFirstSnapshot = true;
+                fbSeedPush();
+            }
+            setSyncStatus('⚡ Live ✓ ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }), true);
+            fbUpdateUi();
+        }
+
+        // First connection on a device: offer everything local to the cloud.
+        // fbPushDirty skips any key whose cloud copy is already identical.
+        function fbSeedPush() {
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && !FB_SKIP.test(k) && !k.startsWith('prerepair_')) fbDirty.add(k);
+            }
+            clearTimeout(fbPushTimer);
+            fbPushTimer = setTimeout(fbPushDirty, 800);
+        }
+
+        function fbMarkDirty(k) {
+            if (!fbActive() || FB_SKIP.test(k)) return;
+            fbDirty.add(k);
+            clearTimeout(fbPushTimer);
+            fbPushTimer = setTimeout(fbPushDirty, 2500);
+        }
+
+        async function fbPushDirty() {
+            if (!fbActive() || !fbDirty.size) return;
+            const keys = Array.from(fbDirty); fbDirty.clear();
+            const meta = getSyncMeta(), dev = fbDeviceId();
+            const writes = [];
+            keys.forEach(k => {
+                const v = localStorage.getItem(k);
+                if (v === null || fbLastCloud[k] === v) return;
+                if (v.length > 900000) return; // over Firestore's per-item ceiling; backups still carry it
+                writes.push({ k, v, t: meta[k] || Date.now() });
+            });
+            if (!writes.length) return;
+            try {
+                for (let i = 0; i < writes.length; i += 400) {
+                    const batch = firebase.firestore().batch();
+                    writes.slice(i, i + 400).forEach(w =>
+                        batch.set(fbCol.doc(encodeURIComponent(w.k)), { v: w.v, t: w.t, d: dev }));
+                    await batch.commit();
+                }
+                writes.forEach(w => { fbLastCloud[w.k] = w.v; });
+                setSyncStatus('⚡ Live ✓ ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }), true);
+            } catch (e) {
+                keys.forEach(k => fbDirty.add(k));   // retry these next time
+                clearTimeout(fbPushTimer);
+                fbPushTimer = setTimeout(fbPushDirty, 15000);
+                setSyncStatus('⚡ offline — will catch up', false);
+            }
+        }
+
+        function fbUpdateUi() {
+            const sec = document.getElementById('fb-section');
+            if (!sec) return;
+            sec.style.display = FIREBASE_CONFIG ? 'block' : 'none';
+            if (!FIREBASE_CONFIG) return;
+            const st = document.getElementById('fb-status');
+            const inBtn = document.getElementById('fb-signin-btn');
+            const outBtn = document.getElementById('fb-signout-btn');
+            const note = document.getElementById('old-sync-section-note');
+            if (fbUser) {
+                st.style.color = '#047857';
+                st.innerText = 'Signed in as ' + (fbUser.email || 'Maria') + ' ✓ — this device now syncs live.';
+                inBtn.style.display = 'none'; outBtn.style.display = 'inline-flex';
+                if (note) note.style.display = 'block';
+            } else {
+                st.style.color = '';
+                st.innerText = 'Not signed in on this device yet.';
+                inBtn.style.display = 'inline-flex'; outBtn.style.display = 'none';
+                if (note) note.style.display = 'none';
+            }
         }
 
         /* ============ SEATING CHART ============ */
