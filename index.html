@@ -1308,7 +1308,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.09.14</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.09.15</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana</span>
         </div>
@@ -2006,7 +2006,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.09.14';
+        const PLANNER_VERSION = 'v2026.09.15';
 
         /* ---- Change-time tracking for sync (newest edit wins on conflicts) ----
            Every write to storage stamps when that item last changed on this
@@ -3226,6 +3226,7 @@
             const vEl = document.getElementById('planner-version');
             if (vEl) vEl.innerText = PLANNER_VERSION;
             applySavedScheme();
+            applyTombstonesToLists();
             makeTabsFocusable();
             fbInit();
             const today = new Date();
@@ -4319,25 +4320,53 @@
 
         /* ---- Sticky notes ---- */
 
+        /* A note is identified by its own id, never by what it says. Identifying
+           by text meant that editing a note read as "deleted one, created
+           another" — so the old wording came straight back from another device —
+           and a note emptied of text had no identity at all and could never be
+           deleted. Notes saved before ids existed get one derived from their
+           text, so every device independently agrees on the same id. */
+        function stickyHashId(text) {
+            let h = 0;
+            const s = 'sticky|' + (text || '');
+            for (let i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) | 0; }
+            return 'h' + (h >>> 0).toString(36);
+        }
+        const stickyIdOf = s => s && s.id;
+
         function getStickies() {
             const saved = JSON.parse(localStorage.getItem('home_stickies') || 'null');
-            return saved || [{ text: '¡Bienvenida! Tap a note to write on it, or add a new one.', color: 0 }];
+            const list = saved || [{ text: '¡Bienvenida! Tap a note to write on it, or add a new one.', color: 0 }];
+            let backfilled = false;
+            list.forEach((s, i) => {
+                if (!s.id) {
+                    s.id = (s.text || '').trim() ? stickyHashId(s.text) : 'n' + Date.now().toString(36) + i;
+                    backfilled = true;
+                }
+            });
+            if (backfilled && saved) _rawSet('home_stickies', JSON.stringify(list));
+            return list;
         }
 
-        function saveStickiesFromDom() { schedulePush();
+        function saveStickiesFromDom() {
             const notes = [];
             document.querySelectorAll('#sticky-board .sticky-note').forEach(n => {
-                notes.push({ text: n.querySelector('.sticky-text').innerText, color: parseInt(n.dataset.color) || 0 });
+                notes.push({
+                    id: n.dataset.id || ('n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
+                    text: n.querySelector('.sticky-text').innerText,
+                    color: parseInt(n.dataset.color) || 0
+                });
             });
-            noteListDeletions('home_stickies', notes, i => (i.text || '').trim());
+            noteListDeletions('home_stickies', notes, stickyIdOf);
             localStorage.setItem('home_stickies', JSON.stringify(notes));
+            schedulePush();
         }
 
         function renderStickies() {
             const board = document.getElementById('sticky-board');
             if (!board) return;
             board.innerHTML = getStickies().map(s =>
-                `<div class="sticky-note" data-color="${s.color % STICKY_COLORS.length}" style="background:${STICKY_COLORS[s.color % STICKY_COLORS.length]};">
+                `<div class="sticky-note" data-id="${escapeForPreview(s.id || "")}" data-color="${s.color % STICKY_COLORS.length}" style="background:${STICKY_COLORS[s.color % STICKY_COLORS.length]};">
                     <button class="sticky-del" title="Delete note" onclick="this.parentElement.remove(); saveStickiesFromDom();">✕</button>
                     <div class="sticky-text" contenteditable="true" oninput="saveStickiesFromDom()">${escapeForPreview(s.text)}</div>
                 </div>`
@@ -4347,8 +4376,8 @@
         function addSticky() {
             saveStickiesFromDom();
             const notes = getStickies();
-            notes.push({ text: '', color: notes.length % STICKY_COLORS.length });
-            noteListDeletions('home_stickies', notes, i => (i.text || '').trim());
+            notes.push({ id: "n" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text: "", color: notes.length % STICKY_COLORS.length });
+            noteListDeletions('home_stickies', notes, stickyIdOf);
             localStorage.setItem('home_stickies', JSON.stringify(notes));
             renderStickies();
             schedulePush();
@@ -4731,6 +4760,37 @@
             } catch (e) { /* leave tombstones alone on unreadable data */ }
         }
 
+        /* Applying a deletion that arrived from another device. A tombstone can
+           reach this device when its own copy of the list is byte-identical to
+           the incoming one — in which case no merge runs for that key and the
+           note would quietly survive. So sweep the lists directly whenever
+           tombstones change, and once on load. */
+        const TOMBSTONED_LISTS = [
+            ['home_stickies', s => s && s.id],
+            ['home_links', i => i && i.url],
+            ['resources', i => i && i.url],
+            ['weekly_todos_elementary', i => i && (i.text || '').trim()],
+            ['weekly_todos_middle', i => i && (i.text || '').trim()]
+        ];
+
+        function applyTombstonesToLists() {
+            const tombs = getTombs();
+            let removed = 0;
+            TOMBSTONED_LISTS.forEach(([key, idOf]) => {
+                const dead = tombs[key];
+                if (!dead || !Object.keys(dead).length) return;
+                let arr;
+                try { arr = JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { return; }
+                if (!Array.isArray(arr)) return;
+                const kept = arr.filter(item => { const id = idOf(item); return !(id && dead[id]); });
+                if (kept.length !== arr.length) {
+                    removed += arr.length - kept.length;
+                    _rawSet(key, JSON.stringify(kept));   // silent: not a new local edit
+                }
+            });
+            return removed;
+        }
+
         function mergeJsonList(key, localVal, backupVal, idOf) {
             try {
                 const a = JSON.parse(localVal), b = JSON.parse(backupVal);
@@ -4833,6 +4893,25 @@
                 if (key === 'sync_meta' || key === 'sync_meta_seeded') continue;
                 // ignore anything belonging to another app (older backups carry it)
                 if (!isPlannerKey(key)) continue;
+                /* Deletions must never be lost to "newest device wins": if this
+                   device deleted note A and another deleted note B, both stay
+                   deleted. Tombstones therefore merge as a union, keeping the
+                   later timestamp for anything both sides know about. */
+                if (key === TOMB_KEY) {
+                    try {
+                        const mine = getTombs(), theirs = JSON.parse(value || '{}') || {};
+                        let touched = false;
+                        Object.keys(theirs).forEach(listKey => {
+                            mine[listKey] = mine[listKey] || {};
+                            Object.keys(theirs[listKey]).forEach(id => {
+                                const t = theirs[listKey][id];
+                                if (!mine[listKey][id] || t > mine[listKey][id]) { mine[listKey][id] = t; touched = true; }
+                            });
+                        });
+                        if (touched) { saveTombs(mine); merged++; }
+                    } catch (e) { }
+                    continue;
+                }
                 const local = localStorage.getItem(key);
                 if (local === null) { localStorage.setItem(key, value); added++; continue; }
                 if (local === value) continue;
@@ -4857,8 +4936,8 @@
                     }
                 } else if (key === 'weekly_todos_elementary' || key === 'weekly_todos_middle') {
                     if (mergeJsonList(key, local, value, i => (i.text || '').trim())) merged++;
-                } else if (key === 'home_stickies') {
-                    if (mergeJsonList(key, local, value, i => (i.text || '').trim())) merged++;
+                } else if (key === "home_stickies") {
+                    if (mergeJsonList(key, local, value, stickyIdOf)) merged++;
                 } else if (key === 'home_links') {
                     if (mergeJsonList(key, local, value, i => i.url)) merged++;
                 } else if (key === 'resources') {
@@ -4893,6 +4972,8 @@
                     if (r > l) { localStorage.setItem(key, value); merged++; }
                 }
             }
+            const swept = applyTombstonesToLists();
+            if (swept) merged += swept;
             return { added, merged };
         }
 
@@ -4980,7 +5061,19 @@
         // nothing local is deleted), push the combined result back, and reload
         // once if anything new arrived.
         async function pullAndMerge(interactive) {
-            try { if (fbActive()) { if (interactive) showBackupToast('Live Sync is on — everything syncs by itself.'); return; } } catch (e) { }
+            try {
+                if (fbActive()) {
+                    // Live Sync: rebuild the connection and re-offer everything now.
+                    fbForceSync();
+                    if (interactive) showBackupToast('Reconnected and sent this device’s work ✓', 5000);
+                    return;
+                }
+                if (FIREBASE_CONFIG && fbUser && !fbCol) {
+                    if (interactive) showBackupToast('Signed in but not connected. Reconnecting…', 5000);
+                    fbRetry = 0; fbStart();
+                    return;
+                }
+            } catch (e) { }
             const cfg = getSyncCfg();
             if (!cfg) return;
             lastPullAt = Date.now();
@@ -5177,17 +5270,78 @@
             if (fbAuth) fbAuth.signOut();
         }
 
+        /* The live listener is the whole of receiving. If it dies — a dropped
+           wifi, a sleeping laptop, a TV left on all day — the device goes on
+           looking signed in while silently receiving nothing. So it reports
+           failure honestly and always climbs back. */
+        let fbRetry = 0, fbRetryTimer = null, fbLastRx = 0, fbHeartbeat = null;
+
         function fbStart() {
             if (!fbUser) return;
+            clearTimeout(fbRetryTimer);
+            try { if (fbUnsub) fbUnsub(); } catch (e) { }
             fbCol = firebase.firestore().collection('planners').doc(fbUser.uid).collection('kv');
             fbGotFirstSnapshot = false;
-            fbUnsub = fbCol.onSnapshot(fbOnSnapshot, () => setSyncStatus('sync error', false));
+            try {
+                fbUnsub = fbCol.onSnapshot(
+                    snap => { fbRetry = 0; fbLastRx = Date.now(); fbOnSnapshot(snap); },
+                    err => fbListenerLost(err && err.code)
+                );
+            } catch (e) { fbListenerLost('start-failed'); return; }
+            if (!fbHeartbeat) fbHeartbeat = setInterval(fbCheckAlive, 60000);
         }
 
+        function fbListenerLost(code) {
+            fbUnsub = null;
+            // permission/auth problems will not fix themselves by retrying
+            if (code === 'permission-denied' || code === 'unauthenticated') {
+                setSyncStatus('sync blocked — open Sync', false);
+                return;
+            }
+            fbRetry = Math.min(fbRetry + 1, 6);
+            const wait = Math.min(2000 * Math.pow(2, fbRetry - 1), 60000);
+            setSyncStatus('reconnecting…', false);
+            clearTimeout(fbRetryTimer);
+            fbRetryTimer = setTimeout(() => { if (fbUser) fbStart(); }, wait);
+        }
+
+        /* A listener can also go quiet without ever reporting an error. If we
+           have heard nothing for a long while, rebuild it rather than trust it. */
+        function fbCheckAlive() {
+            if (!fbUser || !FIREBASE_CONFIG) return;
+            if (!fbUnsub) { fbStart(); return; }
+            if (navigator.onLine === false) return;
+            if (fbLastRx && Date.now() - fbLastRx > 15 * 60 * 1000) fbStart();
+        }
+
+        /* Coming back to the device is the moment to make sure it is really
+           connected — this is when Maria looks at the screen and believes it. */
+        function fbWake() {
+            if (!fbUser || !FIREBASE_CONFIG) return;
+            if (!fbUnsub) { fbRetry = 0; fbStart(); }
+            fbPushDirty();
+        }
+        window.addEventListener('online', fbWake);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) fbWake(); });
+
         function fbStop() {
-            if (fbUnsub) { fbUnsub(); fbUnsub = null; }
+            if (fbUnsub) { try { fbUnsub(); } catch (e) { } fbUnsub = null; }
+            clearTimeout(fbRetryTimer);
+            if (fbHeartbeat) { clearInterval(fbHeartbeat); fbHeartbeat = null; }
+            fbRetry = 0; fbLastRx = 0;
             fbCol = null; fbLastCloud = {}; fbDirty.clear();
             setSyncStatus('', true);
+        }
+
+        /* Force a full exchange: rebuild the listener and offer everything this
+           device holds. This is what "Sync now" does when Live Sync is on. */
+        function fbForceSync() {
+            if (!fbActive()) return false;
+            fbRetry = 0;
+            fbLastCloud = {};        // re-offer everything, even if we think it matched
+            fbStart();
+            fbSeedPush();
+            return true;
         }
 
         function fbOnSnapshot(snap) {
@@ -5304,8 +5458,21 @@
             const outBtn = document.getElementById('fb-signout-btn');
             const note = document.getElementById('old-sync-section-note');
             if (fbUser) {
-                st.style.color = 'var(--ok)';
-                st.innerText = 'Signed in as ' + (fbUser.email || 'Maria') + ' ✓ — this device now syncs live.';
+                /* Signed in and connected are NOT the same thing: the account can
+                   stay signed in for days while the live connection is long dead.
+                   Say which is true, so a stale device is obvious. */
+                const connected = !!fbUnsub;
+                const heard = fbLastRx ? new Date(fbLastRx).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : null;
+                const who = fbUser.email || 'Maria';
+                if (connected) {
+                    st.style.color = 'var(--ok)';
+                    st.innerText = 'Connected as ' + who + ' ✓' + (heard ? ' · last heard from the others at ' + heard : '');
+                } else {
+                    st.style.color = 'var(--warn)';
+                    st.innerText = 'Signed in as ' + who + ', but NOT connected right now'
+                        + (heard ? ' · last update ' + heard : '')
+                        + '. Tap “Sync now” to reconnect.';
+                }
                 inBtn.style.display = 'none'; outBtn.style.display = 'inline-flex';
                 if (note) note.style.display = 'block';
             } else {
