@@ -1308,7 +1308,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.09.15</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.09.16</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana</span>
         </div>
@@ -1977,9 +1977,17 @@
                 <button class="nav-btn btn-light" onclick="disableSync()">Turn off</button>
                 <button class="nav-btn btn-light" onclick="pullAndMerge(true)">Sync now</button>
                 <button class="nav-btn btn-light" onclick="repairDuplicatesNow()" title="Collapse plan text that an older sync repeated">Clean up duplicates</button>
+                <button class="nav-btn btn-light" onclick="showSyncReport()" title="What this device is actually sending and receiving">Sync details</button>
                 <button class="nav-btn btn-brand" onclick="saveSyncCfg()">Save &amp; Test</button>
             </div>
             <div id="sync-modal-status" style="font-size:0.82em; font-weight:700; margin-top:8px; min-height:1.2em;"></div>
+            <div id="sync-report" style="display:none; margin-top:12px;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                    <span style="font-size:12px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-muted);">Sync details</span>
+                    <button class="nav-btn btn-light" id="sync-report-copy" style="padding:4px 12px; font-size:12px;">Copy</button>
+                </div>
+                <pre style="margin:0; max-height:230px; overflow:auto; background:var(--sheet-tint); border-radius:10px; padding:12px; font-size:11.5px; line-height:1.5; white-space:pre-wrap; word-break:break-word; color:var(--ink-body); font-family:ui-monospace,monospace;"></pre>
+            </div>
         </div>
     </div>
 
@@ -2006,7 +2014,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.09.15';
+        const PLANNER_VERSION = 'v2026.09.16';
 
         /* ---- Change-time tracking for sync (newest edit wins on conflicts) ----
            Every write to storage stamps when that item last changed on this
@@ -5118,6 +5126,7 @@
 
         function closeSyncModal() {
             document.getElementById('sync-modal-backdrop').style.display = 'none';
+            const rep = document.getElementById('sync-report'); if (rep) rep.style.display = 'none';
         }
 
         async function saveSyncCfg() {
@@ -5446,6 +5455,68 @@
                 fbPushTimer = setTimeout(fbPushDirty, 15000);
                 setSyncStatus('offline — will catch up', false);
             }
+        }
+
+        /* ---- What is this device actually doing? ----
+           When a device looks connected but work is not arriving, this is the
+           readout that settles it: who it is, whether the live link is really
+           open, what it still owes the cloud, and — per week — when each cell
+           was last edited here. Reading the same report off two devices shows
+           immediately which one is behind and why. */
+        function buildSyncReport() {
+            const L = [];
+            const time = t => t ? new Date(Number(t)).toLocaleString() : 'never';
+            L.push('DEVICE ' + fbDeviceId() + '  ·  ' + PLANNER_VERSION);
+            L.push('page: ' + location.href.split('?')[0]);
+            if (!FIREBASE_CONFIG) L.push('Live Sync: not configured in this build');
+            else if (!fbUser) L.push('Live Sync: NOT SIGNED IN');
+            else {
+                L.push('signed in: ' + (fbUser.email || '?'));
+                L.push('live connection: ' + (fbUnsub ? 'OPEN' : 'CLOSED  <-- receives nothing while closed'));
+                L.push('last heard from others: ' + (fbLastRx ? new Date(fbLastRx).toLocaleString() : 'never this session'));
+                L.push('waiting to upload: ' + fbDirty.size + ' item(s)');
+                if (fbDirty.size) L.push('  ' + Array.from(fbDirty).slice(0, 8).join(', '));
+            }
+            L.push('old sync configured: ' + (getSyncCfg() ? 'yes' : 'no'));
+            L.push('online: ' + (navigator.onLine !== false));
+            const meta = getSyncMeta();
+            L.push('');
+            L.push('WEEKS ON THIS DEVICE');
+            const weeks = Object.keys(localStorage).filter(k => k.startsWith('week_')).sort();
+            if (!weeks.length) L.push('  (none)');
+            weeks.forEach(k => {
+                let filled = 0, dated = 0, newest = 0;
+                try {
+                    const doc = new DOMParser().parseFromString('<table><tbody>' + localStorage.getItem(k) + '</tbody></table>', 'text/html');
+                    doc.querySelectorAll('.cell-notes').forEach(c => {
+                        if ((c.textContent || '').trim()) filled++;
+                        const ts = Number(c.dataset.ts || 0);
+                        if (ts) { dated++; if (ts > newest) newest = ts; }
+                    });
+                } catch (e) { }
+                L.push('  ' + k.slice(5) + '  cells with text: ' + filled + ', dated: ' + dated +
+                    ', newest edit: ' + (newest ? new Date(newest).toLocaleString() : '—') +
+                    ', saved here: ' + time(meta[k]));
+            });
+            const tw = Object.keys(localStorage).filter(k => k.startsWith('spTracker.v1.week')).length;
+            L.push('');
+            L.push('tracker weeks stored: ' + tw);
+            L.push('sticky notes: ' + (JSON.parse(localStorage.getItem('home_stickies') || '[]') || []).length +
+                ', deletions recorded: ' + Object.keys((getTombs()['home_stickies'] || {})).length);
+            return L.join('\n');
+        }
+
+        function showSyncReport() {
+            const text = buildSyncReport();
+            const box = document.getElementById('sync-report');
+            if (!box) return;
+            box.style.display = 'block';
+            box.querySelector('pre').textContent = text;
+            const btn = document.getElementById('sync-report-copy');
+            if (btn) btn.onclick = () => {
+                try { navigator.clipboard.writeText(text); showBackupToast('Sync details copied ✓'); }
+                catch (e) { showBackupToast('Select the text and copy it manually.'); }
+            };
         }
 
         function fbUpdateUi() {
