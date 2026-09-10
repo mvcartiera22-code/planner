@@ -1308,7 +1308,7 @@
         <div class="brand">
             <div class="brand-text">
                 <h1>Digital Teacher Planner</h1>
-                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.09.16</span></p>
+                <p>Maria Cartiera · St. Paul's Spanish, Grades 1-8 <span id="planner-version" style="opacity:0.55; text-transform:none; font-weight:500; letter-spacing:0.04em; margin-left:6px;">v2026.09.17</span></p>
             </div>
             <span id="monthly-theme-badge">Herencia Hispana</span>
         </div>
@@ -2014,7 +2014,7 @@
     </div>
 
     <script>
-        const PLANNER_VERSION = 'v2026.09.16';
+        const PLANNER_VERSION = 'v2026.09.17';
 
         /* ---- Change-time tracking for sync (newest edit wins on conflicts) ----
            Every write to storage stamps when that item last changed on this
@@ -2034,7 +2034,7 @@
            sibling app outright.
            ⚠ ANY NEW PLANNER STORAGE KEY MUST BE LISTED HERE, or it will not be
            backed up and will not sync. */
-        const PLANNER_KEY = /^(glyph_clean_v1$|glyph_clean_v2$|week_|month_|year_|spTracker\.v1\.|seating_|weekly_todos_|home_stickies$|home_links$|resources$|copies_done$|sync_meta$|sync_meta_seeded$|sync_cfg$|sync_last$|seats_lastclass$|planner_|fb_device_id$|dup_repair_v1$|prerepair_)/;
+        const PLANNER_KEY = /^(glyph_clean_v1$|glyph_clean_v2$|week_|month_|year_|spTracker\.v1\.|seating_|weekly_todos_|home_stickies$|home_links$|resources$|copies_done$|sync_meta$|sync_meta_seeded$|sync_cfg$|sync_last$|seats_lastclass$|planner_|dup_repair_v1$|prerepair_)/;
         function isPlannerKey(k) { return !!k && PLANNER_KEY.test(k); }
         let syncMetaCache = null;
 
@@ -5219,15 +5219,27 @@
 
         const FB_SDK_BASE = 'https://www.gstatic.com/firebasejs/10.14.1/';
         // Per-device bookkeeping and cloud config must not travel between devices.
-        const FB_SKIP = /^(sync_meta$|sync_meta_seeded$|sync_cfg$|sync_last$|planner_restore_summary$|planner_backup_snooze$|planner_last_backup$|seats_lastclass$|prerepair_|dup_repair_v1$|fb_device_id$|firebase:)/;
+        const FB_SKIP = /^(fb_device_id$|fb_device_local$|sync_meta$|sync_meta_seeded$|sync_cfg$|sync_last$|planner_restore_summary$|planner_backup_snooze$|planner_last_backup$|seats_lastclass$|prerepair_|dup_repair_v1$|firebase:)/;
 
         let fbAuth = null, fbCol = null, fbUser = null, fbUnsub = null;
         let fbDirty = new Set(), fbPushTimer = null, fbLastCloud = {};
         let fbGotFirstSnapshot = false;
 
+        /* This device's own name for itself. It must NEVER travel: every device
+           ignores incoming changes stamped with its own id (they are assumed to
+           be its own edits echoing back), so two devices sharing an id throw
+           away each other's work in both directions — which is exactly what
+           happened when the old key rode along inside backups and the legacy
+           sync. The key below is deliberately outside PLANNER_KEY, so it is
+           never collected, never backed up and never synced. */
         function fbDeviceId() {
-            let id = localStorage.getItem('fb_device_id');
-            if (!id) { id = 'd' + Math.random().toString(36).slice(2, 10); _rawSet('fb_device_id', id); }
+            let id = localStorage.getItem('fb_device_local');
+            if (!id) {
+                id = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+                _rawSet('fb_device_local', id);
+                // retire the shared one so it can never be consulted again
+                try { localStorage.removeItem('fb_device_id'); } catch (e) { }
+            }
             return id;
         }
 
@@ -5365,9 +5377,15 @@
                 // and never apply it locally.
                 if (!isPlannerKey(key)) { fbPurgeForeign(doc.ref, key); return; }
                 if (typeof d.v !== 'string') return;
-                // Our own writes echo back through the listener; remember them
-                // as the cloud's copy but do not re-apply or re-push them.
-                if (doc.metadata.hasPendingWrites || d.d === fbDeviceId()) { fbLastCloud[key] = d.v; return; }
+                /* Our own writes echo back through the listener. Skip an echo —
+                   but only when the value really is the one we last sent. A
+                   change that merely CLAIMS to be from this device while
+                   carrying different content is another device (an id can be
+                   duplicated by an old backup), and discarding it would silently
+                   throw away that device's work. Content decides, not identity. */
+                const claimsUs = d.d === fbDeviceId();
+                const isEcho = doc.metadata.hasPendingWrites || (claimsUs && fbLastCloud[key] === d.v);
+                if (isEcho) { fbLastCloud[key] = d.v; return; }
                 fbLastCloud[key] = d.v;
                 incoming[key] = d.v;
                 meta[key] = d.t || 0;
